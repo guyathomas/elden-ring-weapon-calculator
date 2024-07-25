@@ -8,7 +8,7 @@
 import { memo } from "react";
 import { Box, Link, Typography } from "@mui/material";
 import RemoveIcon from "@mui/icons-material/Remove";
-import { type Weapon, type Attribute } from "../../calculator/calculator";
+import { type Weapon, type DamageAttribute } from "../../calculator/calculator";
 import { getAttributeLabel } from "../uiUtils";
 
 export const blankIcon = <RemoveIcon color="disabled" fontSize="small" />;
@@ -62,7 +62,7 @@ export const ScalingRenderer = memo(function ScalingRenderer({
 }: {
   weapon: Weapon;
   upgradeLevel: number;
-  attribute: Attribute;
+  attribute: DamageAttribute;
   numerical?: boolean;
 }) {
   const scalingValue = attributeScaling[upgradeLevel][attribute];
@@ -86,7 +86,7 @@ export const AttributeRequirementRenderer = memo(function AttributeRequirementRe
   ineffective,
 }: {
   weapon: Weapon;
-  attribute: Attribute;
+  attribute: DamageAttribute;
   ineffective: boolean;
 }) {
   const requirement = requirements[attribute] ?? 0;

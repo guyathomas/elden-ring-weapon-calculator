@@ -2,7 +2,7 @@ import {
   allDamageTypes,
   AttackPowerType,
   WeaponType,
-  type Attribute,
+  type AllAttribute,
 } from "../calculator/calculator";
 import specialWeaponIcon from "./img/specialWeapon.webp";
 import standardAffinityIcon from "./img/standardAffinity.webp";
@@ -276,7 +276,7 @@ export const damageTypeIcons = new Map([
   [AttackPowerType.DEATH_BLIGHT, deathBlightStatusIcon],
 ]);
 
-export function getAttributeLabel(attribute: Attribute) {
+export function getAttributeLabel(attribute: AllAttribute) {
   switch (attribute) {
     case "str":
       return "Strength";
@@ -291,7 +291,7 @@ export function getAttributeLabel(attribute: Attribute) {
   }
 }
 
-export function getShortAttributeLabel(attribute: Attribute) {
+export function getShortAttributeLabel(attribute: AllAttribute) {
   switch (attribute) {
     case "str":
       return "Str";

@@ -5,7 +5,7 @@ import { WeaponType } from "./weaponTypes";
 
 interface WeaponAttackOptions {
   weapon: Weapon;
-  attributes: Attributes;
+  attributes: DamageAttributeValues;
   twoHanding?: boolean;
   upgradeLevel: number;
   disableTwoHandingAttackPowerBonus?: boolean;
@@ -16,7 +16,7 @@ export interface WeaponAttackResult {
   upgradeLevel: number;
   attackPower: Partial<Record<AttackPowerType, number>>;
   spellScaling: Partial<Record<AttackPowerType, number>>;
-  ineffectiveAttributes: Attribute[];
+  ineffectiveAttributes: DamageAttribute[];
   ineffectiveAttackPowerTypes: AttackPowerType[];
 }
 
@@ -31,8 +31,8 @@ export function adjustAttributesForTwoHanding({
 }: {
   twoHanding?: boolean;
   weapon: Weapon;
-  attributes: Attributes;
-}): Attributes {
+  attributes: DamageAttributeValues;
+}): DamageAttributeValues {
   let twoHandingBonus = twoHanding;
 
   // Paired weapons do not get the two handing bonus
@@ -73,7 +73,7 @@ export default function getWeaponAttack({
 }: WeaponAttackOptions): WeaponAttackResult {
   const adjustedAttributes = adjustAttributesForTwoHanding({ twoHanding, weapon, attributes });
 
-  const ineffectiveAttributes = (Object.entries(weapon.requirements) as [Attribute, number][])
+  const ineffectiveAttributes = (Object.entries(weapon.requirements) as [DamageAttribute, number][])
     .filter(([attribute, requirement]) => adjustedAttributes[attribute] < requirement)
     .map(([attribute]) => attribute);
 
@@ -82,7 +82,7 @@ export default function getWeaponAttack({
   const attackPower: Partial<Record<AttackPowerType, number>> = {};
   const spellScaling: Partial<Record<AttackPowerType, number>> = {};
 
-  for (const attackPowerType of [...allDamageTypes, ...allStatusTypes]) {
+  for (const attackPowerType of allAttackPowerTypes) {
     const isDamageType = allDamageTypes.includes(attackPowerType);
 
     const baseAttackPower = weapon.attack[upgradeLevel][attackPowerType] ?? 0;
@@ -103,7 +103,7 @@ export default function getWeaponAttack({
         // multiplied by the scaling for that attribute
         const effectiveAttributes =
           !disableTwoHandingAttackPowerBonus && isDamageType ? adjustedAttributes : attributes;
-        for (const attribute of allAttributes) {
+        for (const attribute of damageAttributes) {
           const attributeCorrect = scalingAttributes[attribute];
           if (attributeCorrect) {
             let scaling: number;

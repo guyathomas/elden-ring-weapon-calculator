@@ -1,9 +1,9 @@
-import type { Attribute } from "./attributes";
+import type { DamageAttribute } from "./attributes";
 import type { AttackPowerType } from "./attackPowerTypes";
 import type { WeaponType } from "./weaponTypes";
 
 export type AttackElementCorrect = Partial<
-  Record<AttackPowerType, Partial<Record<Attribute, number | true>>>
+  Record<AttackPowerType, Partial<Record<DamageAttribute, number | true>>>
 >;
 
 export interface Weapon {
@@ -35,12 +35,12 @@ export interface Weapon {
   /**
    * Player attribute requirements to use the weapon effectively (without an attack rating penalty)
    */
-  requirements: Partial<Record<Attribute, number>>;
+  requirements: Partial<Record<DamageAttribute, number>>;
 
   /**
    * Scaling amount for each player attribute at each upgrade level
    */
-  attributeScaling: Partial<Record<Attribute, number>>[];
+  attributeScaling: Partial<Record<DamageAttribute, number>>[];
 
   /**
    * Base attack power for each damage type, status effect, and spell scaling at each upgrade level

@@ -2,9 +2,9 @@ import { Typography } from "@mui/material";
 import {
   AttackPowerType,
   allAttackPowerTypes,
-  allAttributes,
   allDamageTypes,
   allStatusTypes,
+  damageAttributes,
 } from "../../calculator/calculator";
 import {
   damageTypeIcons,
@@ -161,7 +161,7 @@ const totalAttackPowerColumn: WeaponTableColumnDef = {
   },
 };
 
-const scalingColumns: WeaponTableColumnDef[] = allAttributes.map((attribute) => ({
+const scalingColumns: WeaponTableColumnDef[] = damageAttributes.map((attribute) => ({
   key: `${attribute}Scaling`,
   sortBy: `${attribute}Scaling`,
   header: (
@@ -178,7 +178,7 @@ const scalingColumns: WeaponTableColumnDef[] = allAttributes.map((attribute) => 
   },
 }));
 
-const numericalScalingColumns: WeaponTableColumnDef[] = allAttributes.map((attribute) => ({
+const numericalScalingColumns: WeaponTableColumnDef[] = damageAttributes.map((attribute) => ({
   key: `${attribute}Scaling`,
   sortBy: `${attribute}Scaling`,
   header: (
@@ -202,7 +202,7 @@ const numericalScalingColumns: WeaponTableColumnDef[] = allAttributes.map((attri
   },
 }));
 
-const requirementColumns = allAttributes.map(
+const requirementColumns = damageAttributes.map(
   (attribute): WeaponTableColumnDef => ({
     key: `${attribute}Requirement`,
     sortBy: `${attribute}Requirement`,

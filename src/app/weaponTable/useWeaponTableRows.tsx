@@ -3,7 +3,7 @@ import getWeaponAttack, {
   allAttackPowerTypes,
   AttackPowerType,
   WeaponType,
-  type Attributes,
+  type DamageAttributeValues,
   type Weapon,
 } from "../../calculator/calculator";
 import filterWeapons from "../../search/filterWeapons";
@@ -19,7 +19,7 @@ import {
 } from "../uiUtils";
 
 interface WeaponTableRowsOptions {
-  weapons: readonly Weapon[];
+  weapons: Weapon[];
   regulationVersion: RegulationVersion;
   offset: number;
   limit: number;
@@ -27,7 +27,7 @@ interface WeaponTableRowsOptions {
   reverse: boolean;
   affinityIds: readonly number[];
   weaponTypes: readonly WeaponType[];
-  attributes: Attributes;
+  attributes: DamageAttributeValues;
   includeDLC: boolean;
   effectiveOnly: boolean;
   twoHanding: boolean;

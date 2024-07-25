@@ -13,9 +13,9 @@ import NumberTextField from "./NumberTextField";
 import { getAttributeLabel, maxRegularUpgradeLevel, toSpecialUpgradeLevel } from "./uiUtils";
 
 interface AttributeInputProps {
-  attribute: Attribute;
+  attribute: AllAttribute;
   value: number;
-  onAttributeChanged(attribute: Attribute, value: number): void;
+  onAttributeChanged(attribute: AllAttribute, value: number): void;
 }
 
 /**

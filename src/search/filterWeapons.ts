@@ -1,8 +1,8 @@
 import {
   adjustAttributesForTwoHanding,
   WeaponType,
-  type Attribute,
-  type Attributes,
+  type DamageAttribute,
+  type DamageAttributeValues,
   type Weapon,
 } from "../calculator/calculator";
 
@@ -20,7 +20,7 @@ export interface FilterWeaponsOptions {
   /**
    * Only include weapons that are effective with the given player attribute values
    */
-  effectiveWithAttributes?: Attributes;
+  effectiveWithAttributes?: DamageAttributeValues;
 
   /**
    * Include weapons from the Shadow of the Erdtree expansion if true
@@ -40,7 +40,7 @@ export interface FilterWeaponsOptions {
  * Implements the UI/business logic for filtering weapons by type, affinity, etc.
  */
 export default function filterWeapons(
-  weapons: readonly Weapon[],
+  weapons: Weapon[],
   {
     weaponTypes,
     affinityIds,
@@ -49,7 +49,7 @@ export default function filterWeapons(
     twoHanding,
     uninfusableWeaponTypes,
   }: FilterWeaponsOptions,
-): readonly Weapon[] {
+): Weapon[] {
   function filterWeapon(weapon: Weapon): boolean {
     if (!includeDLC && weapon.dlc) {
       return false;
@@ -90,7 +90,7 @@ export default function filterWeapons(
       });
 
       if (
-        (Object.entries(weapon.requirements) as [Attribute, number][]).some(
+        (Object.entries(weapon.requirements) as [DamageAttribute, number][]).some(
           ([attribute, requirement]) => attributes[attribute] < requirement,
         )
       ) {
