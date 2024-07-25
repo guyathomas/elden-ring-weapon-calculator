@@ -4,7 +4,7 @@ import {
   AttackPowerType,
   WeaponType,
 } from "./calculator/calculator";
-import type { AttackElementCorrect, Attribute, Weapon } from "./calculator/calculator";
+import type { AttackElementCorrect, DamageAttribute, Weapon } from "./calculator/calculator";
 
 export const defaultDamageCalcCorrectGraphId = 0;
 export const defaultStatusCalcCorrectGraphId = 6;
@@ -20,7 +20,7 @@ export type CalcCorrectGraph = {
 
 export interface ReinforceParamWeapon {
   attack: Partial<Record<AttackPowerType, number>>;
-  attributeScaling: Record<Attribute, number>;
+  attributeScaling: Record<DamageAttribute, number>;
   statusSpEffectId1?: number;
   statusSpEffectId2?: number;
   statusSpEffectId3?: number;
@@ -35,7 +35,7 @@ export interface EncodedRegulationDataJson {
   };
   readonly attackElementCorrects: {
     readonly [attackElementCorrectId in number]?: Partial<
-      Record<AttackPowerType, Partial<Record<Attribute, number | true>>>
+      Record<AttackPowerType, Partial<Record<DamageAttribute, number | true>>>
     >;
   };
   readonly reinforceTypes: {
@@ -58,8 +58,8 @@ export interface EncodedWeaponJson {
   url?: string | null;
   affinityId: number;
   weaponType: WeaponType;
-  requirements: Partial<Record<Attribute, number>>;
-  attributeScaling: (readonly [Attribute, number])[];
+  requirements: Partial<Record<DamageAttribute, number>>;
+  attributeScaling: (readonly [DamageAttribute, number])[];
   attack: (readonly [AttackPowerType, number])[];
   statusSpEffectParamIds?: number[];
   reinforceTypeId: number;

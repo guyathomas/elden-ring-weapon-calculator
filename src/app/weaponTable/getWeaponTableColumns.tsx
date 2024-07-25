@@ -2,9 +2,9 @@ import { Typography } from "@mui/material";
 import {
   AttackPowerType,
   allAttackPowerTypes,
-  allAttributes,
   allDamageTypes,
   allStatusTypes,
+  damageAttributes,
 } from "../../calculator/calculator";
 import {
   damageTypeIcons,
@@ -12,6 +12,7 @@ import {
   getAttributeLabel,
   getShortAttributeLabel,
   getTotalDamageAttackPower,
+  weaponTypeLabels,
 } from "../uiUtils";
 import type { WeaponTableColumnDef, WeaponTableColumnGroupDef } from "./WeaponTable";
 import {
@@ -19,6 +20,7 @@ import {
   ScalingRenderer,
   AttributeRequirementRenderer,
   AttackPowerRenderer,
+  OptimizedAttributeRenderer,
 } from "./tableRenderers";
 
 const nameColumn: WeaponTableColumnDef = {
@@ -34,6 +36,22 @@ const nameColumn: WeaponTableColumnDef = {
   },
   render([weapon, { upgradeLevel }]) {
     return <WeaponNameRenderer weapon={weapon} upgradeLevel={upgradeLevel} />;
+  },
+};
+
+const weaponTypeColumn: WeaponTableColumnDef = {
+  key: "weaponType",
+  sortBy: "weaponType",
+  header: (
+    <Typography component="span" variant="subtitle2">
+      Type
+    </Typography>
+  ),
+  sx: {
+    justifyContent: "start",
+  },
+  render([weapon]) {
+    return <Typography variant="body1">{weaponTypeLabels.get(weapon.weaponType)}</Typography>;
   },
 };
 
@@ -161,7 +179,7 @@ const totalAttackPowerColumn: WeaponTableColumnDef = {
   },
 };
 
-const scalingColumns: WeaponTableColumnDef[] = allAttributes.map((attribute) => ({
+const scalingColumns: WeaponTableColumnDef[] = damageAttributes.map((attribute) => ({
   key: `${attribute}Scaling`,
   sortBy: `${attribute}Scaling`,
   header: (
@@ -178,7 +196,7 @@ const scalingColumns: WeaponTableColumnDef[] = allAttributes.map((attribute) => 
   },
 }));
 
-const numericalScalingColumns: WeaponTableColumnDef[] = allAttributes.map((attribute) => ({
+const numericalScalingColumns: WeaponTableColumnDef[] = damageAttributes.map((attribute) => ({
   key: `${attribute}Scaling`,
   sortBy: `${attribute}Scaling`,
   header: (
@@ -202,7 +220,7 @@ const numericalScalingColumns: WeaponTableColumnDef[] = allAttributes.map((attri
   },
 }));
 
-const requirementColumns = allAttributes.map(
+const requirementColumns = damageAttributes.map(
   (attribute): WeaponTableColumnDef => ({
     key: `${attribute}Requirement`,
     sortBy: `${attribute}Requirement`,
@@ -227,12 +245,38 @@ const requirementColumns = allAttributes.map(
   }),
 );
 
+const optimizedAttributesColumns = damageAttributes.map(
+  (attribute): WeaponTableColumnDef => ({
+    key: `${attribute}Optimized`,
+    sortBy: `${attribute}Optimized`,
+    header: (
+      <Typography
+        component="span"
+        variant="subtitle2"
+        title={`${getAttributeLabel(attribute)} Optimized`}
+      >
+        {getShortAttributeLabel(attribute)}
+      </Typography>
+    ),
+    render([weapon, { ineffectiveAttributes }, damageAttributeValues]) {
+      return (
+        <OptimizedAttributeRenderer
+          key={attribute}
+          value={damageAttributeValues?.highestAttributes?.[attribute]}
+          attribute={attribute}
+        />
+      );
+    },
+  }),
+);
+
 interface WeaponTableColumnsOptions {
   splitDamage: boolean;
   splitSpellScaling: boolean;
   numericalScaling: boolean;
   attackPowerTypes: ReadonlySet<AttackPowerType>;
   spellScaling: boolean;
+  optimalAttributesPercentageComplete: number;
 }
 
 export default function getWeaponTableColumns({
@@ -241,6 +285,7 @@ export default function getWeaponTableColumns({
   numericalScaling,
   attackPowerTypes,
   spellScaling,
+  optimalAttributesPercentageComplete,
 }: WeaponTableColumnsOptions): WeaponTableColumnGroupDef[] {
   const includedStatusTypes = allStatusTypes.filter((statusType) =>
     attackPowerTypes.has(statusType),
@@ -253,6 +298,7 @@ export default function getWeaponTableColumns({
         key: "spellScaling",
         sx: {
           width: 40 * splitSpellScalingColumns.length + 27,
+          flex: 1,
         },
         header: "Spell Scaling",
         columns: splitSpellScalingColumns,
@@ -262,6 +308,7 @@ export default function getWeaponTableColumns({
         key: "spellScaling",
         sx: {
           width: 128,
+          flex: 1,
         },
         columns: [spellScalingColumn],
       };
@@ -271,7 +318,7 @@ export default function getWeaponTableColumns({
   return [
     {
       key: "name",
-      sx: { flex: 1, minWidth: 320 },
+      sx: { flex: 1, minWidth: 160 },
       columns: [nameColumn],
     },
     ...(spellScalingColumnGroup ? [spellScalingColumnGroup] : []),
@@ -280,6 +327,7 @@ export default function getWeaponTableColumns({
           key: "attack",
           sx: {
             width: 40 * (allDamageTypes.length + 1) + 27,
+            flex: 1,
           },
           header: "Attack Power",
           columns: [
@@ -291,6 +339,7 @@ export default function getWeaponTableColumns({
           key: "attack",
           sx: {
             width: 128,
+            flex: 1,
           },
           columns: [totalAttackPowerColumn],
         },
@@ -300,6 +349,7 @@ export default function getWeaponTableColumns({
             key: "statusEffects",
             sx: {
               width: Math.max(40 * includedStatusTypes.length + 21, 141),
+              flex: 1,
             },
             header: "Status Effects",
             columns: includedStatusTypes.map((statusType) => attackColumns[statusType]),
@@ -310,6 +360,7 @@ export default function getWeaponTableColumns({
       key: "scaling",
       sx: {
         width: (numericalScaling ? 40 : 36) * scalingColumns.length + 21,
+        flex: 1,
       },
       header: "Attribute Scaling",
       columns: numericalScaling ? numericalScalingColumns : scalingColumns,
@@ -318,9 +369,53 @@ export default function getWeaponTableColumns({
       key: "requirements",
       sx: {
         width: 36 * requirementColumns.length + 21,
+        flex: 1,
       },
       header: "Attributes Required",
       columns: requirementColumns,
+    },
+    {
+      key: "optimalAttributes",
+      sx: {
+        width: 40 * (allDamageTypes.length + 1) + 27,
+        flex: 1,
+      },
+      header: `Optimal Attributes${
+        optimalAttributesPercentageComplete >= 100
+          ? ""
+          : ` (${optimalAttributesPercentageComplete}%)`
+      }`,
+      columns: [
+        ...optimizedAttributesColumns,
+        {
+          key: `arOptimized`,
+          sortBy: `totalAttackOptimized`,
+          header: (
+            <Typography component="span" variant="subtitle2" title={`Total AR`}>
+              AR
+            </Typography>
+          ),
+          render([weapon, { ineffectiveAttributes }, damageAttributeValues]) {
+            return (
+              <OptimizedAttributeRenderer
+                value={damageAttributeValues?.highestWeaponAttackResult}
+              />
+            );
+          },
+        },
+        {
+          key: `optimizedDisposablePoints`,
+          sortBy: `optimizedDisposablePoints`,
+          header: (
+            <Typography component="span" variant="subtitle2" title={`Disposable Points`}>
+              DP
+            </Typography>
+          ),
+          render([weapon, { ineffectiveAttributes }, damageAttributeValues]) {
+            return <OptimizedAttributeRenderer value={damageAttributeValues?.disposablePoints} />;
+          },
+        },
+      ],
     },
   ];
 }

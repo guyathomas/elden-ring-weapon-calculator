@@ -19,8 +19,10 @@ import {
   WeaponTableGroup,
   WeaponTableGroupHeaderRow,
 } from "./tableStyledComponents";
+import type { OptimalAttribute } from "./useOptimalAttributes";
+import { useAppStateContext } from "../AppStateProvider";
 
-export type WeaponTableRowData = [Weapon, WeaponAttackResult];
+export type WeaponTableRowData = [Weapon, WeaponAttackResult, OptimalAttribute];
 
 export interface WeaponTableRowGroup {
   key: string;
@@ -46,6 +48,7 @@ export interface WeaponTableColumnGroupDef {
 interface Props {
   rowGroups: readonly WeaponTableRowGroup[];
   placeholder?: ReactNode;
+  total?: number;
   footer?: ReactNode;
   sortBy: SortBy;
   reverse: boolean;
@@ -201,9 +204,16 @@ function WeaponTable({
   numericalScaling,
   attackPowerTypes,
   spellScaling,
+  total,
   onSortByChanged,
   onReverseChanged,
 }: Props) {
+  const { optimalAttributes } = useAppStateContext();
+  const optimalAttributesPercentageComplete = useMemo(() => {
+    if (typeof total === "undefined") return 0;
+    return Math.floor((100 * Object.keys(optimalAttributes).length) / total);
+  }, [total, optimalAttributes]);
+
   const columnGroups = useMemo(
     () =>
       getWeaponTableColumns({
@@ -212,8 +222,16 @@ function WeaponTable({
         numericalScaling,
         attackPowerTypes,
         spellScaling,
+        optimalAttributesPercentageComplete,
       }),
-    [splitDamage, splitSpellScaling, numericalScaling, attackPowerTypes, spellScaling],
+    [
+      splitDamage,
+      splitSpellScaling,
+      numericalScaling,
+      attackPowerTypes,
+      spellScaling,
+      optimalAttributesPercentageComplete,
+    ],
   );
 
   return (

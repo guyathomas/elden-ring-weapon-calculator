@@ -8,8 +8,10 @@
 import { memo } from "react";
 import { Box, Link, Typography } from "@mui/material";
 import RemoveIcon from "@mui/icons-material/Remove";
-import { type Weapon, type Attribute } from "../../calculator/calculator";
+import { type Weapon, type DamageAttribute, damageAttributes } from "../../calculator/calculator";
 import { getAttributeLabel } from "../uiUtils";
+import { useAppStateContext } from "../AppStateProvider";
+import { INITIAL_CLASS_VALUES } from "../ClassPicker";
 
 export const blankIcon = <RemoveIcon color="disabled" fontSize="small" />;
 
@@ -62,7 +64,7 @@ export const ScalingRenderer = memo(function ScalingRenderer({
 }: {
   weapon: Weapon;
   upgradeLevel: number;
-  attribute: Attribute;
+  attribute: DamageAttribute;
   numerical?: boolean;
 }) {
   const scalingValue = attributeScaling[upgradeLevel][attribute];
@@ -86,7 +88,7 @@ export const AttributeRequirementRenderer = memo(function AttributeRequirementRe
   ineffective,
 }: {
   weapon: Weapon;
-  attribute: Attribute;
+  attribute: DamageAttribute;
   ineffective: boolean;
 }) {
   const requirement = requirements[attribute] ?? 0;
@@ -109,6 +111,24 @@ export const AttributeRequirementRenderer = memo(function AttributeRequirementRe
   }
 
   return <>{requirement}</>;
+});
+
+/**
+ * Component that displays the best stats to use given the provided constraints for this weapon
+ */
+export const OptimizedAttributeRenderer = memo(function AttributeRequirementRenderer({
+  value,
+  attribute,
+}: {
+  value?: number;
+  attribute?: DamageAttribute;
+}) {
+  const { startingClass } = useAppStateContext();
+
+  if (typeof value === "undefined") return <>?</>;
+  const startingClassStats = INITIAL_CLASS_VALUES[startingClass];
+  if (value === 0 || (attribute && value <= startingClassStats[attribute])) return blankIcon;
+  return <>{Math.floor(value)}</>;
 });
 
 /**
