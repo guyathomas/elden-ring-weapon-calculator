@@ -1,14 +1,25 @@
-import { useEffect, useMemo, useState } from "react";
-import { type Attribute, type Attributes, WeaponType } from "../calculator/calculator";
+import { useEffect, useMemo, useState, createContext, useContext } from "react";
+import {
+  type DamageAttribute,
+  type DamageAttributeValues,
+  WeaponType,
+  type AttributeSolverValues,
+  type AttributeSolverKey,
+  type Weapon,
+} from "../calculator/calculator";
 import type { SortBy } from "../search/sortWeapons";
 import type { RegulationVersionName } from "./regulationVersions";
 import regulationVersions from "./regulationVersions";
 import { dlcWeaponTypes } from "./uiUtils";
+import type { OptimalAttribute } from "./weaponTable/useOptimalAttributes";
+import { INITIAL_CLASS_VALUES, type StartingClass } from "./ClassPicker";
 
 interface AppState {
   readonly regulationVersionName: RegulationVersionName;
-  readonly attributes: Attributes;
+  readonly attributes: DamageAttributeValues;
+  readonly solverAttributes: AttributeSolverValues;
   readonly twoHanding: boolean;
+  readonly weaponAdjustedEndurance: boolean;
   readonly upgradeLevel: number;
   readonly weaponTypes: readonly WeaponType[];
   readonly affinityIds: readonly number[];
@@ -19,32 +30,61 @@ interface AppState {
   readonly numericalScaling: boolean;
   readonly sortBy: SortBy;
   readonly reverse: boolean;
+  readonly optimalAttributes: Record<Weapon["name"], OptimalAttribute>;
+  readonly startingClass: StartingClass;
 }
 
 interface UpdateAppState extends AppState {
   setRegulationVersionName(regulationVersionName: RegulationVersionName): void;
-  setAttribute(attribute: Attribute, value: number): void;
+  setAttribute(attribute: DamageAttribute, value: number): void;
+  setAttributeSolver(attribute: AttributeSolverKey, value: number): void;
   setTwoHanding(twoHanding: boolean): void;
   setUpgradeLevel(upgradeLevel: number): void;
   setWeaponTypes(weaponTypes: readonly WeaponType[]): void;
   setAffinityIds(affinityIds: readonly number[]): void;
   setIncludeDLC(includeDLC: boolean): void;
+  setWeaponAdjustedEndurance(weaponAdjustedEndurance: boolean): void;
   setEffectiveOnly(effectiveOnly: boolean): void;
   setSplitDamage(splitDamage: boolean): void;
   setGroupWeaponTypes(groupWeaponTypes: boolean): void;
   setNumericalScaling(numericalScaling: boolean): void;
   setSortBy(sortBy: SortBy): void;
   setReverse(reverse: boolean): void;
+  // Update the optimal attributes for a weapon or '' for weaponName to clear the optimal attribute for all weapons
+  setOptimalAttributeForWeapon(
+    weaponName: Weapon["name"],
+    optimalAttribute?: OptimalAttribute,
+  ): void;
+  setStartingClass(startingClass: StartingClass): void;
 }
+
+const startingClass: StartingClass = "Vagabond";
 
 const defaultAppState: AppState = {
   regulationVersionName: "latest",
+  startingClass: "Vagabond",
   attributes: {
-    str: 30,
-    dex: 30,
-    int: 30,
-    fai: 30,
-    arc: 30,
+    str: INITIAL_CLASS_VALUES[startingClass].str,
+    dex: INITIAL_CLASS_VALUES[startingClass].dex,
+    int: INITIAL_CLASS_VALUES[startingClass].int,
+    fai: INITIAL_CLASS_VALUES[startingClass].fai,
+    arc: INITIAL_CLASS_VALUES[startingClass].arc,
+  },
+  solverAttributes: {
+    [`str.Min`]: INITIAL_CLASS_VALUES[startingClass].str,
+    [`str.Max`]: 99,
+    [`dex.Min`]: INITIAL_CLASS_VALUES[startingClass].dex,
+    [`dex.Max`]: 99,
+    [`int.Min`]: INITIAL_CLASS_VALUES[startingClass].int,
+    [`int.Max`]: 99,
+    [`fai.Min`]: INITIAL_CLASS_VALUES[startingClass].fai,
+    [`fai.Max`]: 99,
+    [`arc.Min`]: INITIAL_CLASS_VALUES[startingClass].arc,
+    [`arc.Max`]: 99,
+    end: INITIAL_CLASS_VALUES[startingClass].end,
+    min: INITIAL_CLASS_VALUES[startingClass].min,
+    vig: INITIAL_CLASS_VALUES[startingClass].vig,
+    lvl: INITIAL_CLASS_VALUES[startingClass].lvl,
   },
   twoHanding: false,
   upgradeLevel: 25,
@@ -57,6 +97,8 @@ const defaultAppState: AppState = {
   numericalScaling: false,
   sortBy: "totalAttack",
   reverse: false,
+  optimalAttributes: {},
+  weaponAdjustedEndurance: false,
 };
 
 /**
@@ -97,11 +139,39 @@ function updateUrl(regulationVersionName: RegulationVersionName) {
   );
 }
 
+const AppStateContext = createContext<UpdateAppState>({
+  ...defaultAppState,
+  setRegulationVersionName: () => undefined,
+  setAttribute: () => undefined,
+  setAttributeSolver: () => undefined,
+  setTwoHanding: () => undefined,
+  setUpgradeLevel: () => undefined,
+  setWeaponTypes: () => undefined,
+  setAffinityIds: () => undefined,
+  setIncludeDLC: () => undefined,
+  setEffectiveOnly: () => undefined,
+  setSplitDamage: () => undefined,
+  setGroupWeaponTypes: () => undefined,
+  setNumericalScaling: () => undefined,
+  setSortBy: () => undefined,
+  setReverse: () => undefined,
+  setOptimalAttributeForWeapon: () => undefined,
+  setStartingClass: () => undefined,
+  setWeaponAdjustedEndurance: () => undefined,
+});
+
+export const AppStateProvider = ({ children }: { children: React.ReactNode }) => {
+  const appState = useCreateAppState();
+  return <AppStateContext.Provider value={appState}>{children}</AppStateContext.Provider>;
+};
+
+export const useAppStateContext = () => useContext(AppStateContext);
+
 /**
  * Manages all of the user selectable filters and display options, and saves/loads them in
  * localStorage for use on future page loads
  */
-export default function useAppState() {
+function useCreateAppState() {
   const [appState, setAppState] = useState<AppState>(() => {
     return getInitialAppState();
   });
@@ -129,6 +199,12 @@ export default function useAppState() {
         setAppState((prevAppState) => ({
           ...prevAppState,
           attributes: { ...prevAppState.attributes, [attribute]: value },
+        }));
+      },
+      setAttributeSolver(attribute, value) {
+        setAppState((prevAppState) => ({
+          ...prevAppState,
+          solverAttributes: { ...prevAppState.solverAttributes, [attribute]: value },
         }));
       },
       setTwoHanding(twoHanding) {
@@ -169,6 +245,28 @@ export default function useAppState() {
       },
       setReverse(reverse) {
         setAppState((prevAppState) => ({ ...prevAppState, reverse }));
+      },
+      setOptimalAttributeForWeapon(weaponName, optimalAttribute) {
+        setAppState((prevAppState) => {
+          if (!optimalAttribute) return prevAppState; // Error case, ignore
+          const newOptimalAttributes =
+            weaponName === "" // When '' explicitly passed for weaponName, clear state
+              ? {}
+              : {
+                  ...prevAppState.optimalAttributes,
+                  [weaponName]: optimalAttribute,
+                };
+          return {
+            ...prevAppState,
+            optimalAttributes: newOptimalAttributes,
+          };
+        });
+      },
+      setStartingClass(startingClass) {
+        setAppState((prevAppState) => ({ ...prevAppState, startingClass }));
+      },
+      setWeaponAdjustedEndurance(weaponAdjustedEndurance) {
+        setAppState((prevAppState) => ({ ...prevAppState, weaponAdjustedEndurance }));
       },
     }),
     [],

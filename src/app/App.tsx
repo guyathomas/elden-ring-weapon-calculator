@@ -21,7 +21,7 @@ import useWeaponTableRows from "./weaponTable/useWeaponTableRows";
 import theme from "./theme";
 import regulationVersions from "./regulationVersions";
 import useWeapons from "./useWeapons";
-import useAppState from "./useAppState";
+import { useAppStateContext } from "./AppStateProvider";
 import AppBar from "./AppBar";
 import RegulationVersionPicker from "./RegulationVersionPicker";
 import WeaponTypePicker from "./WeaponTypePicker";
@@ -125,7 +125,7 @@ export default function App() {
     setNumericalScaling,
     setSortBy,
     setReverse,
-  } = useAppState();
+  } = useAppStateContext();
 
   const { isMobile, menuOpen, menuOpenMobile, onMenuOpenChanged } = useMenuState();
 
