@@ -82,4 +82,9 @@ export interface Weapon {
    * If true, this weapon is from the Shadow of the Erdtree expansion
    */
   dlc: boolean;
+
+  /**
+   * The weight of the weapon
+   */
+  weight?: number;
 }

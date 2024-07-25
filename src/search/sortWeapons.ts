@@ -8,8 +8,11 @@ export type SortBy =
   | `${AttackPowerType}Attack`
   | "sortBy"
   | `${AttackPowerType}SpellScaling`
-  | `${Attribute}Scaling`
-  | `${Attribute}Requirement`;
+  | `${DamageAttribute}Scaling`
+  | `${DamageAttribute}Requirement`
+  | `${DamageAttribute}Optimized`
+  | `totalAttackOptimized`
+  | `optimizedDisposablePoints`;
 
 /**
  * Sort and paginate a filtered list of weapons for display in the weapon table
@@ -39,14 +42,29 @@ export function sortWeapons(
     }
 
     if (sortBy.endsWith("Scaling")) {
-      const attribute = sortBy.slice(0, -1 * "Scaling".length) as Attribute;
+      const attribute = sortBy.slice(0, -1 * "Scaling".length) as DamageAttribute;
       return ([weapon, { upgradeLevel }]) =>
         -(weapon.attributeScaling[upgradeLevel][attribute] ?? 0);
     }
 
     if (sortBy.endsWith("Requirement")) {
-      const attribute = sortBy.slice(0, -1 * "Requirement".length) as Attribute;
+      const attribute = sortBy.slice(0, -1 * "Requirement".length) as DamageAttribute;
       return ([weapon]) => -(weapon.requirements[attribute] ?? 0);
+    }
+
+    if (sortBy === "totalAttackOptimized") {
+      return ([weapon, weaponAttack, optimizedStats]) =>
+        -(optimizedStats?.highestWeaponAttackResult ?? 0);
+    }
+
+    if (sortBy === "optimizedDisposablePoints") {
+      return ([weapon, weaponAttack, optimizedStats]) => -(optimizedStats?.disposablePoints ?? 0);
+    }
+
+    if (sortBy.endsWith("Optimized")) {
+      const attributeType = sortBy.slice(0, -1 * "Optimized".length) as DamageAttribute;
+      return ([weapon, weaponAttack, optimizedStats]) =>
+        -(optimizedStats?.highestAttributes[attributeType] ?? 0);
     }
 
     return () => "";

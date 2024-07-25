@@ -1,5 +1,5 @@
-import { allAttributes, type Attribute, type Attributes } from "./attributes";
-import { AttackPowerType, allDamageTypes, allStatusTypes } from "./attackPowerTypes";
+import { damageAttributes, type DamageAttribute, type DamageAttributeValues } from "./attributes";
+import { AttackPowerType, allAttackPowerTypes, allDamageTypes } from "./attackPowerTypes";
 import type { Weapon } from "./weapon";
 import { WeaponType } from "./weaponTypes";
 
@@ -13,11 +13,11 @@ interface WeaponAttackOptions {
 }
 
 export interface WeaponAttackResult {
-  upgradeLevel: number;
   attackPower: Partial<Record<AttackPowerType, number>>;
   spellScaling: Partial<Record<AttackPowerType, number>>;
   ineffectiveAttributes: DamageAttribute[];
   ineffectiveAttackPowerTypes: AttackPowerType[];
+  upgradeLevel: number;
 }
 
 /**
@@ -67,9 +67,9 @@ export default function getWeaponAttack({
   weapon,
   attributes,
   twoHanding,
-  upgradeLevel,
   disableTwoHandingAttackPowerBonus,
   ineffectiveAttributePenalty = 0.4,
+  upgradeLevel,
 }: WeaponAttackOptions): WeaponAttackResult {
   const adjustedAttributes = adjustAttributesForTwoHanding({ twoHanding, weapon, attributes });
 
@@ -136,7 +136,6 @@ export default function getWeaponAttack({
   }
 
   return {
-    upgradeLevel,
     attackPower,
     spellScaling,
     ineffectiveAttributes,

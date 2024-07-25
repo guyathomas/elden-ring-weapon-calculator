@@ -29,3 +29,16 @@ Regulation data was extracted from the game using [WitchyBND](https://github.com
 Elden Ring Reforged support uses data from the [Elden Ring Reforged](https://www.nexusmods.com/eldenring/mods/541) mod provided by [ivi](https://github.com/ividyon) from the ERR team.
 
 The Convergence Mod support uses data extracted from [The Convergence Mod](https://www.nexusmods.com/eldenring/mods/3419) public alpha on Nexus Mods.
+
+## TODO:
+
+- [ ] Support recalculating only on button press
+- [ ] Support setting class and determining min trats
+- [ ] Copy Stats to optimized stats to Main Calculator
+- [ ] Take into consideration the weapon weight when making calculations ( Will need to gather roll target )
+- [ ] Column in the OptimizedAttributes outlining the disposable points for that build
+
+## Bugs
+
+- [ ] Solve why changing fields requires a refresh to take effect
+- [ ] Solve why cached optimal attributes doesn't clear

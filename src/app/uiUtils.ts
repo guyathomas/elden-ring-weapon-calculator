@@ -3,6 +3,8 @@ import {
   AttackPowerType,
   WeaponType,
   type AllAttribute,
+  type DamageAttribute,
+  type Weapon,
 } from "../calculator/calculator";
 import specialWeaponIcon from "./img/specialWeapon.webp";
 import standardAffinityIcon from "./img/standardAffinity.webp";
@@ -288,6 +290,12 @@ export function getAttributeLabel(attribute: AllAttribute) {
       return "Faith";
     case "arc":
       return "Arcane";
+    case "vig":
+      return "Vigor";
+    case "min":
+      return "Mind";
+    case "end":
+      return "Endurance";
   }
 }
 
@@ -303,6 +311,12 @@ export function getShortAttributeLabel(attribute: AllAttribute) {
       return "Fai";
     case "arc":
       return "Arc";
+    case "vig":
+      return "Vig";
+    case "min":
+      return "Min";
+    case "end":
+      return "End";
   }
 }
 

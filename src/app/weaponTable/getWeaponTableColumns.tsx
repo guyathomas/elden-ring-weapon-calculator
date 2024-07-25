@@ -12,6 +12,7 @@ import {
   getAttributeLabel,
   getShortAttributeLabel,
   getTotalDamageAttackPower,
+  weaponTypeLabels,
 } from "../uiUtils";
 import type { WeaponTableColumnDef, WeaponTableColumnGroupDef } from "./WeaponTable";
 import {
@@ -19,6 +20,7 @@ import {
   ScalingRenderer,
   AttributeRequirementRenderer,
   AttackPowerRenderer,
+  OptimizedAttributeRenderer,
 } from "./tableRenderers";
 
 const nameColumn: WeaponTableColumnDef = {
@@ -34,6 +36,22 @@ const nameColumn: WeaponTableColumnDef = {
   },
   render([weapon, { upgradeLevel }]) {
     return <WeaponNameRenderer weapon={weapon} upgradeLevel={upgradeLevel} />;
+  },
+};
+
+const weaponTypeColumn: WeaponTableColumnDef = {
+  key: "weaponType",
+  sortBy: "weaponType",
+  header: (
+    <Typography component="span" variant="subtitle2">
+      Type
+    </Typography>
+  ),
+  sx: {
+    justifyContent: "start",
+  },
+  render([weapon]) {
+    return <Typography variant="body1">{weaponTypeLabels.get(weapon.weaponType)}</Typography>;
   },
 };
 
@@ -227,12 +245,37 @@ const requirementColumns = damageAttributes.map(
   }),
 );
 
+const optimizedAttributesColumns = damageAttributes.map(
+  (attribute): WeaponTableColumnDef => ({
+    key: `${attribute}Optimized`,
+    sortBy: `${attribute}Optimized`,
+    header: (
+      <Typography
+        component="span"
+        variant="subtitle2"
+        title={`${getAttributeLabel(attribute)} Optimized`}
+      >
+        {getShortAttributeLabel(attribute)}
+      </Typography>
+    ),
+    render([weapon, { ineffectiveAttributes }, damageAttributeValues]) {
+      return (
+        <OptimizedAttributeRenderer
+          key={attribute}
+          value={damageAttributeValues?.highestAttributes[attribute]}
+        />
+      );
+    },
+  }),
+);
+
 interface WeaponTableColumnsOptions {
   splitDamage: boolean;
   splitSpellScaling: boolean;
   numericalScaling: boolean;
   attackPowerTypes: ReadonlySet<AttackPowerType>;
   spellScaling: boolean;
+  optimalAttributesPercentageComplete: number;
 }
 
 export default function getWeaponTableColumns({
@@ -241,6 +284,7 @@ export default function getWeaponTableColumns({
   numericalScaling,
   attackPowerTypes,
   spellScaling,
+  optimalAttributesPercentageComplete,
 }: WeaponTableColumnsOptions): WeaponTableColumnGroupDef[] {
   const includedStatusTypes = allStatusTypes.filter((statusType) =>
     attackPowerTypes.has(statusType),
@@ -271,7 +315,7 @@ export default function getWeaponTableColumns({
   return [
     {
       key: "name",
-      sx: { flex: 1, minWidth: 320 },
+      sx: { flex: 1, minWidth: 160 },
       columns: [nameColumn],
     },
     ...(spellScalingColumnGroup ? [spellScalingColumnGroup] : []),
@@ -321,6 +365,49 @@ export default function getWeaponTableColumns({
       },
       header: "Attributes Required",
       columns: requirementColumns,
+    },
+    {
+      key: "optimalAttributes",
+      sx: {
+        width: 36 * requirementColumns.length + 21,
+        flex: 2,
+      },
+      header: `Optimal Attributes${
+        optimalAttributesPercentageComplete >= 100
+          ? ""
+          : ` (${optimalAttributesPercentageComplete}%)`
+      }`,
+      columns: [
+        ...optimizedAttributesColumns,
+        {
+          key: `arOptimized`,
+          sortBy: `totalAttackOptimized`,
+          header: (
+            <Typography component="span" variant="subtitle2" title={`Total AR`}>
+              AR
+            </Typography>
+          ),
+          render([weapon, { ineffectiveAttributes }, damageAttributeValues]) {
+            return (
+              <OptimizedAttributeRenderer
+                value={damageAttributeValues?.highestWeaponAttackResult}
+              />
+            );
+          },
+        },
+        {
+          key: `optimizedDisposablePoints`,
+          sortBy: `optimizedDisposablePoints`,
+          header: (
+            <Typography component="span" variant="subtitle2" title={`Disposable Points`}>
+              DP
+            </Typography>
+          ),
+          render([weapon, { ineffectiveAttributes }, damageAttributeValues]) {
+            return <OptimizedAttributeRenderer value={damageAttributeValues?.disposablePoints} />;
+          },
+        },
+      ],
     },
   ];
 }

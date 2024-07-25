@@ -112,6 +112,19 @@ export const AttributeRequirementRenderer = memo(function AttributeRequirementRe
 });
 
 /**
+ * Component that displays the best stats to use given the provided constraints for this weapon
+ */
+export const OptimizedAttributeRenderer = memo(function AttributeRequirementRenderer({
+  value,
+}: {
+  value?: number;
+}) {
+  if (typeof value === "undefined") return <>?</>;
+  if (value === 0) return blankIcon;
+  return <>{Math.floor(value)}</>;
+});
+
+/**
  * Component that displays one damage type / status effect / spell scaling of a weapon.
  */
 export const AttackPowerRenderer = memo(function AttackPowerRenderer({
