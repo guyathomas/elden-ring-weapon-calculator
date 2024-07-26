@@ -42,3 +42,5 @@ The Convergence Mod support uses data extracted from [The Convergence Mod](https
 
 - [ ] Solve why changing fields requires a refresh to take effect
 - [ ] Solve why cached optimal attributes doesn't clear
+- [ ] It also doesn't account for 2h
+- [ ] It also doesn't account for ... something else. Do a diff.

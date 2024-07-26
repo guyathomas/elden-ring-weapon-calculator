@@ -10,13 +10,14 @@ import { useAppStateContext } from "../AppStateProvider";
 import { INITIAL_CLASS_VALUES, type StartingClass } from "../ClassPicker";
 import { ENDURANCE_LEVEL_TO_EQUIP_LOAD } from "./constants";
 import { getIncrementalDamagePerAttribute } from "../../calculator/newCalculator";
+import { maxRegularUpgradeLevel, toSpecialUpgradeLevel } from "../uiUtils";
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export interface OptimalAttribute {
   highestWeaponAttackResult: number;
   highestAttributes: DamageAttributeValues;
-  disposablePoints: number;
+  // disposablePoints: number;
 }
 
 function getIncrementalEndurance(weaponWeight: number, initialEndurance: number) {
@@ -92,7 +93,8 @@ export const useOptimalAttributes = ({
   regulationVersion,
   solverAttributes: sa,
   twoHanding,
-  upgradeLevel,
+  upgradeLevel: regularUpgradeLevel,
+  maxUpgradeLevel = maxRegularUpgradeLevel,
   startingClass,
   weaponAdjustedEndurance,
 }: {
@@ -101,6 +103,7 @@ export const useOptimalAttributes = ({
   solverAttributes: AttributeSolverValues;
   twoHanding: boolean;
   upgradeLevel: number;
+  maxUpgradeLevel: number;
   startingClass: StartingClass;
   weaponAdjustedEndurance: boolean;
 }) => {
@@ -108,6 +111,12 @@ export const useOptimalAttributes = ({
   const calculateHighestWeaponAttackResult = useCallback(
     function (weapon: Weapon): Promise<OptimalAttribute> {
       return new Promise((resolve) => {
+        let upgradeLevel = 0;
+        if (weapon.attack.length - 1 === maxUpgradeLevel) {
+          upgradeLevel = toSpecialUpgradeLevel(regularUpgradeLevel);
+        } else {
+          upgradeLevel = Math.min(regularUpgradeLevel, weapon.attack.length - 1);
+        }
         // let highestWeaponAttackResult = 0;
         // let highestAttributes: DamageAttributeValues = {
         //   str: 0,
@@ -196,11 +205,11 @@ export const useOptimalAttributes = ({
         const optimalAttributes = getMaxAttackPower(
           [dmg.str, dmg.dex, dmg.int, dmg.fai, dmg.arc],
           [
-            [sa["str.Min"], sa["str.Max"]],
-            [sa["dex.Min"], sa["dex.Max"]],
-            [sa["int.Min"], sa["int.Max"]],
-            [sa["fai.Min"], sa["fai.Max"]],
-            [sa["arc.Min"], sa["arc.Max"]],
+            [Math.max(sa["str.Min"], weapon.requirements.str ?? 0), sa["str.Max"]],
+            [Math.max(sa["dex.Min"], weapon.requirements.dex ?? 0), sa["dex.Max"]],
+            [Math.max(sa["int.Min"], weapon.requirements.int ?? 0), sa["int.Max"]],
+            [Math.max(sa["fai.Min"], weapon.requirements.fai ?? 0), sa["fai.Max"]],
+            [Math.max(sa["arc.Min"], weapon.requirements.arc ?? 0), sa["arc.Max"]],
           ],
           SPENDABLE,
         );
@@ -209,11 +218,11 @@ export const useOptimalAttributes = ({
           highestWeaponAttackResult: optimalAttributes.maxValue + dmg.base,
           highestAttributes: optimalAttributes.highestAttributes,
           // TODO: Remove me - Temporarily putting this here for easy comparison
-          disposablePoints: optimalAttributes.maxValue + dmg.base,
+          // disposablePoints: optimalAttributes.maxValue + dmg.base,
         });
       });
     },
-    [upgradeLevel, sa, startingClass, weaponAdjustedEndurance],
+    [sa, startingClass, weaponAdjustedEndurance, regularUpgradeLevel, maxUpgradeLevel],
   );
 
   useEffect(() => {

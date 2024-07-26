@@ -74,7 +74,7 @@ const useWeaponTableRows = ({
     const rows = weapons.map((weapon): WeaponTableRowData => {
       // TODO: This is used in 2 places. Extract into func
       let upgradeLevel = 0;
-      if (weapon.attack.length - 1 === maxSpecialUpgradeLevel) {
+      if (weapon.attack.length - 1 === maxUpgradeLevel) {
         upgradeLevel = toSpecialUpgradeLevel(regularUpgradeLevel);
       } else {
         upgradeLevel = Math.min(regularUpgradeLevel, weapon.attack.length - 1);

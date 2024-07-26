@@ -15,6 +15,7 @@ export function createDamageScalingPerAttribute(weapon: Weapon, weaponUpgradeLev
     arc: Array.from({ length: 150 }, () => ({ ...damageTypeScaling })),
     base: {},
   };
+  // TODO: Fix the unarmed case. There is only 1 weapon upgrade and not sure how to hanldle it. Added the || {} to be safe
   const baseWeaponAttackForWeaponLevel = weapon.attack[weaponUpgradeLevel]; // {0: 73.84, 1: 62.400000000000006, 8: 73}
   const scalingStatsForWeaponLevel = weapon.attributeScaling[weaponUpgradeLevel]; // {str: 0.3875, dex: 0.725, int: 0.65}
   returnValue.base = baseWeaponAttackForWeaponLevel;

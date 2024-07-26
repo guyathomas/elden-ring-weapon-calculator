@@ -371,7 +371,7 @@ export default function getWeaponTableColumns({
       key: "optimalAttributes",
       sx: {
         width: 36 * requirementColumns.length + 21,
-        flex: 2,
+        flex: 1,
       },
       header: `Optimal Attributes${
         optimalAttributesPercentageComplete >= 100
@@ -396,18 +396,18 @@ export default function getWeaponTableColumns({
             );
           },
         },
-        {
-          key: `optimizedDisposablePoints`,
-          sortBy: `optimizedDisposablePoints`,
-          header: (
-            <Typography component="span" variant="subtitle2" title={`Disposable Points`}>
-              DP
-            </Typography>
-          ),
-          render([weapon, { ineffectiveAttributes }, damageAttributeValues]) {
-            return <OptimizedAttributeRenderer value={damageAttributeValues?.disposablePoints} />;
-          },
-        },
+        // {
+        //   key: `optimizedDisposablePoints`,
+        //   sortBy: `optimizedDisposablePoints`,
+        //   header: (
+        //     <Typography component="span" variant="subtitle2" title={`Disposable Points`}>
+        //       DP
+        //     </Typography>
+        //   ),
+        //   render([weapon, { ineffectiveAttributes }, damageAttributeValues]) {
+        //     return <OptimizedAttributeRenderer value={damageAttributeValues?.disposablePoints} />;
+        //   },
+        // },
       ],
     },
   ];

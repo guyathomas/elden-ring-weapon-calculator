@@ -57,9 +57,9 @@ export function sortWeapons(
         -(optimizedStats?.highestWeaponAttackResult ?? 0);
     }
 
-    if (sortBy === "optimizedDisposablePoints") {
-      return ([weapon, weaponAttack, optimizedStats]) => -(optimizedStats?.disposablePoints ?? 0);
-    }
+    // if (sortBy === "optimizedDisposablePoints") {
+    //   return ([weapon, weaponAttack, optimizedStats]) => -(optimizedStats?.disposablePoints ?? 0);
+    // }
 
     if (sortBy.endsWith("Optimized")) {
       const attributeType = sortBy.slice(0, -1 * "Optimized".length) as DamageAttribute;
