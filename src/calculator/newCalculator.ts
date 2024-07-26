@@ -1,5 +1,6 @@
 import { allDamageTypes, AttackPowerType } from "./attackPowerTypes";
 import type { DamageAttribute } from "./attributes";
+import { adjustStrengthForTwoHanding } from "./calculator";
 import type { Weapon } from "./weapon";
 
 type DamageTypeScaling = Partial<Record<AttackPowerType, number>>;
@@ -38,13 +39,6 @@ export function createDamageScalingPerAttribute(weapon: Weapon, weaponUpgradeLev
 
         const scaling = attributeScaling * calcCorrectGraphForDamageType[i];
         attributeLevelScaling[damageType] = baseDamageForDamageType * scaling;
-        if (Object.values(attributeLevelScaling[damageType]).length > 1) {
-          // TODO: Remove me
-          console.log(
-            `zzz Weapon ${weapon.name} has multiple values for ${attribute} at level ${i}`,
-            Object.keys(attributeLevelScaling[damageType]),
-          );
-        }
       }
     }
   }
@@ -53,7 +47,11 @@ export function createDamageScalingPerAttribute(weapon: Weapon, weaponUpgradeLev
 const sumObjectValues = (obj: Record<string, number>) =>
   Object.values(obj).reduce((acc, v) => acc + v, 0);
 
-export function getIncrementalDamagePerAttribute(weapon: Weapon, weaponUpgradeLevel: number) {
+export function getIncrementalDamagePerAttribute(
+  weapon: Weapon,
+  weaponUpgradeLevel: number,
+  twoHanding: boolean,
+) {
   const damageScalingPerAttribute = createDamageScalingPerAttribute(weapon, weaponUpgradeLevel);
 
   return Object.entries(damageScalingPerAttribute).reduce((acc, [attribute, damageScaling]) => {
@@ -63,7 +61,18 @@ export function getIncrementalDamagePerAttribute(weapon: Weapon, weaponUpgradeLe
           acc + (allDamageTypes.includes(parseInt(damageType) as AttackPowerType) ? damage : 0)
         );
       }, 0);
-    } else if (attribute !== "base" && Array.isArray(damageScaling)) {
+    } else if (attribute === "str" && Array.isArray(damageScaling)) {
+      if (twoHanding) {
+        acc[attribute as Attribute] = damageScaling.map((v, i) => {
+          const adjustedStrength = adjustStrengthForTwoHanding({ weapon, twoHanding, str: i });
+          // Scaling values don't exist for 1.5*99 + 1 and onwards, so just return 0
+          if (!damageScaling[adjustedStrength]) return 0;
+          return sumObjectValues(damageScaling[adjustedStrength]);
+        });
+      } else {
+        acc[attribute as Attribute] = damageScaling.map((v) => sumObjectValues(v) || 0);
+      }
+    } else if (Array.isArray(damageScaling)) {
       acc[attribute as Attribute] = damageScaling.map((v) => sumObjectValues(v) || 0);
     }
     return acc;

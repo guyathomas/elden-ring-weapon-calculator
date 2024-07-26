@@ -5,23 +5,18 @@ import {
   type DamageAttributeValues,
 } from "../../calculator/calculator";
 import type { Weapon } from "../../calculator/weapon";
-import type { RegulationVersion } from "../regulationVersions";
 import { useAppStateContext } from "../AppStateProvider";
 import { INITIAL_CLASS_VALUES, type StartingClass } from "../ClassPicker";
 import { ENDURANCE_LEVEL_TO_EQUIP_LOAD } from "./constants";
 import { getIncrementalDamagePerAttribute } from "../../calculator/newCalculator";
-import {
-  getNormalizedUpgradeLevel,
-  maxRegularUpgradeLevel,
-  toSpecialUpgradeLevel,
-} from "../uiUtils";
+import { getNormalizedUpgradeLevel } from "../uiUtils";
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export interface OptimalAttribute {
   highestWeaponAttackResult: number;
   highestAttributes: DamageAttributeValues;
-  // disposablePoints: number;
+  disposablePoints: number;
 }
 
 function getIncrementalEndurance(weaponWeight: number, initialEndurance: number) {
@@ -97,7 +92,6 @@ export const useOptimalAttributes = ({
   solverAttributes: sa,
   twoHanding,
   upgradeLevel: regularUpgradeLevel,
-  maxUpgradeLevel = maxRegularUpgradeLevel,
   startingClass,
   weaponAdjustedEndurance,
 }: {
@@ -105,7 +99,6 @@ export const useOptimalAttributes = ({
   solverAttributes: AttributeSolverValues;
   twoHanding: boolean;
   upgradeLevel: number;
-  maxUpgradeLevel?: number;
   startingClass: StartingClass;
   weaponAdjustedEndurance: boolean;
 }) => {
@@ -114,18 +107,6 @@ export const useOptimalAttributes = ({
     function (weapon: Weapon): Promise<OptimalAttribute> {
       return new Promise((resolve) => {
         const normalizedUpgradeLevel = getNormalizedUpgradeLevel(weapon, regularUpgradeLevel);
-        // let highestWeaponAttackResult = 0;
-        // let highestAttributes: DamageAttributeValues = {
-        //   str: 0,
-        //   dex: 0,
-        //   int: 0,
-        //   fai: 0,
-        //   arc: 0,
-        // };
-        // let disposablePoints = 0;
-        // This doesn't include the points allocated to the damage attributes.
-        // If the damage attributes sum is higher, then no solution will be found
-
         // This value includes the value of the points that are unable to be moved, i.e. 14 pts in str
         const SPENDABLE =
           INITIAL_CLASS_VALUES[startingClass].total -
@@ -135,72 +116,8 @@ export const useOptimalAttributes = ({
           sa.vig -
           sa.end -
           (weaponAdjustedEndurance ? getIncrementalEndurance(weapon.weight ?? 0, sa.end) : 0);
-        // const scaledUpgradeLevel =
-        //   weapon.attack.length - 1 === regulationVersion.maxUpgradeLevel
-        //     ? 10
-        //     : Math.min(upgradeLevel, weapon.attack.length - 1);
-        // const scalingValues = weapon.attributeScaling[scaledUpgradeLevel];
-        // const minS = Math.max(sa["str.Min"], weapon.requirements.str || 0);
-        // const maxS = scalingValues.str ? Math.min(SPENDABLE, sa["str.Max"], 99) : minS;
-        // for (let s = minS; s <= maxS; s++) {
-        //   const minD = Math.max(sa["dex.Min"], weapon.requirements.dex || 0);
-        //   const maxD = scalingValues.dex ? Math.min(SPENDABLE - s, sa["dex.Max"], 99) : minD;
-        //   for (let d = minD; d <= maxD; d++) {
-        //     const minI = Math.max(sa["int.Min"], weapon.requirements.int || 0);
-        //     const maxI = scalingValues.int ? Math.min(SPENDABLE - s - d, sa["int.Max"], 99) : minI;
-        //     for (let i = minI; i <= maxI; i++) {
-        //       const minF = Math.max(sa["fai.Min"], weapon.requirements.fai || 0);
-        //       const maxF = scalingValues.fai
-        //         ? Math.min(SPENDABLE - s - d - i, sa["fai.Max"], 99)
-        //         : minF;
-        //       for (let f = minF; f <= maxF; f++) {
-        //         const minA = Math.max(sa["arc.Min"], weapon.requirements.arc || 0);
-        //         const maxA = scalingValues.arc
-        //           ? Math.min(SPENDABLE - s - d - i - f, sa["arc.Max"], 99)
-        //           : minA;
-        //         for (let a = minA; a <= maxA; a++) {
-        //           const pointSum = s + d + i + f + a;
-        //           if (pointSum === SPENDABLE || [s + d + i + f + a].includes(99)) {
-        //             const weaponAttackResult = getWeaponAttack({
-        //               weapon,
-        //               attributes: {
-        //                 str: s,
-        //                 dex: d,
-        //                 int: i,
-        //                 fai: f,
-        //                 arc: a,
-        //               },
-        //               twoHanding,
-        //               upgradeLevel: scaledUpgradeLevel,
-        //               disableTwoHandingAttackPowerBonus:
-        //                 regulationVersion.disableTwoHandingAttackPowerBonus,
-        //               ineffectiveAttributePenalty: regulationVersion.ineffectiveAttributePenalty,
-        //             });
 
-        //             const totalAR = Object.entries(weaponAttackResult.attackPower).reduce(
-        //               (acc, [damageType, value]) =>
-        //                 allDamageTypes.includes(parseInt(damageType) as AttackPowerType)
-        //                   ? acc + value
-        //                   : acc,
-        //               0,
-        //             );
-        //             if (totalAR > highestWeaponAttackResult) {
-        //               highestWeaponAttackResult = totalAR;
-        //               highestAttributes = {
-        //                 str: scalingValues.str ? s : 0,
-        //                 dex: scalingValues.dex ? d : 0,
-        //                 int: scalingValues.int ? i : 0,
-        //                 fai: scalingValues.fai ? f : 0,
-        //                 arc: scalingValues.arc ? a : 0,
-        //               };
-        //             }
-        //           }
-        //         }
-        //       }
-        //     }
-        //   }
-        // }
-        const dmg = getIncrementalDamagePerAttribute(weapon, normalizedUpgradeLevel);
+        const dmg = getIncrementalDamagePerAttribute(weapon, normalizedUpgradeLevel, twoHanding);
         const optimalAttributes = getMaxAttackPower(
           [dmg.str, dmg.dex, dmg.int, dmg.fai, dmg.arc],
           [
@@ -212,16 +129,19 @@ export const useOptimalAttributes = ({
           ],
           SPENDABLE,
         );
-
+        const spentPoints = Object.values(optimalAttributes.highestAttributes).reduce(
+          (acc, val) => acc + val,
+          0,
+        );
         resolve({
           highestWeaponAttackResult: optimalAttributes.maxValue + dmg.base,
           highestAttributes: optimalAttributes.highestAttributes,
           // TODO: Remove me - Temporarily putting this here for easy comparison
-          // disposablePoints: optimalAttributes.maxValue + dmg.base,
+          disposablePoints: SPENDABLE - spentPoints,
         });
       });
     },
-    [sa, startingClass, weaponAdjustedEndurance, regularUpgradeLevel, maxUpgradeLevel],
+    [sa, startingClass, weaponAdjustedEndurance, regularUpgradeLevel, twoHanding],
   );
 
   useEffect(() => {
@@ -235,3 +155,69 @@ export const useOptimalAttributes = ({
     })();
   }, [calculateHighestWeaponAttackResult, weapons, setOptimalAttributeForWeapon]);
 };
+
+// const scaledUpgradeLevel =
+//   weapon.attack.length - 1 === regulationVersion.maxUpgradeLevel
+//     ? 10
+//     : Math.min(upgradeLevel, weapon.attack.length - 1);
+// const scalingValues = weapon.attributeScaling[scaledUpgradeLevel];
+// const minS = Math.max(sa["str.Min"], weapon.requirements.str || 0);
+// const maxS = scalingValues.str ? Math.min(SPENDABLE, sa["str.Max"], 99) : minS;
+// for (let s = minS; s <= maxS; s++) {
+//   const minD = Math.max(sa["dex.Min"], weapon.requirements.dex || 0);
+//   const maxD = scalingValues.dex ? Math.min(SPENDABLE - s, sa["dex.Max"], 99) : minD;
+//   for (let d = minD; d <= maxD; d++) {
+//     const minI = Math.max(sa["int.Min"], weapon.requirements.int || 0);
+//     const maxI = scalingValues.int ? Math.min(SPENDABLE - s - d, sa["int.Max"], 99) : minI;
+//     for (let i = minI; i <= maxI; i++) {
+//       const minF = Math.max(sa["fai.Min"], weapon.requirements.fai || 0);
+//       const maxF = scalingValues.fai
+//         ? Math.min(SPENDABLE - s - d - i, sa["fai.Max"], 99)
+//         : minF;
+//       for (let f = minF; f <= maxF; f++) {
+//         const minA = Math.max(sa["arc.Min"], weapon.requirements.arc || 0);
+//         const maxA = scalingValues.arc
+//           ? Math.min(SPENDABLE - s - d - i - f, sa["arc.Max"], 99)
+//           : minA;
+//         for (let a = minA; a <= maxA; a++) {
+//           const pointSum = s + d + i + f + a;
+//           if (pointSum === SPENDABLE || [s + d + i + f + a].includes(99)) {
+//             const weaponAttackResult = getWeaponAttack({
+//               weapon,
+//               attributes: {
+//                 str: s,
+//                 dex: d,
+//                 int: i,
+//                 fai: f,
+//                 arc: a,
+//               },
+//               twoHanding,
+//               upgradeLevel: scaledUpgradeLevel,
+//               disableTwoHandingAttackPowerBonus:
+//                 regulationVersion.disableTwoHandingAttackPowerBonus,
+//               ineffectiveAttributePenalty: regulationVersion.ineffectiveAttributePenalty,
+//             });
+
+//             const totalAR = Object.entries(weaponAttackResult.attackPower).reduce(
+//               (acc, [damageType, value]) =>
+//                 allDamageTypes.includes(parseInt(damageType) as AttackPowerType)
+//                   ? acc + value
+//                   : acc,
+//               0,
+//             );
+//             if (totalAR > highestWeaponAttackResult) {
+//               highestWeaponAttackResult = totalAR;
+//               highestAttributes = {
+//                 str: scalingValues.str ? s : 0,
+//                 dex: scalingValues.dex ? d : 0,
+//                 int: scalingValues.int ? i : 0,
+//                 fai: scalingValues.fai ? f : 0,
+//                 arc: scalingValues.arc ? a : 0,
+//               };
+//             }
+//           }
+//         }
+//       }
+//     }
+//   }
+// }

@@ -3,7 +3,6 @@ import {
   AttackPowerType,
   WeaponType,
   type AllAttribute,
-  type DamageAttribute,
   type Weapon,
 } from "../calculator/calculator";
 import specialWeaponIcon from "./img/specialWeapon.webp";

@@ -33,11 +33,26 @@ export function adjustAttributesForTwoHanding({
   weapon: Weapon;
   attributes: DamageAttributeValues;
 }): DamageAttributeValues {
-  let twoHandingBonus = twoHanding;
+  return {
+    ...attributes,
+    str: adjustStrengthForTwoHanding({ twoHanding, weapon, str: attributes.str }),
+  };
+}
+
+export function adjustStrengthForTwoHanding({
+  twoHanding = false,
+  weapon,
+  str,
+}: {
+  twoHanding?: boolean;
+  weapon: Weapon;
+  str: number;
+}): number {
+  let applyTwoHandingBonus = twoHanding;
 
   // Paired weapons do not get the two handing bonus
   if (weapon.paired) {
-    twoHandingBonus = false;
+    applyTwoHandingBonus = false;
   }
 
   // Bows and ballistae can only be two handed
@@ -47,17 +62,9 @@ export function adjustAttributesForTwoHanding({
     weapon.weaponType === WeaponType.GREATBOW ||
     weapon.weaponType === WeaponType.BALLISTA
   ) {
-    twoHandingBonus = true;
+    applyTwoHandingBonus = true;
   }
-
-  if (twoHandingBonus) {
-    return {
-      ...attributes,
-      str: Math.floor(attributes.str * 1.5),
-    };
-  }
-
-  return attributes;
+  return applyTwoHandingBonus ? Math.floor(str * 1.5) : str;
 }
 
 /**

@@ -396,18 +396,18 @@ export default function getWeaponTableColumns({
             );
           },
         },
-        // {
-        //   key: `optimizedDisposablePoints`,
-        //   sortBy: `optimizedDisposablePoints`,
-        //   header: (
-        //     <Typography component="span" variant="subtitle2" title={`Disposable Points`}>
-        //       DP
-        //     </Typography>
-        //   ),
-        //   render([weapon, { ineffectiveAttributes }, damageAttributeValues]) {
-        //     return <OptimizedAttributeRenderer value={damageAttributeValues?.disposablePoints} />;
-        //   },
-        // },
+        {
+          key: `optimizedDisposablePoints`,
+          sortBy: `optimizedDisposablePoints`,
+          header: (
+            <Typography component="span" variant="subtitle2" title={`Disposable Points`}>
+              DP
+            </Typography>
+          ),
+          render([weapon, { ineffectiveAttributes }, damageAttributeValues]) {
+            return <OptimizedAttributeRenderer value={damageAttributeValues?.disposablePoints} />;
+          },
+        },
       ],
     },
   ];

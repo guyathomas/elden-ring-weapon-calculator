@@ -6,12 +6,7 @@ import getWeaponAttack, {
   type DamageAttributeValues,
   type Weapon,
 } from "../../calculator/calculator";
-import {
-  getNormalizedUpgradeLevel,
-  maxRegularUpgradeLevel,
-  maxSpecialUpgradeLevel,
-  toSpecialUpgradeLevel,
-} from "../uiUtils";
+import { getNormalizedUpgradeLevel } from "../uiUtils";
 
 import { type WeaponTableRowData, type WeaponTableRowGroup } from "./WeaponTable";
 import { type SortBy, sortWeapons } from "../../search/sortWeapons";
@@ -102,7 +97,11 @@ const useWeaponTableRows = ({
         includeSpellScaling = true;
       }
 
-      return [weapon, { ...weaponAttackResult, upgradeLevel }, optimalAttributes[weapon.name]];
+      return [
+        weapon,
+        { ...weaponAttackResult, upgradeLevel: normalizedUpgradeLevel },
+        optimalAttributes[weapon.name],
+      ];
     });
 
     return [rows, includedDamageTypes, includeSpellScaling];
