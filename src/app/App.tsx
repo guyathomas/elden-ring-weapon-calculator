@@ -31,6 +31,7 @@ import MiscFilterPicker from "./MiscFilterPicker";
 import { useOptimalAttributes } from "./weaponTable/useOptimalAttributes";
 import useFilteredWeapons from "./weaponTable/useFilteredWeapons";
 import { INITIAL_CLASS_VALUES, type StartingClass } from "./ClassPicker";
+import { maxRegularUpgradeLevel } from "./uiUtils";
 
 const useMenuState = () => {
   const theme = useTheme();
@@ -160,18 +161,18 @@ export default function App() {
     effectiveOnly,
     twoHanding,
     upgradeLevel,
-    maxUpgradeLevel: regulationVersion.maxUpgradeLevel,
+    maxUpgradeLevel: regulationVersion.maxUpgradeLevel || maxRegularUpgradeLevel,
     groupWeaponTypes,
   });
 
   useOptimalAttributes({
     weapons: filteredWeapons,
-    regulationVersion,
     solverAttributes,
     twoHanding,
-    upgradeLevel,
     startingClass,
     weaponAdjustedEndurance,
+    upgradeLevel,
+    maxUpgradeLevel: regulationVersion.maxUpgradeLevel || maxRegularUpgradeLevel,
   });
 
   const tablePlaceholder = useMemo(

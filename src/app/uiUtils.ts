@@ -344,6 +344,13 @@ export function toSpecialUpgradeLevel(regularUpgradeLevel: number) {
   );
 }
 
+export function getNormalizedUpgradeLevel(weapon: Weapon, upgradeLevel: number) {
+  const isSpecialWeapon = weapon.attack.length - 1 === maxSpecialUpgradeLevel;
+  return isSpecialWeapon
+    ? toSpecialUpgradeLevel(upgradeLevel)
+    : Math.min(upgradeLevel, weapon.attack.length - 1);
+}
+
 /**
  * @param regularUpgradeLevel the upgrade level of a somber weapon
  * @returns the corresponding upgrade level for a regular weapon

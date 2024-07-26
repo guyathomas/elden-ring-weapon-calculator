@@ -6,7 +6,12 @@ import getWeaponAttack, {
   type DamageAttributeValues,
   type Weapon,
 } from "../../calculator/calculator";
-import { maxRegularUpgradeLevel, maxSpecialUpgradeLevel, toSpecialUpgradeLevel } from "../uiUtils";
+import {
+  getNormalizedUpgradeLevel,
+  maxRegularUpgradeLevel,
+  maxSpecialUpgradeLevel,
+  toSpecialUpgradeLevel,
+} from "../uiUtils";
 
 import { type WeaponTableRowData, type WeaponTableRowGroup } from "./WeaponTable";
 import { type SortBy, sortWeapons } from "../../search/sortWeapons";
@@ -27,9 +32,9 @@ interface WeaponTableRowsOptions {
   includeDLC: boolean;
   effectiveOnly: boolean;
   twoHanding: boolean;
-  upgradeLevel: number;
-  maxUpgradeLevel?: number;
   groupWeaponTypes: boolean;
+  upgradeLevel: number;
+  maxUpgradeLevel: number;
 }
 
 interface WeaponTableRowsResult {
@@ -52,11 +57,10 @@ const useWeaponTableRows = ({
   regulationVersion,
   offset,
   limit,
-  upgradeLevel: regularUpgradeLevel,
   groupWeaponTypes,
-  maxUpgradeLevel = maxRegularUpgradeLevel,
   sortBy,
   reverse,
+  upgradeLevel,
   ...options
 }: WeaponTableRowsOptions): WeaponTableRowsResult => {
   // Defer filtering based on app state changes because this can be CPU intensive if done while
@@ -73,18 +77,13 @@ const useWeaponTableRows = ({
 
     const rows = weapons.map((weapon): WeaponTableRowData => {
       // TODO: This is used in 2 places. Extract into func
-      let upgradeLevel = 0;
-      if (weapon.attack.length - 1 === maxUpgradeLevel) {
-        upgradeLevel = toSpecialUpgradeLevel(regularUpgradeLevel);
-      } else {
-        upgradeLevel = Math.min(regularUpgradeLevel, weapon.attack.length - 1);
-      }
+      const normalizedUpgradeLevel = getNormalizedUpgradeLevel(weapon, upgradeLevel);
 
       const weaponAttackResult = getWeaponAttack({
         weapon,
         attributes,
         twoHanding,
-        upgradeLevel,
+        upgradeLevel: normalizedUpgradeLevel,
         disableTwoHandingAttackPowerBonus: regulationVersion.disableTwoHandingAttackPowerBonus,
         ineffectiveAttributePenalty: regulationVersion.ineffectiveAttributePenalty,
       });
@@ -107,7 +106,7 @@ const useWeaponTableRows = ({
     });
 
     return [rows, includedDamageTypes, includeSpellScaling];
-  }, [attributes, twoHanding, weapons, regulationVersion, regularUpgradeLevel, optimalAttributes]);
+  }, [attributes, twoHanding, weapons, regulationVersion, optimalAttributes, upgradeLevel]);
 
   const memoizedAttackPowerTypes = useMemo(
     () => attackPowerTypes,

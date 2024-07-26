@@ -10,7 +10,11 @@ import { useAppStateContext } from "../AppStateProvider";
 import { INITIAL_CLASS_VALUES, type StartingClass } from "../ClassPicker";
 import { ENDURANCE_LEVEL_TO_EQUIP_LOAD } from "./constants";
 import { getIncrementalDamagePerAttribute } from "../../calculator/newCalculator";
-import { maxRegularUpgradeLevel, toSpecialUpgradeLevel } from "../uiUtils";
+import {
+  getNormalizedUpgradeLevel,
+  maxRegularUpgradeLevel,
+  toSpecialUpgradeLevel,
+} from "../uiUtils";
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -90,7 +94,6 @@ function getMaxAttackPower(
 
 export const useOptimalAttributes = ({
   weapons,
-  regulationVersion,
   solverAttributes: sa,
   twoHanding,
   upgradeLevel: regularUpgradeLevel,
@@ -99,11 +102,10 @@ export const useOptimalAttributes = ({
   weaponAdjustedEndurance,
 }: {
   weapons: Weapon[];
-  regulationVersion: RegulationVersion;
   solverAttributes: AttributeSolverValues;
   twoHanding: boolean;
   upgradeLevel: number;
-  maxUpgradeLevel: number;
+  maxUpgradeLevel?: number;
   startingClass: StartingClass;
   weaponAdjustedEndurance: boolean;
 }) => {
@@ -111,12 +113,7 @@ export const useOptimalAttributes = ({
   const calculateHighestWeaponAttackResult = useCallback(
     function (weapon: Weapon): Promise<OptimalAttribute> {
       return new Promise((resolve) => {
-        let upgradeLevel = 0;
-        if (weapon.attack.length - 1 === maxUpgradeLevel) {
-          upgradeLevel = toSpecialUpgradeLevel(regularUpgradeLevel);
-        } else {
-          upgradeLevel = Math.min(regularUpgradeLevel, weapon.attack.length - 1);
-        }
+        const normalizedUpgradeLevel = getNormalizedUpgradeLevel(weapon, regularUpgradeLevel);
         // let highestWeaponAttackResult = 0;
         // let highestAttributes: DamageAttributeValues = {
         //   str: 0,
@@ -128,6 +125,8 @@ export const useOptimalAttributes = ({
         // let disposablePoints = 0;
         // This doesn't include the points allocated to the damage attributes.
         // If the damage attributes sum is higher, then no solution will be found
+
+        // This value includes the value of the points that are unable to be moved, i.e. 14 pts in str
         const SPENDABLE =
           INITIAL_CLASS_VALUES[startingClass].total -
           INITIAL_CLASS_VALUES[startingClass].lvl +
@@ -201,7 +200,7 @@ export const useOptimalAttributes = ({
         //     }
         //   }
         // }
-        const dmg = getIncrementalDamagePerAttribute(weapon, upgradeLevel);
+        const dmg = getIncrementalDamagePerAttribute(weapon, normalizedUpgradeLevel);
         const optimalAttributes = getMaxAttackPower(
           [dmg.str, dmg.dex, dmg.int, dmg.fai, dmg.arc],
           [
