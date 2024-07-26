@@ -262,7 +262,8 @@ const optimizedAttributesColumns = damageAttributes.map(
       return (
         <OptimizedAttributeRenderer
           key={attribute}
-          value={damageAttributeValues?.highestAttributes[attribute]}
+          value={damageAttributeValues?.highestAttributes?.[attribute]}
+          attribute={attribute}
         />
       );
     },

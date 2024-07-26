@@ -57,7 +57,11 @@ export function getIncrementalDamagePerAttribute(weapon: Weapon, weaponUpgradeLe
 
   return Object.entries(damageScalingPerAttribute).reduce((acc, [attribute, damageScaling]) => {
     if (attribute === "base" && !Array.isArray(damageScaling)) {
-      acc.base = sumObjectValues(damageScaling);
+      acc.base = Object.entries(damageScaling).reduce((acc, [damageType, damage]) => {
+        return (
+          acc + (allDamageTypes.includes(parseInt(damageType) as AttackPowerType) ? damage : 0)
+        );
+      }, 0);
     } else if (attribute !== "base" && Array.isArray(damageScaling)) {
       acc[attribute as Attribute] = damageScaling.map((v) => sumObjectValues(v) || 0);
     }

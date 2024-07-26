@@ -8,8 +8,10 @@
 import { memo } from "react";
 import { Box, Link, Typography } from "@mui/material";
 import RemoveIcon from "@mui/icons-material/Remove";
-import { type Weapon, type DamageAttribute } from "../../calculator/calculator";
+import { type Weapon, type DamageAttribute, damageAttributes } from "../../calculator/calculator";
 import { getAttributeLabel } from "../uiUtils";
+import { useAppStateContext } from "../AppStateProvider";
+import { INITIAL_CLASS_VALUES } from "../ClassPicker";
 
 export const blankIcon = <RemoveIcon color="disabled" fontSize="small" />;
 
@@ -116,11 +118,16 @@ export const AttributeRequirementRenderer = memo(function AttributeRequirementRe
  */
 export const OptimizedAttributeRenderer = memo(function AttributeRequirementRenderer({
   value,
+  attribute,
 }: {
   value?: number;
+  attribute?: DamageAttribute;
 }) {
+  const { startingClass } = useAppStateContext();
+
   if (typeof value === "undefined") return <>?</>;
-  if (value === 0) return blankIcon;
+  const startingClassStats = INITIAL_CLASS_VALUES[startingClass];
+  if (value === 0 || (attribute && value <= startingClassStats[attribute])) return blankIcon;
   return <>{Math.floor(value)}</>;
 });
 
