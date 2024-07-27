@@ -23,6 +23,8 @@ import {
 import NumberTextField from "./NumberTextField";
 import { getAttributeLabel, maxRegularUpgradeLevel, toSpecialUpgradeLevel } from "./uiUtils";
 import ClassPicker, { type StartingClass as StartingClass } from "./ClassPicker";
+import type { RollType } from "./weaponTable/constants";
+import RollTypePicker from "./RollTypePicker";
 
 interface AttributeInputProps {
   attribute: AllAttribute;
@@ -157,6 +159,7 @@ interface Props {
   groupWeaponTypes: boolean;
   numericalScaling: boolean;
   startingClass: StartingClass;
+  rollType: RollType;
   onAttributeChanged(attribute: AllAttributeAndLevel, value: number): void;
   onAttributeSolverChanged(attribute: AttributeSolverKey, value: number): void;
   onTwoHandingChanged(twoHanding: boolean): void;
@@ -166,6 +169,7 @@ interface Props {
   onNumericalScalingChanged(numericalScaling: boolean): void;
   onStartingClassChanged(startingClass: StartingClass): void;
   onWeaponAdjustedEnduranceChanged(weaponAdjustedEndurance: boolean): void;
+  onRollTypeChanged(rollType: RollType): void;
 }
 
 /**
@@ -183,6 +187,7 @@ function WeaponListSettings({
   groupWeaponTypes,
   numericalScaling,
   startingClass,
+  rollType,
   onAttributeChanged,
   onAttributeSolverChanged,
   onTwoHandingChanged,
@@ -192,6 +197,7 @@ function WeaponListSettings({
   onNumericalScalingChanged,
   onStartingClassChanged,
   onWeaponAdjustedEnduranceChanged,
+  onRollTypeChanged,
 }: Props) {
   return (
     <>
@@ -310,6 +316,9 @@ function WeaponListSettings({
             checked={weaponAdjustedEndurance}
             onChange={onWeaponAdjustedEnduranceChanged}
           />
+          {weaponAdjustedEndurance && (
+            <RollTypePicker onRollTypeChanged={onRollTypeChanged} rollType={rollType} />
+          )}
         </Box>
       </Box>
     </>

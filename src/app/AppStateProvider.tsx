@@ -13,6 +13,7 @@ import regulationVersions from "./regulationVersions";
 import { dlcWeaponTypes } from "./uiUtils";
 import type { OptimalAttribute } from "./weaponTable/useOptimalAttributes";
 import { INITIAL_CLASS_VALUES, type StartingClass } from "./ClassPicker";
+import type { RollType } from "./weaponTable/constants";
 
 interface AppState {
   readonly regulationVersionName: RegulationVersionName;
@@ -32,6 +33,7 @@ interface AppState {
   readonly reverse: boolean;
   readonly optimalAttributes: Record<Weapon["name"], OptimalAttribute>;
   readonly startingClass: StartingClass;
+  readonly rollType: RollType;
 }
 
 interface UpdateAppState extends AppState {
@@ -56,6 +58,7 @@ interface UpdateAppState extends AppState {
     optimalAttribute?: OptimalAttribute,
   ): void;
   setStartingClass(startingClass: StartingClass): void;
+  setRollType(rollType: RollType): void;
 }
 
 const startingClass: StartingClass = "Vagabond";
@@ -99,6 +102,7 @@ const defaultAppState: AppState = {
   reverse: false,
   optimalAttributes: {},
   weaponAdjustedEndurance: false,
+  rollType: "medium",
 };
 
 /**
@@ -158,6 +162,7 @@ const AppStateContext = createContext<UpdateAppState>({
   setOptimalAttributeForWeapon: () => undefined,
   setStartingClass: () => undefined,
   setWeaponAdjustedEndurance: () => undefined,
+  setRollType: () => undefined,
 });
 
 export const AppStateProvider = ({ children }: { children: React.ReactNode }) => {
@@ -267,6 +272,9 @@ function useCreateAppState() {
       },
       setWeaponAdjustedEndurance(weaponAdjustedEndurance) {
         setAppState((prevAppState) => ({ ...prevAppState, weaponAdjustedEndurance }));
+      },
+      setRollType(rollType) {
+        setAppState((prevAppState) => ({ ...prevAppState, rollType }));
       },
     }),
     [],

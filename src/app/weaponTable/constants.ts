@@ -7,3 +7,10 @@ export const ENDURANCE_LEVEL_TO_EQUIP_LOAD = [
   137.4, 138.5, 139.5, 140.5, 141.5, 142.6, 143.6, 144.6, 145.6, 146.7, 147.7, 148.7, 149.7, 150.8,
   151.8, 152.8, 153.8, 154.9, 155.9, 156.9, 157.9, 159.0, 160.0,
 ];
+export type RollType = "fast" | "medium" | "fat";
+
+export const rollTypeToMultiplier: Record<RollType, number> = {
+  fast: 0.3,
+  medium: 0.7,
+  fat: 1.0,
+};

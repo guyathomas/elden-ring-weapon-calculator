@@ -119,6 +119,7 @@ export default function App() {
     reverse,
     startingClass,
     weaponAdjustedEndurance,
+    rollType,
     setRegulationVersionName,
     setAffinityIds,
     setWeaponTypes,
@@ -135,6 +136,7 @@ export default function App() {
     setReverse,
     setStartingClass,
     setWeaponAdjustedEndurance,
+    setRollType,
   } = useAppStateContext();
 
   const { isMobile, menuOpen, menuOpenMobile, onMenuOpenChanged } = useMenuState();
@@ -172,6 +174,7 @@ export default function App() {
     startingClass,
     weaponAdjustedEndurance,
     upgradeLevel,
+    rollType,
   });
 
   const tablePlaceholder = useMemo(
@@ -376,6 +379,8 @@ export default function App() {
             onStartingClassChanged={handleStartingClassChanged}
             onWeaponAdjustedEnduranceChanged={setWeaponAdjustedEndurance}
             startingClass={startingClass}
+            rollType={rollType}
+            onRollTypeChanged={setRollType}
           />
 
           <RegulationVersionAlert key={regulationVersionName}>

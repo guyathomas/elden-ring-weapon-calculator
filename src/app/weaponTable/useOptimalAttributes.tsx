@@ -6,7 +6,7 @@ import {
 import type { Weapon } from "../../calculator/weapon";
 import { useAppStateContext } from "../AppStateProvider";
 import { INITIAL_CLASS_VALUES, type StartingClass } from "../ClassPicker";
-import { ENDURANCE_LEVEL_TO_EQUIP_LOAD } from "./constants";
+import { ENDURANCE_LEVEL_TO_EQUIP_LOAD, rollTypeToMultiplier, type RollType } from "./constants";
 import { getIncrementalDamagePerAttribute } from "../../calculator/newCalculator";
 import { getNormalizedUpgradeLevel } from "../uiUtils";
 import { getMaxAttackPower } from "./getMaxAttackPower";
@@ -19,8 +19,12 @@ export interface OptimalAttribute {
   disposablePoints: number;
 }
 
-function getIncrementalEndurance(weaponWeight: number, initialEndurance: number) {
-  const ROLL_TYPE_MULTIPIER = 0.7; // Hardcode medium roll for now.
+function getIncrementalEndurance(
+  weaponWeight: number,
+  initialEndurance: number,
+  rollType: RollType,
+) {
+  const ROLL_TYPE_MULTIPIER = rollTypeToMultiplier[rollType]; // Hardcode medium roll for now.
   const currentEquipLoad = ENDURANCE_LEVEL_TO_EQUIP_LOAD[initialEndurance];
   const requiredEquipLoad = weaponWeight / ROLL_TYPE_MULTIPIER + currentEquipLoad;
   const requiredEndurance = ENDURANCE_LEVEL_TO_EQUIP_LOAD.findIndex((c) => c > requiredEquipLoad);
@@ -34,6 +38,7 @@ export const useOptimalAttributes = ({
   upgradeLevel: regularUpgradeLevel,
   startingClass,
   weaponAdjustedEndurance,
+  rollType,
 }: {
   weapons: Weapon[];
   solverAttributes: AttributeSolverValues;
@@ -41,6 +46,7 @@ export const useOptimalAttributes = ({
   upgradeLevel: number;
   startingClass: StartingClass;
   weaponAdjustedEndurance: boolean;
+  rollType: RollType;
 }) => {
   const { setOptimalAttributeForWeapon } = useAppStateContext();
   const calculateHighestWeaponAttackResult = useCallback(
@@ -55,7 +61,9 @@ export const useOptimalAttributes = ({
           sa.min -
           sa.vig -
           sa.end -
-          (weaponAdjustedEndurance ? getIncrementalEndurance(weapon.weight ?? 0, sa.end) : 0);
+          (weaponAdjustedEndurance
+            ? getIncrementalEndurance(weapon.weight ?? 0, sa.end, rollType)
+            : 0);
 
         const dmg = getIncrementalDamagePerAttribute(weapon, normalizedUpgradeLevel, twoHanding);
         const optimalAttributes = getMaxAttackPower(
@@ -80,7 +88,7 @@ export const useOptimalAttributes = ({
         });
       });
     },
-    [sa, startingClass, weaponAdjustedEndurance, regularUpgradeLevel, twoHanding],
+    [sa, startingClass, weaponAdjustedEndurance, regularUpgradeLevel, twoHanding, rollType],
   );
 
   useEffect(() => {
