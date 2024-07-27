@@ -12,7 +12,6 @@ import {
   getAttributeLabel,
   getShortAttributeLabel,
   getTotalDamageAttackPower,
-  weaponTypeLabels,
 } from "../uiUtils";
 import type { WeaponTableColumnDef, WeaponTableColumnGroupDef } from "./WeaponTable";
 import {
@@ -36,22 +35,6 @@ const nameColumn: WeaponTableColumnDef = {
   },
   render([weapon, { upgradeLevel }]) {
     return <WeaponNameRenderer weapon={weapon} upgradeLevel={upgradeLevel} />;
-  },
-};
-
-const weaponTypeColumn: WeaponTableColumnDef = {
-  key: "weaponType",
-  sortBy: "weaponType",
-  header: (
-    <Typography component="span" variant="subtitle2">
-      Type
-    </Typography>
-  ),
-  sx: {
-    justifyContent: "start",
-  },
-  render([weapon]) {
-    return <Typography variant="body1">{weaponTypeLabels.get(weapon.weaponType)}</Typography>;
   },
 };
 
