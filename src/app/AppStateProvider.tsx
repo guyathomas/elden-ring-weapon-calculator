@@ -53,7 +53,7 @@ interface UpdateAppState extends AppState {
   setSortBy(sortBy: SortBy): void;
   setReverse(reverse: boolean): void;
   // Update the optimal attributes for a weapon or '' for weaponName to clear the optimal attribute for all weapons
-  setOptimalAttributeForWeapon(
+  setOptimalAttributesForWeapon(
     weaponName: Weapon["name"],
     optimalAttribute?: OptimalAttribute,
   ): void;
@@ -159,7 +159,7 @@ const AppStateContext = createContext<UpdateAppState>({
   setNumericalScaling: () => undefined,
   setSortBy: () => undefined,
   setReverse: () => undefined,
-  setOptimalAttributeForWeapon: () => undefined,
+  setOptimalAttributesForWeapon: () => undefined,
   setStartingClass: () => undefined,
   setWeaponAdjustedEndurance: () => undefined,
   setRollType: () => undefined,
@@ -251,15 +251,15 @@ function useCreateAppState() {
       setReverse(reverse) {
         setAppState((prevAppState) => ({ ...prevAppState, reverse }));
       },
-      setOptimalAttributeForWeapon(weaponName, optimalAttribute) {
+      setOptimalAttributesForWeapon(weaponName, optimalAttributes) {
         setAppState((prevAppState) => {
-          if (!optimalAttribute) return prevAppState; // Error case, ignore
+          if (!optimalAttributes) return prevAppState; // Error case, ignore
           const newOptimalAttributes =
             weaponName === "" // When '' explicitly passed for weaponName, clear state
               ? {}
               : {
                   ...prevAppState.optimalAttributes,
-                  [weaponName]: optimalAttribute,
+                  [weaponName]: optimalAttributes,
                 };
           return {
             ...prevAppState,

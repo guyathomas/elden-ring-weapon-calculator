@@ -203,7 +203,7 @@ const numericalScalingColumns: WeaponTableColumnDef[] = damageAttributes.map((at
   },
 }));
 
-const requirementColumns = damageAttributes.map(
+const requirementColumns: WeaponTableColumnDef[] = damageAttributes.map(
   (attribute): WeaponTableColumnDef => ({
     key: `${attribute}Requirement`,
     sortBy: `${attribute}Requirement`,
@@ -228,24 +228,49 @@ const requirementColumns = damageAttributes.map(
   }),
 );
 
-const optimizedAttributesColumns = damageAttributes.map(
+const optimizedAPColumns: WeaponTableColumnDef[] = damageAttributes.map(
   (attribute): WeaponTableColumnDef => ({
-    key: `${attribute}Optimized`,
-    sortBy: `${attribute}Optimized`,
+    key: `${attribute}OptimizedAP`,
+    sortBy: `${attribute}OptimizedAP`,
     header: (
       <Typography
         component="span"
         variant="subtitle2"
-        title={`${getAttributeLabel(attribute)} Optimized`}
+        title={`${getAttributeLabel(attribute)} Optimized AP`}
       >
         {getShortAttributeLabel(attribute)}
       </Typography>
     ),
-    render([weapon, { ineffectiveAttributes }, damageAttributeValues]) {
+    render([weapon, { ineffectiveAttributes }, optimalAttributes]) {
       return (
         <OptimizedAttributeRenderer
           key={attribute}
-          value={damageAttributeValues?.highestAttributes?.[attribute]}
+          value={optimalAttributes.attackPower.optimalAttributes[attribute]}
+          attribute={attribute}
+        />
+      );
+    },
+  }),
+);
+
+const optimizedSPColumns: WeaponTableColumnDef[] = damageAttributes.map(
+  (attribute): WeaponTableColumnDef => ({
+    key: `${attribute}OptimizedSP`,
+    sortBy: `${attribute}OptimizedSP`,
+    header: (
+      <Typography
+        component="span"
+        variant="subtitle2"
+        title={`${getAttributeLabel(attribute)} SP Optimized`}
+      >
+        {getShortAttributeLabel(attribute)}
+      </Typography>
+    ),
+    render([weapon, { ineffectiveAttributes }, optimalAttributes]) {
+      return (
+        <OptimizedAttributeRenderer
+          key={attribute}
+          value={optimalAttributes.spellPower?.optimalAttributes[attribute]}
           attribute={attribute}
         />
       );
@@ -297,6 +322,56 @@ export default function getWeaponTableColumns({
       };
     }
   }
+  const completionLabel =
+    optimalAttributesPercentageComplete >= 100 ? "" : ` (${optimalAttributesPercentageComplete}%)`;
+
+  const optimizedSpellScalingColumns: WeaponTableColumnGroupDef[] = spellScaling
+    ? [
+        {
+          key: "attributesOptimizedSP",
+          sx: {
+            width: 40 * (allDamageTypes.length + 1) + 27,
+            flex: 1,
+          },
+          header: `Optimal SP Attributes${completionLabel}`,
+          columns: [
+            ...optimizedSPColumns,
+            {
+              key: `totalOptimizedSP`,
+              sortBy: `totalOptimizedSP`,
+              header: (
+                <Typography component="span" variant="subtitle2" title={`Total SP`}>
+                  SP
+                </Typography>
+              ),
+              render([weapon, { ineffectiveAttributes }, damageAttributeValues]) {
+                return (
+                  <OptimizedAttributeRenderer
+                    value={damageAttributeValues?.spellPower?.optimalDamage}
+                  />
+                );
+              },
+            } as WeaponTableColumnDef,
+            {
+              key: `disposableOptimizedPointsSP`,
+              sortBy: `disposableOptimizedPointsSP`,
+              header: (
+                <Typography component="span" variant="subtitle2" title={`Disposable Points`}>
+                  DP
+                </Typography>
+              ),
+              render([weapon, { ineffectiveAttributes }, damageAttributeValues]) {
+                return (
+                  <OptimizedAttributeRenderer
+                    value={damageAttributeValues.spellPower?.disposablePoints}
+                  />
+                );
+              },
+            },
+          ],
+        },
+      ]
+    : [];
 
   return [
     {
@@ -305,6 +380,7 @@ export default function getWeaponTableColumns({
       columns: [nameColumn],
     },
     ...(spellScalingColumnGroup ? [spellScalingColumnGroup] : []),
+    ...optimizedSpellScalingColumns,
     splitDamage
       ? {
           key: "attack",
@@ -358,21 +434,17 @@ export default function getWeaponTableColumns({
       columns: requirementColumns,
     },
     {
-      key: "optimalAttributes",
+      key: "attributesOptimizedAP",
       sx: {
         width: 40 * (allDamageTypes.length + 1) + 27,
         flex: 1,
       },
-      header: `Optimal Attributes${
-        optimalAttributesPercentageComplete >= 100
-          ? ""
-          : ` (${optimalAttributesPercentageComplete}%)`
-      }`,
+      header: `Optimal AP Attributes${completionLabel}`,
       columns: [
-        ...optimizedAttributesColumns,
+        ...optimizedAPColumns,
         {
-          key: `arOptimized`,
-          sortBy: `totalAttackOptimized`,
+          key: `totalOptimizedAP`,
+          sortBy: `totalOptimizedAP`,
           header: (
             <Typography component="span" variant="subtitle2" title={`Total AR`}>
               AR
@@ -381,21 +453,25 @@ export default function getWeaponTableColumns({
           render([weapon, { ineffectiveAttributes }, damageAttributeValues]) {
             return (
               <OptimizedAttributeRenderer
-                value={damageAttributeValues?.highestWeaponAttackResult}
+                value={damageAttributeValues?.attackPower.optimalDamage}
               />
             );
           },
         },
         {
-          key: `optimizedDisposablePoints`,
-          sortBy: `optimizedDisposablePoints`,
+          key: `disposableOptimizedPointsAP`,
+          sortBy: `disposableOptimizedPointsAP`,
           header: (
             <Typography component="span" variant="subtitle2" title={`Disposable Points`}>
               DP
             </Typography>
           ),
           render([weapon, { ineffectiveAttributes }, damageAttributeValues]) {
-            return <OptimizedAttributeRenderer value={damageAttributeValues?.disposablePoints} />;
+            return (
+              <OptimizedAttributeRenderer
+                value={damageAttributeValues.attackPower.disposablePoints}
+              />
+            );
           },
         },
       ],

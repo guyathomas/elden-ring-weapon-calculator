@@ -7,16 +7,37 @@ type DamageTypeScaling = Partial<Record<AttackPowerType, number>>;
 const damageTypeScaling: DamageTypeScaling = {};
 type Attribute = "str" | "dex" | "int" | "fai" | "arc";
 
-export function createDamageScalingPerAttribute(weapon: Weapon, weaponUpgradeLevel: number) {
-  const returnValue: Record<Attribute, DamageTypeScaling[]> & { base: DamageTypeScaling } = {
-    str: Array.from({ length: 150 }, () => ({ ...damageTypeScaling })),
-    dex: Array.from({ length: 150 }, () => ({ ...damageTypeScaling })),
-    int: Array.from({ length: 150 }, () => ({ ...damageTypeScaling })),
-    fai: Array.from({ length: 150 }, () => ({ ...damageTypeScaling })),
-    arc: Array.from({ length: 150 }, () => ({ ...damageTypeScaling })),
+type DamageScalingPerAttribute = Record<Attribute, DamageTypeScaling[]>;
+type DamageScalingReturnValue = {
+  base: DamageTypeScaling;
+  attackPower: DamageScalingPerAttribute;
+  spellScaling: DamageScalingPerAttribute;
+};
+export function createDamageScalingPerAttribute(
+  weapon: Weapon,
+  weaponUpgradeLevel: number,
+): {
+  base: DamageTypeScaling;
+  attackPower: DamageScalingPerAttribute;
+  spellScaling: DamageScalingPerAttribute;
+} {
+  const returnValue: DamageScalingReturnValue = {
     base: {},
+    attackPower: {
+      str: Array.from({ length: 150 }, () => ({ ...damageTypeScaling })),
+      dex: Array.from({ length: 150 }, () => ({ ...damageTypeScaling })),
+      int: Array.from({ length: 150 }, () => ({ ...damageTypeScaling })),
+      fai: Array.from({ length: 150 }, () => ({ ...damageTypeScaling })),
+      arc: Array.from({ length: 150 }, () => ({ ...damageTypeScaling })),
+    },
+    spellScaling: {
+      str: Array.from({ length: 150 }, () => ({ ...damageTypeScaling })),
+      dex: Array.from({ length: 150 }, () => ({ ...damageTypeScaling })),
+      int: Array.from({ length: 150 }, () => ({ ...damageTypeScaling })),
+      fai: Array.from({ length: 150 }, () => ({ ...damageTypeScaling })),
+      arc: Array.from({ length: 150 }, () => ({ ...damageTypeScaling })),
+    },
   };
-  // TODO: Fix the unarmed case. There is only 1 weapon upgrade and not sure how to hanldle it. Added the || {} to be safe
   const baseWeaponAttackForWeaponLevel = weapon.attack[weaponUpgradeLevel]; // {0: 73.84, 1: 62.400000000000006, 8: 73}
   const scalingStatsForWeaponLevel = weapon.attributeScaling[weaponUpgradeLevel]; // {str: 0.3875, dex: 0.725, int: 0.65}
   returnValue.base = baseWeaponAttackForWeaponLevel;
@@ -33,12 +54,13 @@ export function createDamageScalingPerAttribute(weapon: Weapon, weaponUpgradeLev
     ) as [Attribute, number][];
     for (const [attribute, attributeScaling] of scalingPairsForDamageType) {
       // [str, 0.3875], [dex, 0.725], [int, 0.65]]
-      const attributeScalingArray = returnValue[attribute];
+      const attributeScalingArray = returnValue.attackPower[attribute];
       for (let i = 0; i < attributeScalingArray.length; i++) {
-        const attributeLevelScaling = attributeScalingArray[i];
-
+        const isCatalyst = Boolean(weapon.sorceryTool || weapon.incantationTool);
         const scaling = attributeScaling * calcCorrectGraphForDamageType[i];
-        attributeLevelScaling[damageType] = baseDamageForDamageType * scaling;
+
+        returnValue.attackPower[attribute][i][damageType] = baseDamageForDamageType * scaling;
+        if (isCatalyst) returnValue.spellScaling[attribute][i][damageType] = 100 * scaling;
       }
     }
   }
@@ -47,34 +69,54 @@ export function createDamageScalingPerAttribute(weapon: Weapon, weaponUpgradeLev
 const sumObjectValues = (obj: Record<string, number>) =>
   Object.values(obj).reduce((acc, v) => acc + v, 0);
 
+type IncrementalDamagePerAttribute = {
+  base: number;
+  attackPower: Record<DamageAttribute, number[]>;
+  spellPower: Record<DamageAttribute, number[]>;
+};
+
 export function getIncrementalDamagePerAttribute(
   weapon: Weapon,
   weaponUpgradeLevel: number,
   twoHanding: boolean,
-): Record<"str" | "dex" | "int" | "fai" | "arc", number[]> & Record<"base", number> {
+): IncrementalDamagePerAttribute {
   const damageScalingPerAttribute = createDamageScalingPerAttribute(weapon, weaponUpgradeLevel);
-
-  return Object.entries(damageScalingPerAttribute).reduce((acc, [attribute, damageScaling]) => {
-    if (attribute === "base" && !Array.isArray(damageScaling)) {
-      acc.base = Object.entries(damageScaling).reduce(
-        (acc, [damageType, damage]) =>
-          acc + (allDamageTypes.includes(parseInt(damageType) as AttackPowerType) ? damage : 0),
-        0,
-      );
-    } else if (attribute === "str" && Array.isArray(damageScaling)) {
-      if (twoHanding) {
-        acc[attribute as Attribute] = damageScaling.map((v, i) => {
-          const adjustedStrength = adjustStrengthForTwoHanding({ weapon, twoHanding, str: i });
-          // Scaling values don't exist for 1.5*100 and onwards, so just return 0
-          if (!damageScaling[adjustedStrength]) return 0;
-          return sumObjectValues(damageScaling[adjustedStrength]);
-        });
-      } else {
+  const attackPower = Object.entries(damageScalingPerAttribute.attackPower).reduce(
+    (acc, [attribute, damageScaling]) => {
+      if (attribute === "str" && Array.isArray(damageScaling)) {
+        if (twoHanding) {
+          acc[attribute as Attribute] = damageScaling.map((v, i) => {
+            const adjustedStrength = adjustStrengthForTwoHanding({ weapon, twoHanding, str: i });
+            // Scaling values don't exist for 1.5*100 and onwards, so just return 0
+            if (!damageScaling[adjustedStrength]) return 0;
+            return sumObjectValues(damageScaling[adjustedStrength]);
+          });
+        } else {
+          acc[attribute as Attribute] = damageScaling.map((v) => sumObjectValues(v) || 0);
+        }
+      } else if (Array.isArray(damageScaling)) {
         acc[attribute as Attribute] = damageScaling.map((v) => sumObjectValues(v) || 0);
       }
-    } else if (Array.isArray(damageScaling)) {
-      acc[attribute as Attribute] = damageScaling.map((v) => sumObjectValues(v) || 0);
-    }
-    return acc;
-  }, {} as Record<DamageAttribute, number[]> & Record<"base", number>);
+      return acc;
+    },
+    {} as IncrementalDamagePerAttribute["attackPower"],
+  );
+  const spellPower = Object.entries(damageScalingPerAttribute.spellScaling).reduce(
+    (acc, [attribute, damageScaling]) => {
+      acc[attribute as Attribute] = damageScaling.map((v) => v["0"] || 0); // Only applies scaling off this attackType
+      return acc;
+    },
+    {} as IncrementalDamagePerAttribute["spellPower"],
+  );
+  const base = Object.entries(damageScalingPerAttribute.base).reduce(
+    (acc, [damageType, damage]) =>
+      acc + (allDamageTypes.includes(parseInt(damageType) as AttackPowerType) ? damage : 0),
+    0,
+  );
+
+  return {
+    base,
+    attackPower,
+    spellPower,
+  };
 }

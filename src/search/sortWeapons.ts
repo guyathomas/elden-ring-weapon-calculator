@@ -10,9 +10,12 @@ export type SortBy =
   | `${AttackPowerType}SpellScaling`
   | `${DamageAttribute}Scaling`
   | `${DamageAttribute}Requirement`
-  | `${DamageAttribute}Optimized`
-  | `totalAttackOptimized`
-  | `optimizedDisposablePoints`;
+  | `${DamageAttribute}OptimizedAP`
+  | `${DamageAttribute}OptimizedSP`
+  | `totalOptimizedAP`
+  | `totalOptimizedSP`
+  | `disposableOptimizedPointsAP`
+  | `disposableOptimizedPointsSP`;
 
 /**
  * Sort and paginate a filtered list of weapons for display in the weapon table
@@ -52,19 +55,35 @@ export function sortWeapons(
       return ([weapon]) => -(weapon.requirements[attribute] ?? 0);
     }
 
-    if (sortBy === "totalAttackOptimized") {
+    if (sortBy === "totalOptimizedAP") {
       return ([weapon, weaponAttack, optimizedStats]) =>
-        -(optimizedStats?.highestWeaponAttackResult ?? 0);
+        -(optimizedStats?.attackPower.optimalDamage ?? 0);
+    }
+    if (sortBy === "totalOptimizedSP") {
+      return ([weapon, weaponAttack, optimizedStats]) =>
+        -(optimizedStats?.spellPower?.optimalDamage ?? 0);
     }
 
-    if (sortBy === "optimizedDisposablePoints") {
-      return ([weapon, weaponAttack, optimizedStats]) => -(optimizedStats?.disposablePoints ?? 0);
+    if (sortBy === "disposableOptimizedPointsAP") {
+      return ([weapon, weaponAttack, optimizedStats]) =>
+        -(optimizedStats?.attackPower?.disposablePoints ?? 0);
     }
 
-    if (sortBy.endsWith("Optimized")) {
-      const attributeType = sortBy.slice(0, -1 * "Optimized".length) as DamageAttribute;
+    if (sortBy === "disposableOptimizedPointsSP") {
       return ([weapon, weaponAttack, optimizedStats]) =>
-        -(optimizedStats?.highestAttributes[attributeType] ?? 0);
+        -(optimizedStats?.spellPower?.disposablePoints ?? 0);
+    }
+    console.log("sortBy", sortBy);
+    if (sortBy.endsWith("OptimizedAP")) {
+      const attributeType = sortBy.slice(0, -1 * "OptimizedAP".length) as DamageAttribute;
+      return ([weapon, weaponAttack, optimizedStats]) =>
+        -(optimizedStats?.attackPower.optimalAttributes[attributeType] ?? 0);
+    }
+
+    if (sortBy.endsWith("OptimizedSP")) {
+      const attributeType = sortBy.slice(0, -1 * "OptimizedSP".length) as DamageAttribute;
+      return ([weapon, weaponAttack, optimizedStats]) =>
+        -(optimizedStats?.spellPower?.optimalAttributes[attributeType] ?? 0);
     }
 
     return () => "";

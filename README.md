@@ -33,15 +33,8 @@ The Convergence Mod support uses data extracted from [The Convergence Mod](https
 ## TODO:
 
 - [ ] Support recalculating only on button press
-- [ ] Support setting class and determining min trats
 - [ ] Copy Stats to optimized stats to Main Calculator
-- [ ] Take into consideration the weapon weight when making calculations ( Will need to gather roll target )
-- [ ] Column in the OptimizedAttributes outlining the disposable points for that build
-- [ ] The Endurance toggle only supports medium rolling. Add UI Dropdown for roll type
 - [ ] Allow the solver to be toggled on or off.
-
-## Bugs
-
+- [ ] Enable toggling on off the attribute calculator for the UI / Calculations
 - [ ] Solve why changing fields requires a refresh to take effect
 - [ ] Solve why cached optimal attributes doesn't clear
-- [ ] Optimal Attributes doesn't do Talismans or Staff Scaling

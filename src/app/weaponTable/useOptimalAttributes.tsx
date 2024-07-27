@@ -13,10 +13,15 @@ import { getMaxAttackPower } from "./getMaxAttackPower";
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export interface OptimalAttribute {
-  highestWeaponAttackResult: number;
-  highestAttributes: DamageAttributeValues;
+interface OptimalAttributeForAttackType {
+  optimalDamage: number;
+  optimalAttributes: DamageAttributeValues;
   disposablePoints: number;
+}
+
+export interface OptimalAttribute {
+  attackPower: OptimalAttributeForAttackType;
+  spellPower?: OptimalAttributeForAttackType;
 }
 
 function getIncrementalEndurance(
@@ -30,6 +35,8 @@ function getIncrementalEndurance(
   const requiredEndurance = ENDURANCE_LEVEL_TO_EQUIP_LOAD.findIndex((c) => c > requiredEquipLoad);
   return requiredEndurance - initialEndurance;
 }
+const sumObjectValues = (obj: Record<string, number>) =>
+  Object.values(obj).reduce((acc, v) => acc + v, 0);
 
 export const useOptimalAttributes = ({
   weapons,
@@ -48,7 +55,7 @@ export const useOptimalAttributes = ({
   weaponAdjustedEndurance: boolean;
   rollType: RollType;
 }) => {
-  const { setOptimalAttributeForWeapon } = useAppStateContext();
+  const { setOptimalAttributesForWeapon: setOptimalAttributeForWeapon } = useAppStateContext();
   const calculateHighestWeaponAttackResult = useCallback(
     function (weapon: Weapon): Promise<OptimalAttribute> {
       return new Promise((resolve) => {
@@ -66,8 +73,14 @@ export const useOptimalAttributes = ({
             : 0);
 
         const dmg = getIncrementalDamagePerAttribute(weapon, normalizedUpgradeLevel, twoHanding);
-        const optimalAttributes = getMaxAttackPower(
-          [dmg.str, dmg.dex, dmg.int, dmg.fai, dmg.arc],
+        const optimalAttackScores = getMaxAttackPower(
+          [
+            dmg.attackPower.str,
+            dmg.attackPower.dex,
+            dmg.attackPower.int,
+            dmg.attackPower.fai,
+            dmg.attackPower.arc,
+          ],
           [
             [Math.max(sa["str.Min"], weapon.requirements.str ?? 0), sa["str.Max"]],
             [Math.max(sa["dex.Min"], weapon.requirements.dex ?? 0), sa["dex.Max"]],
@@ -75,16 +88,43 @@ export const useOptimalAttributes = ({
             [Math.max(sa["fai.Min"], weapon.requirements.fai ?? 0), sa["fai.Max"]],
             [Math.max(sa["arc.Min"], weapon.requirements.arc ?? 0), sa["arc.Max"]],
           ],
-          SPENDABLE,
+          Math.max(SPENDABLE, 0),
         );
-        const spentPoints = Object.values(optimalAttributes.highestAttributes).reduce(
-          (acc, val) => acc + val,
-          0,
-        );
+        const isCatalyst = Boolean(weapon.sorceryTool || weapon.incantationTool);
+        const optimalSpellScores = isCatalyst
+          ? getMaxAttackPower(
+              [
+                dmg.spellPower.str,
+                dmg.spellPower.dex,
+                dmg.spellPower.int,
+                dmg.spellPower.fai,
+                dmg.spellPower.arc,
+              ],
+              [
+                [Math.max(sa["str.Min"], weapon.requirements.str ?? 0), sa["str.Max"]],
+                [Math.max(sa["dex.Min"], weapon.requirements.dex ?? 0), sa["dex.Max"]],
+                [Math.max(sa["int.Min"], weapon.requirements.int ?? 0), sa["int.Max"]],
+                [Math.max(sa["fai.Min"], weapon.requirements.fai ?? 0), sa["fai.Max"]],
+                [Math.max(sa["arc.Min"], weapon.requirements.arc ?? 0), sa["arc.Max"]],
+              ],
+              Math.max(SPENDABLE, 0),
+            )
+          : null;
+        const spellPower =
+          isCatalyst && optimalSpellScores
+            ? ({
+                optimalAttributes: optimalSpellScores.highestAttributes,
+                optimalDamage: optimalSpellScores.maxValue + 100,
+                disposablePoints: SPENDABLE - sumObjectValues(optimalSpellScores.highestAttributes),
+              } as OptimalAttributeForAttackType)
+            : undefined;
         resolve({
-          highestWeaponAttackResult: optimalAttributes.maxValue + dmg.base,
-          highestAttributes: optimalAttributes.highestAttributes,
-          disposablePoints: SPENDABLE - spentPoints,
+          attackPower: {
+            optimalDamage: optimalAttackScores.maxValue + dmg.base,
+            optimalAttributes: optimalAttackScores.highestAttributes,
+            disposablePoints: SPENDABLE - sumObjectValues(optimalAttackScores.highestAttributes),
+          },
+          spellPower,
         });
       });
     },
