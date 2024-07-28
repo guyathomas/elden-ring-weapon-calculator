@@ -120,6 +120,7 @@ export default function App() {
     startingClass,
     weaponAdjustedEndurance,
     rollType,
+    armorWeight,
     setRegulationVersionName,
     setAffinityIds,
     setWeaponTypes,
@@ -137,6 +138,7 @@ export default function App() {
     setStartingClass,
     setWeaponAdjustedEndurance,
     setRollType,
+    setArmorWeight,
   } = useAppStateContext();
 
   const { isMobile, menuOpen, menuOpenMobile, onMenuOpenChanged } = useMenuState();
@@ -381,6 +383,8 @@ export default function App() {
             startingClass={startingClass}
             rollType={rollType}
             onRollTypeChanged={setRollType}
+            armorWeight={armorWeight}
+            setArmorWeight={setArmorWeight}
           />
 
           <RegulationVersionAlert key={regulationVersionName}>

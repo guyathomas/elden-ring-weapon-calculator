@@ -15,7 +15,9 @@ export type SortBy =
   | `totalOptimizedAP`
   | `totalOptimizedSP`
   | `disposableOptimizedPointsAP`
-  | `disposableOptimizedPointsSP`;
+  | `disposableOptimizedPointsSP`
+  | `totalOptimizedEnd`
+  | `incrementalOptimizedEnd`;
 
 /**
  * Sort and paginate a filtered list of weapons for display in the weapon table
@@ -73,7 +75,11 @@ export function sortWeapons(
       return ([weapon, weaponAttack, optimizedStats]) =>
         -(optimizedStats?.spellPower?.disposablePoints ?? 0);
     }
-    console.log("sortBy", sortBy);
+
+    if (sortBy === "totalOptimizedEnd") {
+      return ([weapon, weaponAttack, optimizedStats]) => -(optimizedStats?.endurance.total ?? 0);
+    }
+
     if (sortBy.endsWith("OptimizedAP")) {
       const attributeType = sortBy.slice(0, -1 * "OptimizedAP".length) as DamageAttribute;
       return ([weapon, weaponAttack, optimizedStats]) =>

@@ -132,6 +132,19 @@ export const OptimizedAttributeRenderer = memo(function AttributeRequirementRend
 });
 
 /**
+ * Component that displays the endurance required for the given armor weight and weapon weight
+ */
+export const OptimizedEnduranceRenderer = memo(function AttributeRequirementRenderer({
+  endurance,
+}: {
+  endurance: number;
+}) {
+  const { rollType, armorWeight } = useAppStateContext();
+  if (!armorWeight || !rollType) return blankIcon;
+  return <>{endurance}</>;
+});
+
+/**
  * Component that displays one damage type / status effect / spell scaling of a weapon.
  */
 export const AttackPowerRenderer = memo(function AttackPowerRenderer({

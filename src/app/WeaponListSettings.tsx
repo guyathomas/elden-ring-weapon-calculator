@@ -25,6 +25,7 @@ import { getAttributeLabel, maxRegularUpgradeLevel, toSpecialUpgradeLevel } from
 import ClassPicker, { type StartingClass as StartingClass } from "./ClassPicker";
 import type { RollType } from "./weaponTable/constants";
 import RollTypePicker from "./RollTypePicker";
+import { getEnduranceForWeight } from "./weaponTable/useOptimalAttributes";
 
 interface AttributeInputProps {
   attribute: AllAttribute;
@@ -160,6 +161,7 @@ interface Props {
   numericalScaling: boolean;
   startingClass: StartingClass;
   rollType: RollType;
+  armorWeight: number;
   onAttributeChanged(attribute: AllAttributeAndLevel, value: number): void;
   onAttributeSolverChanged(attribute: AttributeSolverKey, value: number): void;
   onTwoHandingChanged(twoHanding: boolean): void;
@@ -170,6 +172,7 @@ interface Props {
   onStartingClassChanged(startingClass: StartingClass): void;
   onWeaponAdjustedEnduranceChanged(weaponAdjustedEndurance: boolean): void;
   onRollTypeChanged(rollType: RollType): void;
+  setArmorWeight(armorWeight: number): void;
 }
 
 /**
@@ -188,6 +191,7 @@ function WeaponListSettings({
   numericalScaling,
   startingClass,
   rollType,
+  armorWeight,
   onAttributeChanged,
   onAttributeSolverChanged,
   onTwoHandingChanged,
@@ -198,6 +202,7 @@ function WeaponListSettings({
   onStartingClassChanged,
   onWeaponAdjustedEnduranceChanged,
   onRollTypeChanged,
+  setArmorWeight,
 }: Props) {
   return (
     <>
@@ -317,7 +322,28 @@ function WeaponListSettings({
             onChange={onWeaponAdjustedEnduranceChanged}
           />
           {weaponAdjustedEndurance && (
-            <RollTypePicker onRollTypeChanged={onRollTypeChanged} rollType={rollType} />
+            <>
+              <RollTypePicker onRollTypeChanged={onRollTypeChanged} rollType={rollType} />
+              <NumberTextField
+                label={"Armor Weight"}
+                size="small"
+                variant="outlined"
+                value={armorWeight}
+                min={0}
+                max={200}
+                onChange={(newValue) => setArmorWeight(newValue)}
+              />
+              {armorWeight && (
+                <NumberTextField
+                  label={"Endurance for Armor"}
+                  size="small"
+                  variant="outlined"
+                  disabled
+                  value={getEnduranceForWeight(armorWeight, rollType)}
+                  onChange={() => undefined}
+                />
+              )}
+            </>
           )}
         </Box>
       </Box>

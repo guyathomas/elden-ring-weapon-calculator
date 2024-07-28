@@ -208,7 +208,7 @@ function WeaponTable({
   onSortByChanged,
   onReverseChanged,
 }: Props) {
-  const { optimalAttributes } = useAppStateContext();
+  const { optimalAttributes, armorWeight } = useAppStateContext();
   const optimalAttributesPercentageComplete = useMemo(() => {
     if (typeof total === "undefined") return 0;
     return Math.floor((100 * Object.keys(optimalAttributes).length) / total);
@@ -223,6 +223,7 @@ function WeaponTable({
         attackPowerTypes,
         spellScaling,
         optimalAttributesPercentageComplete,
+        showEndurance: !!armorWeight,
       }),
     [
       splitDamage,
@@ -231,6 +232,7 @@ function WeaponTable({
       attackPowerTypes,
       spellScaling,
       optimalAttributesPercentageComplete,
+      armorWeight,
     ],
   );
 

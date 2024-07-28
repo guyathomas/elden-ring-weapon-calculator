@@ -20,6 +20,7 @@ import {
   AttributeRequirementRenderer,
   AttackPowerRenderer,
   OptimizedAttributeRenderer,
+  OptimizedEnduranceRenderer,
 } from "./tableRenderers";
 
 const nameColumn: WeaponTableColumnDef = {
@@ -245,7 +246,7 @@ const optimizedAPColumns: WeaponTableColumnDef[] = damageAttributes.map(
       return (
         <OptimizedAttributeRenderer
           key={attribute}
-          value={optimalAttributes.attackPower.optimalAttributes[attribute]}
+          value={optimalAttributes?.attackPower.optimalAttributes[attribute]}
           attribute={attribute}
         />
       );
@@ -270,7 +271,7 @@ const optimizedSPColumns: WeaponTableColumnDef[] = damageAttributes.map(
       return (
         <OptimizedAttributeRenderer
           key={attribute}
-          value={optimalAttributes.spellPower?.optimalAttributes[attribute]}
+          value={optimalAttributes?.spellPower?.optimalAttributes[attribute]}
           attribute={attribute}
         />
       );
@@ -285,6 +286,7 @@ interface WeaponTableColumnsOptions {
   attackPowerTypes: ReadonlySet<AttackPowerType>;
   spellScaling: boolean;
   optimalAttributesPercentageComplete: number;
+  showEndurance: boolean;
 }
 
 export default function getWeaponTableColumns({
@@ -294,6 +296,7 @@ export default function getWeaponTableColumns({
   attackPowerTypes,
   spellScaling,
   optimalAttributesPercentageComplete,
+  showEndurance,
 }: WeaponTableColumnsOptions): WeaponTableColumnGroupDef[] {
   const includedStatusTypes = allStatusTypes.filter((statusType) =>
     attackPowerTypes.has(statusType),
@@ -363,7 +366,7 @@ export default function getWeaponTableColumns({
               render([weapon, { ineffectiveAttributes }, damageAttributeValues]) {
                 return (
                   <OptimizedAttributeRenderer
-                    value={damageAttributeValues.spellPower?.disposablePoints}
+                    value={damageAttributeValues?.spellPower?.disposablePoints}
                   />
                 );
               },
@@ -437,10 +440,44 @@ export default function getWeaponTableColumns({
       key: "attributesOptimizedAP",
       sx: {
         width: 40 * (allDamageTypes.length + 1) + 27,
-        flex: 1,
+        flex: 2,
       },
       header: `Optimal AP Attributes${completionLabel}`,
       columns: [
+        ...(showEndurance
+          ? [
+              {
+                key: `incrementalOptimizedEnd`,
+                sortBy: `incrementalOptimizedEnd`,
+                header: (
+                  <Typography component="span" variant="subtitle2" title={`Incremental Endurance`}>
+                    End+
+                  </Typography>
+                ),
+                render([weapon, { ineffectiveAttributes }, optimalAttributes]) {
+                  return (
+                    <OptimizedEnduranceRenderer
+                      endurance={optimalAttributes?.endurance?.incremental}
+                    />
+                  );
+                },
+              } as WeaponTableColumnDef,
+              {
+                key: `totalOptimizedEnd`,
+                sortBy: `totalOptimizedEnd`,
+                header: (
+                  <Typography component="span" variant="subtitle2" title={`Endurance`}>
+                    End
+                  </Typography>
+                ),
+                render([weapon, { ineffectiveAttributes }, optimalAttributes]) {
+                  return (
+                    <OptimizedEnduranceRenderer endurance={optimalAttributes?.endurance?.total} />
+                  );
+                },
+              } as WeaponTableColumnDef,
+            ]
+          : []),
         ...optimizedAPColumns,
         {
           key: `totalOptimizedAP`,
@@ -469,7 +506,7 @@ export default function getWeaponTableColumns({
           render([weapon, { ineffectiveAttributes }, damageAttributeValues]) {
             return (
               <OptimizedAttributeRenderer
-                value={damageAttributeValues.attackPower.disposablePoints}
+                value={damageAttributeValues?.attackPower.disposablePoints}
               />
             );
           },

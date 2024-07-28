@@ -34,6 +34,7 @@ interface AppState {
   readonly optimalAttributes: Record<Weapon["name"], OptimalAttribute>;
   readonly startingClass: StartingClass;
   readonly rollType: RollType;
+  readonly armorWeight: number;
 }
 
 interface UpdateAppState extends AppState {
@@ -59,6 +60,7 @@ interface UpdateAppState extends AppState {
   ): void;
   setStartingClass(startingClass: StartingClass): void;
   setRollType(rollType: RollType): void;
+  setArmorWeight(armorWeight: number): void;
 }
 
 const startingClass: StartingClass = "Vagabond";
@@ -103,6 +105,7 @@ const defaultAppState: AppState = {
   optimalAttributes: {},
   weaponAdjustedEndurance: false,
   rollType: "medium",
+  armorWeight: 53,
 };
 
 /**
@@ -163,6 +166,7 @@ const AppStateContext = createContext<UpdateAppState>({
   setStartingClass: () => undefined,
   setWeaponAdjustedEndurance: () => undefined,
   setRollType: () => undefined,
+  setArmorWeight: () => undefined,
 });
 
 export const AppStateProvider = ({ children }: { children: React.ReactNode }) => {
@@ -275,6 +279,9 @@ function useCreateAppState() {
       },
       setRollType(rollType) {
         setAppState((prevAppState) => ({ ...prevAppState, rollType }));
+      },
+      setArmorWeight(armorWeight) {
+        setAppState((prevAppState) => ({ ...prevAppState, armorWeight }));
       },
     }),
     [],

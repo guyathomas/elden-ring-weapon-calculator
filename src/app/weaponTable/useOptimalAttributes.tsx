@@ -22,6 +22,16 @@ interface OptimalAttributeForAttackType {
 export interface OptimalAttribute {
   attackPower: OptimalAttributeForAttackType;
   spellPower?: OptimalAttributeForAttackType;
+  endurance: {
+    incremental: number;
+    total: number;
+  };
+}
+
+export function getEnduranceForWeight(weight: number, rollType: RollType) {
+  const rollTypeMultiplier = rollTypeToMultiplier[rollType]; // Hardcode medium roll for now.
+  const targetCarryCapacity = weight / rollTypeMultiplier;
+  return ENDURANCE_LEVEL_TO_EQUIP_LOAD.findIndex((c) => c >= targetCarryCapacity) + 1;
 }
 
 function getIncrementalEndurance(
@@ -29,12 +39,14 @@ function getIncrementalEndurance(
   initialEndurance: number,
   rollType: RollType,
 ) {
-  const ROLL_TYPE_MULTIPIER = rollTypeToMultiplier[rollType]; // Hardcode medium roll for now.
+  const rollTypeMultiplier = rollTypeToMultiplier[rollType]; // Hardcode medium roll for now.
   const currentEquipLoad = ENDURANCE_LEVEL_TO_EQUIP_LOAD[initialEndurance];
-  const requiredEquipLoad = weaponWeight / ROLL_TYPE_MULTIPIER + currentEquipLoad;
-  const requiredEndurance = ENDURANCE_LEVEL_TO_EQUIP_LOAD.findIndex((c) => c > requiredEquipLoad);
+  const requiredEquipLoad = weaponWeight / rollTypeMultiplier + currentEquipLoad;
+  const requiredEndurance =
+    ENDURANCE_LEVEL_TO_EQUIP_LOAD.findIndex((c) => c > requiredEquipLoad) + 1;
   return requiredEndurance - initialEndurance;
 }
+
 const sumObjectValues = (obj: Record<string, number>) =>
   Object.values(obj).reduce((acc, v) => acc + v, 0);
 
@@ -55,11 +67,13 @@ export const useOptimalAttributes = ({
   weaponAdjustedEndurance: boolean;
   rollType: RollType;
 }) => {
-  const { setOptimalAttributesForWeapon: setOptimalAttributeForWeapon } = useAppStateContext();
+  const { setOptimalAttributesForWeapon: setOptimalAttributeForWeapon, armorWeight } =
+    useAppStateContext();
   const calculateHighestWeaponAttackResult = useCallback(
     function (weapon: Weapon): Promise<OptimalAttribute> {
       return new Promise((resolve) => {
         const normalizedUpgradeLevel = getNormalizedUpgradeLevel(weapon, regularUpgradeLevel);
+        const incrementalEndurance = getIncrementalEndurance(weapon.weight ?? 0, sa.end, rollType);
         // This value includes the value of the points that are unable to be moved, i.e. 14 pts in str
         const SPENDABLE =
           INITIAL_CLASS_VALUES[startingClass].total -
@@ -68,9 +82,7 @@ export const useOptimalAttributes = ({
           sa.min -
           sa.vig -
           sa.end -
-          (weaponAdjustedEndurance
-            ? getIncrementalEndurance(weapon.weight ?? 0, sa.end, rollType)
-            : 0);
+          (weaponAdjustedEndurance ? incrementalEndurance : 0);
 
         const dmg = getIncrementalDamagePerAttribute(weapon, normalizedUpgradeLevel, twoHanding);
         const optimalAttackScores = getMaxAttackPower(
@@ -125,10 +137,22 @@ export const useOptimalAttributes = ({
             disposablePoints: SPENDABLE - sumObjectValues(optimalAttackScores.highestAttributes),
           },
           spellPower,
+          endurance: {
+            total: getEnduranceForWeight(armorWeight + weapon?.weight ?? 0, rollType),
+            incremental: incrementalEndurance,
+          },
         });
       });
     },
-    [sa, startingClass, weaponAdjustedEndurance, regularUpgradeLevel, twoHanding, rollType],
+    [
+      sa,
+      startingClass,
+      weaponAdjustedEndurance,
+      regularUpgradeLevel,
+      twoHanding,
+      rollType,
+      armorWeight,
+    ],
   );
 
   useEffect(() => {
