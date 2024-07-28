@@ -357,3 +357,19 @@ export function getNormalizedUpgradeLevel(weapon: Weapon, upgradeLevel: number) 
 export function toRegularUpgradeLevel(specialUpgradeLevel: number) {
   return Math.floor(specialUpgradeLevel * 2.5);
 }
+
+/*
+  Get unique values out of an array of objects based on a key
+*/
+export function getUniqueValues<T = Record<string, any>>(array: T[], key: string): T[] {
+  const seenValues = new Set();
+  return array.filter((item) => {
+    const value = (item as any)[key];
+    if (seenValues.has(value)) {
+      return false;
+    } else {
+      seenValues.add(value);
+      return true;
+    }
+  });
+}

@@ -14,6 +14,7 @@ import { dlcWeaponTypes } from "./uiUtils";
 import type { OptimalAttribute } from "./weaponTable/useOptimalAttributes";
 import { INITIAL_CLASS_VALUES, type StartingClass } from "./ClassPicker";
 import type { RollType } from "./weaponTable/constants";
+import type { WeaponOption } from "./WeaponPicker";
 
 interface AppState {
   readonly regulationVersionName: RegulationVersionName;
@@ -35,6 +36,7 @@ interface AppState {
   readonly startingClass: StartingClass;
   readonly rollType: RollType;
   readonly armorWeight: number;
+  readonly selectedWeapons: WeaponOption[];
 }
 
 interface UpdateAppState extends AppState {
@@ -61,6 +63,7 @@ interface UpdateAppState extends AppState {
   setStartingClass(startingClass: StartingClass): void;
   setRollType(rollType: RollType): void;
   setArmorWeight(armorWeight: number): void;
+  setSelectedWeapons(weapons: WeaponOption[]): void;
 }
 
 const startingClass: StartingClass = "Vagabond";
@@ -106,6 +109,7 @@ const defaultAppState: AppState = {
   weaponAdjustedEndurance: false,
   rollType: "medium",
   armorWeight: 53,
+  selectedWeapons: [],
 };
 
 /**
@@ -167,6 +171,7 @@ const AppStateContext = createContext<UpdateAppState>({
   setWeaponAdjustedEndurance: () => undefined,
   setRollType: () => undefined,
   setArmorWeight: () => undefined,
+  setSelectedWeapons: () => undefined,
 });
 
 export const AppStateProvider = ({ children }: { children: React.ReactNode }) => {
@@ -282,6 +287,9 @@ function useCreateAppState() {
       },
       setArmorWeight(armorWeight) {
         setAppState((prevAppState) => ({ ...prevAppState, armorWeight }));
+      },
+      setSelectedWeapons(selectedWeapons) {
+        setAppState((prevAppState) => ({ ...prevAppState, selectedWeapons }));
       },
     }),
     [],

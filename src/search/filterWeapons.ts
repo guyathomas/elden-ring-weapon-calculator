@@ -34,6 +34,11 @@ export interface FilterWeaponsOptions {
    * filtering purposes since no weapons can have affinities
    */
   uninfusableWeaponTypes?: Set<WeaponType>;
+
+  /**
+   * Weapon Names to apply to the filter. The weapon name will be "Dagger", not "Cold Dagger" for affinities
+   */
+  weaponNames?: Set<string>;
 }
 
 /**
@@ -48,6 +53,7 @@ export default function filterWeapons(
     includeDLC,
     twoHanding,
     uninfusableWeaponTypes,
+    weaponNames,
   }: FilterWeaponsOptions,
 ): Weapon[] {
   function filterWeapon(weapon: Weapon): boolean {
@@ -96,6 +102,10 @@ export default function filterWeapons(
       ) {
         return false;
       }
+    }
+
+    if (weaponNames && weaponNames.size > 0) {
+      return weaponNames.has(weapon.weaponName);
     }
 
     return true;

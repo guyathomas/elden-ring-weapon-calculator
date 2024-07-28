@@ -13,6 +13,7 @@ const useFilteredWeapons = (weapons: Weapon[], regulationVersion: RegulationVers
   const affinityIds = useDeferredValue(appState.affinityIds);
   const effectiveOnly = useDeferredValue(appState.effectiveOnly);
   const includeDLC = useDeferredValue(appState.includeDLC);
+  const selectedWeapons = useDeferredValue(appState.selectedWeapons);
 
   // Determine which weapon types can never be given an affinity. It's convenient for them to
   // show up under both "Standard" and "Unique" filtering options
@@ -39,6 +40,7 @@ const useFilteredWeapons = (weapons: Weapon[], regulationVersion: RegulationVers
         includeDLC,
         twoHanding,
         uninfusableWeaponTypes,
+        weaponNames: new Set(selectedWeapons.map((weapon) => weapon.value)),
       }),
     [
       weapons,
@@ -50,6 +52,7 @@ const useFilteredWeapons = (weapons: Weapon[], regulationVersion: RegulationVers
       twoHanding,
       uninfusableWeaponTypes,
       regulationVersion.affinityOptions,
+      selectedWeapons,
     ],
   );
 };

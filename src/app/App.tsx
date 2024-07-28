@@ -25,13 +25,14 @@ import { useAppStateContext } from "./AppStateProvider";
 import AppBar from "./AppBar";
 import RegulationVersionPicker from "./RegulationVersionPicker";
 import WeaponTypePicker from "./WeaponTypePicker";
+import WeaponPicker from "./WeaponPicker";
 import AffinityPicker from "./AffinityPicker";
 import Footer from "./Footer";
 import MiscFilterPicker from "./MiscFilterPicker";
 import { useOptimalAttributes } from "./weaponTable/useOptimalAttributes";
 import useFilteredWeapons from "./weaponTable/useFilteredWeapons";
 import { INITIAL_CLASS_VALUES, type StartingClass } from "./ClassPicker";
-import { maxRegularUpgradeLevel } from "./uiUtils";
+import { getUniqueValues, maxRegularUpgradeLevel } from "./uiUtils";
 
 const useMenuState = () => {
   const theme = useTheme();
@@ -121,6 +122,7 @@ export default function App() {
     weaponAdjustedEndurance,
     rollType,
     armorWeight,
+    selectedWeapons,
     setRegulationVersionName,
     setAffinityIds,
     setWeaponTypes,
@@ -139,6 +141,7 @@ export default function App() {
     setWeaponAdjustedEndurance,
     setRollType,
     setArmorWeight,
+    setSelectedWeapons,
   } = useAppStateContext();
 
   const { isMobile, menuOpen, menuOpenMobile, onMenuOpenChanged } = useMenuState();
@@ -151,6 +154,7 @@ export default function App() {
   const regulationVersion = regulationVersions[regulationVersionName];
 
   const filteredWeapons = useFilteredWeapons(weapons, regulationVersion);
+  const uniqueWeaponOptions = useMemo(() => getUniqueValues(weapons, "weaponName"), [weapons]);
   const { rowGroups, attackPowerTypes, spellScaling, total } = useWeaponTableRows({
     weapons: filteredWeapons,
     regulationVersion,
@@ -277,6 +281,11 @@ export default function App() {
         affinityOptions={regulationVersion.affinityOptions}
         selectedAffinityIds={affinityIds}
         onAffinityIdsChanged={setAffinityIds}
+      />
+      <WeaponPicker
+        selectedWeapons={selectedWeapons}
+        onSelectedWeaponsChanged={setSelectedWeapons}
+        weaponOptions={uniqueWeaponOptions}
       />
       <WeaponTypePicker
         includeDLCWeaponTypes={canIncludeDLCWeaponTypes}
