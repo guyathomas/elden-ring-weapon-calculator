@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 import type { DamageAttribute, NonDamageAttribute } from "../calculator/attributes";
 
@@ -151,6 +151,10 @@ interface Props {
  * Dropdown used to select a class to use in the solver. Setting the class will just prefill the minimum ranges for the solver.
  */
 function ClassPicker({ startingClass, onStartingClassChanged }: Props) {
+  const options = useMemo(
+    () => Object.keys(INITIAL_CLASS_VALUES).sort((a, b) => (a > b ? 1 : -1)),
+    [],
+  );
   return (
     <FormControl fullWidth>
       <InputLabel>Starting Class</InputLabel>
@@ -162,7 +166,7 @@ function ClassPicker({ startingClass, onStartingClassChanged }: Props) {
           onStartingClassChanged(evt.target.value as StartingClass);
         }}
       >
-        {Object.keys(INITIAL_CLASS_VALUES).map((startingClass) => (
+        {options.map((startingClass) => (
           <MenuItem key={startingClass} value={startingClass}>
             {startingClass}
           </MenuItem>
