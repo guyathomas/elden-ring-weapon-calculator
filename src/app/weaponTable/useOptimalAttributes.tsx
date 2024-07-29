@@ -77,7 +77,11 @@ function getEnduranceValues({
   let incrementalEndurance: number;
   if (adjustEnduranceForWeapon) {
     totalEndurance = getEnduranceForWeight(armorWeight + weaponWeight ?? 0, rollType);
-    incrementalEndurance = totalEndurance - getEnduranceForWeight(armorWeight, rollType);
+    const enduranceWithoutWeapon = Math.max(
+      getEnduranceForWeight(armorWeight, rollType),
+      endurance,
+    );
+    incrementalEndurance = Math.max(totalEndurance - enduranceWithoutWeapon, 0);
   } else {
     const incremental = getIncrementalEndurance(weaponWeight ?? 0, endurance, rollType);
     incrementalEndurance = incremental;
