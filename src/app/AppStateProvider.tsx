@@ -188,10 +188,12 @@ function useCreateAppState() {
   const [appState, setAppState] = useState<AppState>(() => {
     return getInitialAppState();
   });
+  useEffect(() => {
+    updateUrl(appState.regulationVersionName);
+  }, [appState.regulationVersionName]);
 
   useEffect(() => {
     onAppStateChanged(appState);
-    updateUrl(appState.regulationVersionName);
   }, [appState]);
 
   useEffect(() => {
