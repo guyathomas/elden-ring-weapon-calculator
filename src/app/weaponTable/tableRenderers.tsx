@@ -140,7 +140,8 @@ export const OptimizedEnduranceRenderer = memo(function AttributeRequirementRend
   endurance: number;
 }) {
   const { rollType, armorWeight } = useAppStateContext();
-  if (!armorWeight || !rollType) return blankIcon;
+  if (!armorWeight || !rollType || !endurance) return blankIcon;
+  if (endurance < 0) return <>N/A</>;
   return <>{endurance}</>;
 });
 

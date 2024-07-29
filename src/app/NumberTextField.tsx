@@ -1,4 +1,4 @@
-import { type ChangeEvent, type KeyboardEvent, useCallback, useState } from "react";
+import { type ChangeEvent, type KeyboardEvent, useCallback, useEffect, useState } from "react";
 import type { TextFieldProps } from "@mui/material";
 import { TextField } from "@mui/material";
 
@@ -66,6 +66,12 @@ export default function NumberTextField({
     },
     [value, min, max, step, onChange],
   );
+
+  useEffect(() => {
+    // Update strValue with value updates
+    const clamped = clampValue(value, min, max);
+    setValueStr(clamped.toString());
+  }, [max, min, value]);
 
   const handleChange = useCallback(
     (evt: ChangeEvent<HTMLInputElement>) => {

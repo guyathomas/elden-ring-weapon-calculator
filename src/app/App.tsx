@@ -29,7 +29,7 @@ import WeaponPicker from "./WeaponPicker";
 import AffinityPicker from "./AffinityPicker";
 import Footer from "./Footer";
 import MiscFilterPicker from "./MiscFilterPicker";
-import { useOptimalAttributes } from "./weaponTable/useOptimalAttributes";
+import { getEnduranceForWeight, useOptimalAttributes } from "./weaponTable/useOptimalAttributes";
 import useFilteredWeapons from "./weaponTable/useFilteredWeapons";
 import { INITIAL_CLASS_VALUES, type StartingClass } from "./ClassPicker";
 import { getUniqueValues, maxRegularUpgradeLevel } from "./uiUtils";
@@ -173,7 +173,7 @@ export default function App() {
     groupWeaponTypes,
   });
 
-  useOptimalAttributes({
+  const calculateOptimalAttributes = useOptimalAttributes({
     weapons: filteredWeapons,
     solverAttributes,
     twoHanding,
@@ -393,7 +393,11 @@ export default function App() {
             rollType={rollType}
             onRollTypeChanged={setRollType}
             armorWeight={armorWeight}
-            setArmorWeight={setArmorWeight}
+            setArmorWeight={(weight) => {
+              setArmorWeight(weight);
+              setAttributeSolver("end", getEnduranceForWeight(weight, rollType));
+            }}
+            onCalculateOptimalAttributes={calculateOptimalAttributes}
           />
 
           <RegulationVersionAlert key={regulationVersionName}>

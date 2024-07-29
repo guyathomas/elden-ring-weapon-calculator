@@ -11,7 +11,7 @@ import type { SortBy } from "../search/sortWeapons";
 import type { RegulationVersionName } from "./regulationVersions";
 import regulationVersions from "./regulationVersions";
 import { dlcWeaponTypes } from "./uiUtils";
-import type { OptimalAttribute } from "./weaponTable/useOptimalAttributes";
+import { getEnduranceForWeight, type OptimalAttribute } from "./weaponTable/useOptimalAttributes";
 import { INITIAL_CLASS_VALUES, type StartingClass } from "./ClassPicker";
 import type { RollType } from "./weaponTable/constants";
 import type { WeaponOption } from "./WeaponPicker";
@@ -107,7 +107,7 @@ const defaultAppState: AppState = {
   optimalAttributes: {},
   weaponAdjustedEndurance: false,
   rollType: "medium",
-  armorWeight: 53,
+  armorWeight: 24,
   selectedWeapons: [],
 };
 

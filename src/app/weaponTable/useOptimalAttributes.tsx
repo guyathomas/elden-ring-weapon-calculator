@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 import {
   type AttributeSolverValues,
   type DamageAttributeValues,
@@ -29,7 +29,7 @@ export interface OptimalAttribute {
 }
 
 export function getEnduranceForWeight(weight: number, rollType: RollType) {
-  const rollTypeMultiplier = rollTypeToMultiplier[rollType]; // Hardcode medium roll for now.
+  const rollTypeMultiplier = rollTypeToMultiplier[rollType];
   const targetCarryCapacity = weight / rollTypeMultiplier;
   return ENDURANCE_LEVEL_TO_EQUIP_LOAD.findIndex((c) => c >= targetCarryCapacity) + 1;
 }
@@ -39,12 +39,11 @@ function getIncrementalEndurance(
   initialEndurance: number,
   rollType: RollType,
 ) {
-  const rollTypeMultiplier = rollTypeToMultiplier[rollType]; // Hardcode medium roll for now.
+  const rollTypeMultiplier = rollTypeToMultiplier[rollType];
   const currentEquipLoad = ENDURANCE_LEVEL_TO_EQUIP_LOAD[initialEndurance];
   const requiredEquipLoad = weaponWeight / rollTypeMultiplier + currentEquipLoad;
-  const requiredEndurance =
-    ENDURANCE_LEVEL_TO_EQUIP_LOAD.findIndex((c) => c > requiredEquipLoad) + 1;
-  return requiredEndurance - initialEndurance;
+  const totalEndurance = ENDURANCE_LEVEL_TO_EQUIP_LOAD.findIndex((c) => c > requiredEquipLoad) + 1;
+  return totalEndurance - initialEndurance;
 }
 
 const sumObjectValues = (obj: Record<string, number>) =>
@@ -72,8 +71,16 @@ export const useOptimalAttributes = ({
     function (weapon: Weapon): Promise<OptimalAttribute> {
       return new Promise((resolve) => {
         const normalizedUpgradeLevel = getNormalizedUpgradeLevel(weapon, regularUpgradeLevel);
-        const incrementalEndurance = getIncrementalEndurance(weapon.weight ?? 0, sa.end, rollType);
-        // This value includes the value of the points that are unable to be moved, i.e. 14 pts in str
+        let totalEndurance: number;
+        let incrementalEndurance: number;
+        if (weaponAdjustedEndurance) {
+          totalEndurance = getEnduranceForWeight(armorWeight + weapon?.weight ?? 0, rollType);
+          incrementalEndurance = totalEndurance - getEnduranceForWeight(armorWeight, rollType);
+        } else {
+          const incremental = getIncrementalEndurance(weapon.weight ?? 0, sa.end, rollType);
+          incrementalEndurance = incremental;
+          totalEndurance = incremental + sa.end;
+        }
         const SPENDABLE =
           INITIAL_CLASS_VALUES[startingClass].total -
           INITIAL_CLASS_VALUES[startingClass].lvl +
@@ -137,7 +144,7 @@ export const useOptimalAttributes = ({
           },
           spellPower,
           endurance: {
-            total: getEnduranceForWeight(armorWeight + weapon?.weight ?? 0, rollType),
+            total: totalEndurance,
             incremental: incrementalEndurance,
           },
         });
@@ -154,27 +161,27 @@ export const useOptimalAttributes = ({
     ],
   );
 
-  useEffect(() => {
+  const calculateOptimalAttributes = useCallback(async () => {
     setOptimalAttributesForWeapon(); // Reset the calculated state
-    (async () => {
-      const batchSize = 100;
-      const batches = [];
-      for (let i = 0; i < weapons.length; i += batchSize) {
-        batches.push(weapons.slice(i, i + batchSize));
-      }
+    const batchSize = 100;
+    const batches = [];
+    for (let i = 0; i < weapons.length; i += batchSize) {
+      batches.push(weapons.slice(i, i + batchSize));
+    }
 
-      // Process each batch in series
-      for (const batch of batches) {
-        const optimalAttributesForBatch = await Promise.all(
-          batch.map(calculateHighestWeaponAttackResult),
-        );
-        const update = optimalAttributesForBatch.reduce((acc, optimalAttribute, i) => {
-          acc[batch[i].name] = optimalAttribute;
-          return acc;
-        }, {} as Record<Weapon["name"], OptimalAttribute>);
-        setOptimalAttributesForWeapon(update);
-        await wait(10);
-      }
-    })();
+    // Process each batch in series
+    for (const batch of batches) {
+      const optimalAttributesForBatch = await Promise.all(
+        batch.map(calculateHighestWeaponAttackResult),
+      );
+      const update = optimalAttributesForBatch.reduce((acc, optimalAttribute, i) => {
+        acc[batch[i].name] = optimalAttribute;
+        return acc;
+      }, {} as Record<Weapon["name"], OptimalAttribute>);
+      setOptimalAttributesForWeapon(update);
+      await wait(10);
+    }
   }, [calculateHighestWeaponAttackResult, weapons, setOptimalAttributesForWeapon]);
+
+  return calculateOptimalAttributes;
 };

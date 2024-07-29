@@ -1,6 +1,7 @@
 import { memo } from "react";
 import {
   Box,
+  Button,
   Checkbox,
   FormControl,
   FormControlLabel,
@@ -22,7 +23,10 @@ import {
 } from "../calculator/calculator";
 import NumberTextField from "./NumberTextField";
 import { getAttributeLabel, maxRegularUpgradeLevel, toSpecialUpgradeLevel } from "./uiUtils";
-import ClassPicker, { type StartingClass as StartingClass } from "./ClassPicker";
+import ClassPicker, {
+  INITIAL_CLASS_VALUES,
+  type StartingClass as StartingClass,
+} from "./ClassPicker";
 import type { RollType } from "./weaponTable/constants";
 import RollTypePicker from "./RollTypePicker";
 import { getEnduranceForWeight } from "./weaponTable/useOptimalAttributes";
@@ -173,6 +177,7 @@ interface Props {
   onWeaponAdjustedEnduranceChanged(weaponAdjustedEndurance: boolean): void;
   onRollTypeChanged(rollType: RollType): void;
   setArmorWeight(armorWeight: number): void;
+  onCalculateOptimalAttributes(): void;
 }
 
 /**
@@ -203,6 +208,7 @@ function WeaponListSettings({
   onWeaponAdjustedEnduranceChanged,
   onRollTypeChanged,
   setArmorWeight,
+  onCalculateOptimalAttributes,
 }: Props) {
   return (
     <>
@@ -298,7 +304,7 @@ function WeaponListSettings({
               size="small"
               variant="outlined"
               value={attributeSolverValues[attribute]}
-              min={1}
+              min={INITIAL_CLASS_VALUES[startingClass][attribute]}
               max={99}
               onChange={(newValue) => onAttributeSolverChanged(attribute, newValue)}
             />
@@ -317,7 +323,7 @@ function WeaponListSettings({
             startingClass={startingClass}
           />
           <BooleanInput
-            label="Adjust Endurance For Weapon Weight"
+            label="Include Weapon Weight"
             checked={weaponAdjustedEndurance}
             onChange={onWeaponAdjustedEnduranceChanged}
           />
@@ -333,18 +339,11 @@ function WeaponListSettings({
                 max={200}
                 onChange={(newValue) => setArmorWeight(newValue)}
               />
-              {armorWeight && (
-                <NumberTextField
-                  label={"Endurance for Armor"}
-                  size="small"
-                  variant="outlined"
-                  disabled
-                  value={getEnduranceForWeight(armorWeight, rollType)}
-                  onChange={() => undefined}
-                />
-              )}
             </>
           )}
+          <Button size="small" onClick={onCalculateOptimalAttributes}>
+            Calculate
+          </Button>
         </Box>
       </Box>
     </>
