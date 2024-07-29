@@ -67,8 +67,7 @@ export const useOptimalAttributes = ({
   weaponAdjustedEndurance: boolean;
   rollType: RollType;
 }) => {
-  const { setOptimalAttributesForWeapon: setOptimalAttributeForWeapon, armorWeight } =
-    useAppStateContext();
+  const { setOptimalAttributesForWeapon, armorWeight } = useAppStateContext();
   const calculateHighestWeaponAttackResult = useCallback(
     function (weapon: Weapon): Promise<OptimalAttribute> {
       return new Promise((resolve) => {
@@ -156,7 +155,7 @@ export const useOptimalAttributes = ({
   );
 
   useEffect(() => {
-    setOptimalAttributeForWeapon();
+    setOptimalAttributesForWeapon(); // Reset the calculated state
     (async () => {
       const batchSize = 100;
       const batches = [];
@@ -173,9 +172,9 @@ export const useOptimalAttributes = ({
           acc[batch[i].name] = optimalAttribute;
           return acc;
         }, {} as Record<Weapon["name"], OptimalAttribute>);
-        setOptimalAttributeForWeapon(update);
+        setOptimalAttributesForWeapon(update);
         await wait(10);
       }
     })();
-  }, [calculateHighestWeaponAttackResult, weapons, setOptimalAttributeForWeapon]);
+  }, [calculateHighestWeaponAttackResult, weapons, setOptimalAttributesForWeapon]);
 };
