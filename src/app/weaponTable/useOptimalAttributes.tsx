@@ -88,7 +88,7 @@ function getEnduranceValues({
     totalEndurance = incremental + endurance;
   }
   return {
-    totalEndurance,
+    totalEndurance: Math.max(totalEndurance, endurance),
     incrementalEndurance,
   };
 }
@@ -137,7 +137,7 @@ export const useOptimalAttributes = ({
 
       // Calculate Attack Power
       const attributeRanges = damageAttributes.map((attr) => [
-        Math.max(sa[`${attr}.Min`], weapon.requirements.str ?? 0),
+        Math.max(sa[`${attr}.Min`], weapon.requirements[attr] ?? 0),
         sa[`${attr}.Max`],
       ]);
       const optimalAttackScores = getMaxAttackPower(
