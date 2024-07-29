@@ -383,7 +383,6 @@ export default function getWeaponTableColumns({
       columns: [nameColumn],
     },
     ...(spellScalingColumnGroup ? [spellScalingColumnGroup] : []),
-    ...optimizedSpellScalingColumns,
     splitDamage
       ? {
           key: "attack",
@@ -513,5 +512,6 @@ export default function getWeaponTableColumns({
         },
       ],
     },
+    ...optimizedSpellScalingColumns,
   ];
 }
