@@ -26,11 +26,21 @@ function WeaponPicker({ onSelectedWeaponsChanged, weaponOptions, selectedWeapons
   );
   const options: WeaponOption[] = useMemo(
     () =>
-      weaponOptions.map((weapon) => ({
-        label: weapon.name,
-        value: weapon.name,
-        type: weaponTypeLabels.get(weapon.weaponType) || "",
-      })),
+      weaponOptions
+        .sort((a, b) => {
+          if (a.weaponType < b.weaponType) return -1;
+          if (a.weaponType > b.weaponType) return 1;
+          // primary values are equal, so compare secondary values
+          if (a.name < b.name) return -1;
+          if (a.name > b.name) return 1;
+          // both primary and secondary values are equal
+          return 0;
+        })
+        .map((weapon) => ({
+          label: weapon.name,
+          value: weapon.name,
+          type: weaponTypeLabels.get(weapon.weaponType) || "",
+        })),
     [weaponOptions],
   );
   return (
