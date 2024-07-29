@@ -57,8 +57,7 @@ interface UpdateAppState extends AppState {
   setReverse(reverse: boolean): void;
   // Update the optimal attributes for a weapon or '' for weaponName to clear the optimal attribute for all weapons
   setOptimalAttributesForWeapon(
-    weaponName: Weapon["name"],
-    optimalAttribute?: OptimalAttribute,
+    optimalAttributeUpdates?: Record<Weapon["name"], OptimalAttribute>,
   ): void;
   setStartingClass(startingClass: StartingClass): void;
   setRollType(rollType: RollType): void;
@@ -260,21 +259,21 @@ function useCreateAppState() {
       setReverse(reverse) {
         setAppState((prevAppState) => ({ ...prevAppState, reverse }));
       },
-      setOptimalAttributesForWeapon(weaponName, optimalAttributes) {
-        setAppState((prevAppState) => {
-          if (!optimalAttributes) return prevAppState; // Error case, ignore
-          const newOptimalAttributes =
-            weaponName === "" // When '' explicitly passed for weaponName, clear state
-              ? {}
-              : {
-                  ...prevAppState.optimalAttributes,
-                  [weaponName]: optimalAttributes,
-                };
-          return {
+      setOptimalAttributesForWeapon(updates) {
+        if (updates) {
+          setAppState((prevAppState) => ({
             ...prevAppState,
-            optimalAttributes: newOptimalAttributes,
-          };
-        });
+            optimalAttributes: {
+              ...prevAppState.optimalAttributes,
+              ...updates,
+            },
+          }));
+        } else {
+          setAppState((prevAppState) => ({
+            ...prevAppState,
+            optimalAttributes: {},
+          }));
+        }
       },
       setStartingClass(startingClass) {
         setAppState((prevAppState) => ({ ...prevAppState, startingClass }));

@@ -156,11 +156,24 @@ export const useOptimalAttributes = ({
   );
 
   useEffect(() => {
-    setOptimalAttributeForWeapon("");
+    setOptimalAttributeForWeapon();
     (async () => {
-      for (const weapon of weapons) {
-        const result = await calculateHighestWeaponAttackResult(weapon);
-        setOptimalAttributeForWeapon(weapon.name, result);
+      const batchSize = 100;
+      const batches = [];
+      for (let i = 0; i < weapons.length; i += batchSize) {
+        batches.push(weapons.slice(i, i + batchSize));
+      }
+
+      // Process each batch in series
+      for (const batch of batches) {
+        const optimalAttributesForBatch = await Promise.all(
+          batch.map(calculateHighestWeaponAttackResult),
+        );
+        const update = optimalAttributesForBatch.reduce((acc, optimalAttribute, i) => {
+          acc[batch[i].name] = optimalAttribute;
+          return acc;
+        }, {} as Record<Weapon["name"], OptimalAttribute>);
+        setOptimalAttributeForWeapon(update);
         await wait(10);
       }
     })();
