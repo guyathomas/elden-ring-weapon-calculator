@@ -2,6 +2,7 @@ import { memo } from "react";
 import {
   Box,
   Checkbox,
+  debounce,
   FormControl,
   FormControlLabel,
   InputLabel,
@@ -206,6 +207,7 @@ function WeaponListSettings({
   onRollTypeChanged,
   setArmorWeight,
 }: Props) {
+  const debouncedOnAttributeSolverChanged = debounce(onAttributeSolverChanged, 300);
   return (
     <>
       <Box
@@ -285,7 +287,7 @@ function WeaponListSettings({
                   key={rangeKey}
                   attribute={attribute}
                   value={attributeSolverValues[rangeKey]}
-                  onAttributeChanged={onAttributeSolverChanged}
+                  onAttributeChanged={debouncedOnAttributeSolverChanged}
                   bounds={bounds}
                 />
               );
@@ -302,7 +304,7 @@ function WeaponListSettings({
               value={attributeSolverValues[attribute]}
               min={INITIAL_CLASS_VALUES[startingClass][attribute]}
               max={99}
-              onChange={(newValue) => onAttributeSolverChanged(attribute, newValue)}
+              onChange={(newValue) => debouncedOnAttributeSolverChanged(attribute, newValue)}
             />
           ))}
           <NumberTextField
@@ -312,7 +314,7 @@ function WeaponListSettings({
             value={attributeSolverValues.lvl}
             min={1}
             max={713}
-            onChange={(newValue) => onAttributeSolverChanged("lvl", newValue)}
+            onChange={(newValue) => debouncedOnAttributeSolverChanged("lvl", newValue)}
           />
           <ClassPicker
             onStartingClassChanged={onStartingClassChanged}
