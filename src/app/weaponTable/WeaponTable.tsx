@@ -48,7 +48,7 @@ export interface WeaponTableColumnGroupDef {
 interface Props {
   rowGroups: readonly WeaponTableRowGroup[];
   placeholder?: ReactNode;
-  total?: number;
+  total: number;
   footer?: ReactNode;
   sortBy: SortBy;
   reverse: boolean;
@@ -208,11 +208,12 @@ function WeaponTable({
   onSortByChanged,
   onReverseChanged,
 }: Props) {
-  const { optimalAttributes, armorWeight } = useAppStateContext();
-  const optimalAttributesPercentageComplete = useMemo(() => {
-    if (typeof total === "undefined") return 0;
-    return Math.floor((100 * Object.keys(optimalAttributes).length) / total);
-  }, [total, optimalAttributes]);
+  const { armorWeight, optimalAttributes } = useAppStateContext();
+
+  const optimalAttributesPercentageComplete = useMemo(
+    () => Math.floor((100 * Object.values(optimalAttributes).length) / total),
+    [optimalAttributes, total],
+  );
 
   const columnGroups = useMemo(
     () =>

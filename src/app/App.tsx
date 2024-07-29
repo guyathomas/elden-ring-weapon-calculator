@@ -119,7 +119,7 @@ export default function App() {
     sortBy,
     reverse,
     startingClass,
-    weaponAdjustedEndurance,
+    adjustEnduranceForWeapon,
     rollType,
     armorWeight,
     selectedWeapons,
@@ -173,14 +173,14 @@ export default function App() {
     groupWeaponTypes,
   });
 
-  const calculateOptimalAttributes = useOptimalAttributes({
-    weapons: filteredWeapons,
+  useOptimalAttributes({
     solverAttributes,
     twoHanding,
     startingClass,
-    weaponAdjustedEndurance,
+    adjustEnduranceForWeapon,
     upgradeLevel,
     rollType,
+    weapons: filteredWeapons,
   });
 
   const tablePlaceholder = useMemo(
@@ -238,7 +238,6 @@ export default function App() {
       />
     );
   }
-
   const handleStartingClassChanged = (startingClass: StartingClass) => {
     const startingAttributes = INITIAL_CLASS_VALUES[startingClass];
 
@@ -379,7 +378,7 @@ export default function App() {
             splitDamage={splitDamage}
             groupWeaponTypes={groupWeaponTypes}
             numericalScaling={numericalScaling}
-            weaponAdjustedEndurance={weaponAdjustedEndurance}
+            adjustEnduranceForWeapon={adjustEnduranceForWeapon}
             onAttributeChanged={setAttribute}
             onAttributeSolverChanged={setAttributeSolver}
             onTwoHandingChanged={setTwoHanding}
@@ -397,7 +396,6 @@ export default function App() {
               setArmorWeight(weight);
               setAttributeSolver("end", getEnduranceForWeight(weight, rollType));
             }}
-            onCalculateOptimalAttributes={calculateOptimalAttributes}
           />
 
           <RegulationVersionAlert key={regulationVersionName}>

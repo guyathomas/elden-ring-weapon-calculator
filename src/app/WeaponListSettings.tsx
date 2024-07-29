@@ -1,7 +1,6 @@
 import { memo } from "react";
 import {
   Box,
-  Button,
   Checkbox,
   FormControl,
   FormControlLabel,
@@ -29,7 +28,6 @@ import ClassPicker, {
 } from "./ClassPicker";
 import type { RollType } from "./weaponTable/constants";
 import RollTypePicker from "./RollTypePicker";
-import { getEnduranceForWeight } from "./weaponTable/useOptimalAttributes";
 
 interface AttributeInputProps {
   attribute: AllAttribute;
@@ -157,7 +155,7 @@ interface Props {
   attributes: DamageAttributeValues;
   attributeSolverValues: AttributeSolverValues;
   twoHanding: boolean;
-  weaponAdjustedEndurance: boolean;
+  adjustEnduranceForWeapon: boolean;
   upgradeLevel: number;
   maxUpgradeLevel?: number;
   splitDamage: boolean;
@@ -174,10 +172,9 @@ interface Props {
   onGroupWeaponTypesChanged(groupWeaponTypes: boolean): void;
   onNumericalScalingChanged(numericalScaling: boolean): void;
   onStartingClassChanged(startingClass: StartingClass): void;
-  onWeaponAdjustedEnduranceChanged(weaponAdjustedEndurance: boolean): void;
+  onWeaponAdjustedEnduranceChanged(adjustEnduranceForWeapon: boolean): void;
   onRollTypeChanged(rollType: RollType): void;
   setArmorWeight(armorWeight: number): void;
-  onCalculateOptimalAttributes(): void;
 }
 
 /**
@@ -190,7 +187,7 @@ function WeaponListSettings({
   twoHanding,
   upgradeLevel,
   maxUpgradeLevel,
-  weaponAdjustedEndurance,
+  adjustEnduranceForWeapon,
   splitDamage,
   groupWeaponTypes,
   numericalScaling,
@@ -208,7 +205,6 @@ function WeaponListSettings({
   onWeaponAdjustedEnduranceChanged,
   onRollTypeChanged,
   setArmorWeight,
-  onCalculateOptimalAttributes,
 }: Props) {
   return (
     <>
@@ -324,10 +320,10 @@ function WeaponListSettings({
           />
           <BooleanInput
             label="Include Weapon Weight"
-            checked={weaponAdjustedEndurance}
+            checked={adjustEnduranceForWeapon}
             onChange={onWeaponAdjustedEnduranceChanged}
           />
-          {weaponAdjustedEndurance && (
+          {adjustEnduranceForWeapon && (
             <>
               <RollTypePicker onRollTypeChanged={onRollTypeChanged} rollType={rollType} />
               <NumberTextField
@@ -341,9 +337,6 @@ function WeaponListSettings({
               />
             </>
           )}
-          <Button size="small" onClick={onCalculateOptimalAttributes}>
-            Calculate
-          </Button>
         </Box>
       </Box>
     </>

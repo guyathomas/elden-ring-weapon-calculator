@@ -1,5 +1,6 @@
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import {
+  damageAttributes,
   type AttributeSolverValues,
   type DamageAttributeValues,
 } from "../../calculator/calculator";
@@ -28,6 +29,16 @@ export interface OptimalAttribute {
   };
 }
 
+function diffArraysByKey<T>(array1: T[], array2: T[], key: keyof T): T[] {
+  // Create a set of the keys from the first array
+  const keySet = new Set(array1.map((item) => item[key]));
+
+  // Filter the second array to find new items
+  const newItems = array2.filter((item) => !keySet.has(item[key]));
+
+  return newItems;
+}
+
 export function getEnduranceForWeight(weight: number, rollType: RollType) {
   const rollTypeMultiplier = rollTypeToMultiplier[rollType];
   const targetCarryCapacity = weight / rollTypeMultiplier;
@@ -49,139 +60,163 @@ function getIncrementalEndurance(
 const sumObjectValues = (obj: Record<string, number>) =>
   Object.values(obj).reduce((acc, v) => acc + v, 0);
 
+function getEnduranceValues({
+  armorWeight,
+  weaponWeight,
+  rollType,
+  endurance,
+  adjustEnduranceForWeapon,
+}: {
+  armorWeight: number;
+  weaponWeight: number;
+  rollType: RollType;
+  endurance: number;
+  adjustEnduranceForWeapon: boolean;
+}) {
+  let totalEndurance: number;
+  let incrementalEndurance: number;
+  if (adjustEnduranceForWeapon) {
+    totalEndurance = getEnduranceForWeight(armorWeight + weaponWeight ?? 0, rollType);
+    incrementalEndurance = totalEndurance - getEnduranceForWeight(armorWeight, rollType);
+  } else {
+    const incremental = getIncrementalEndurance(weaponWeight ?? 0, endurance, rollType);
+    incrementalEndurance = incremental;
+    totalEndurance = incremental + endurance;
+  }
+  return {
+    totalEndurance,
+    incrementalEndurance,
+  };
+}
+
 export const useOptimalAttributes = ({
-  weapons,
   solverAttributes: sa,
   twoHanding,
-  upgradeLevel: regularUpgradeLevel,
+  upgradeLevel,
   startingClass,
-  weaponAdjustedEndurance,
+  adjustEnduranceForWeapon,
   rollType,
+  weapons,
 }: {
-  weapons: Weapon[];
   solverAttributes: AttributeSolverValues;
   twoHanding: boolean;
   upgradeLevel: number;
   startingClass: StartingClass;
-  weaponAdjustedEndurance: boolean;
+  adjustEnduranceForWeapon: boolean;
   rollType: RollType;
+  weapons: Weapon[];
 }) => {
+  const weaponsMemo = useRef(weapons);
   const { setOptimalAttributesForWeapon, armorWeight } = useAppStateContext();
+  const spendablePoints =
+    INITIAL_CLASS_VALUES[startingClass].total -
+    INITIAL_CLASS_VALUES[startingClass].lvl +
+    sa.lvl -
+    sa.min -
+    sa.vig -
+    sa.end;
   const calculateHighestWeaponAttackResult = useCallback(
-    function (weapon: Weapon): Promise<OptimalAttribute> {
-      return new Promise((resolve) => {
-        const normalizedUpgradeLevel = getNormalizedUpgradeLevel(weapon, regularUpgradeLevel);
-        let totalEndurance: number;
-        let incrementalEndurance: number;
-        if (weaponAdjustedEndurance) {
-          totalEndurance = getEnduranceForWeight(armorWeight + weapon?.weight ?? 0, rollType);
-          incrementalEndurance = totalEndurance - getEnduranceForWeight(armorWeight, rollType);
-        } else {
-          const incremental = getIncrementalEndurance(weapon.weight ?? 0, sa.end, rollType);
-          incrementalEndurance = incremental;
-          totalEndurance = incremental + sa.end;
-        }
-        const SPENDABLE =
-          INITIAL_CLASS_VALUES[startingClass].total -
-          INITIAL_CLASS_VALUES[startingClass].lvl +
-          sa.lvl -
-          sa.min -
-          sa.vig -
-          sa.end -
-          (weaponAdjustedEndurance ? incrementalEndurance : 0);
-
-        const dmg = getIncrementalDamagePerAttribute(weapon, normalizedUpgradeLevel, twoHanding);
-        const optimalAttackScores = getMaxAttackPower(
-          [
-            dmg.attackPower.str,
-            dmg.attackPower.dex,
-            dmg.attackPower.int,
-            dmg.attackPower.fai,
-            dmg.attackPower.arc,
-          ],
-          [
-            [Math.max(sa["str.Min"], weapon.requirements.str ?? 0), sa["str.Max"]],
-            [Math.max(sa["dex.Min"], weapon.requirements.dex ?? 0), sa["dex.Max"]],
-            [Math.max(sa["int.Min"], weapon.requirements.int ?? 0), sa["int.Max"]],
-            [Math.max(sa["fai.Min"], weapon.requirements.fai ?? 0), sa["fai.Max"]],
-            [Math.max(sa["arc.Min"], weapon.requirements.arc ?? 0), sa["arc.Max"]],
-          ],
-          Math.max(SPENDABLE, 0),
-        );
-        const isCatalyst = Boolean(weapon.sorceryTool || weapon.incantationTool);
-        const optimalSpellScores = isCatalyst
-          ? getMaxAttackPower(
-              [
-                dmg.spellPower.str,
-                dmg.spellPower.dex,
-                dmg.spellPower.int,
-                dmg.spellPower.fai,
-                dmg.spellPower.arc,
-              ],
-              [
-                [Math.max(sa["str.Min"], weapon.requirements.str ?? 0), sa["str.Max"]],
-                [Math.max(sa["dex.Min"], weapon.requirements.dex ?? 0), sa["dex.Max"]],
-                [Math.max(sa["int.Min"], weapon.requirements.int ?? 0), sa["int.Max"]],
-                [Math.max(sa["fai.Min"], weapon.requirements.fai ?? 0), sa["fai.Max"]],
-                [Math.max(sa["arc.Min"], weapon.requirements.arc ?? 0), sa["arc.Max"]],
-              ],
-              Math.max(SPENDABLE, 0),
-            )
-          : null;
-        const spellPower =
-          isCatalyst && optimalSpellScores
-            ? ({
-                optimalAttributes: optimalSpellScores.highestAttributes,
-                optimalDamage: optimalSpellScores.maxValue + 100,
-                disposablePoints: SPENDABLE - sumObjectValues(optimalSpellScores.highestAttributes),
-              } as OptimalAttributeForAttackType)
-            : undefined;
-        resolve({
-          attackPower: {
-            optimalDamage: optimalAttackScores.maxValue + dmg.base,
-            optimalAttributes: optimalAttackScores.highestAttributes,
-            disposablePoints: SPENDABLE - sumObjectValues(optimalAttackScores.highestAttributes),
-          },
-          spellPower,
-          endurance: {
-            total: totalEndurance,
-            incremental: incrementalEndurance,
-          },
-        });
+    function (weapon: Weapon): OptimalAttribute {
+      // Calculate Endurance Offsets
+      const normalizedUpgradeLevel = getNormalizedUpgradeLevel(weapon, upgradeLevel);
+      const { totalEndurance, incrementalEndurance } = getEnduranceValues({
+        armorWeight,
+        weaponWeight: weapon?.weight || 0,
+        rollType,
+        endurance: sa.end,
+        adjustEnduranceForWeapon,
       });
+      const endAdjustedSpendable =
+        spendablePoints - (adjustEnduranceForWeapon ? incrementalEndurance : 0);
+
+      const dmg = getIncrementalDamagePerAttribute(weapon, normalizedUpgradeLevel, twoHanding);
+
+      // Calculate Attack Power
+      const attributeRanges = damageAttributes.map((attr) => [
+        Math.max(sa[`${attr}.Min`], weapon.requirements.str ?? 0),
+        sa[`${attr}.Max`],
+      ]);
+      const optimalAttackScores = getMaxAttackPower(
+        damageAttributes.map((attr) => dmg.attackPower[attr]),
+        attributeRanges,
+        Math.max(endAdjustedSpendable, 0),
+      );
+
+      // Calculate Spell Power
+      let spellPower: OptimalAttributeForAttackType | undefined;
+      if (weapon.sorceryTool || weapon.incantationTool) {
+        const optimalSpellScores = getMaxAttackPower(
+          damageAttributes.map((attr) => dmg.spellPower[attr]),
+          attributeRanges,
+          Math.max(endAdjustedSpendable, 0),
+        );
+        spellPower = {
+          optimalAttributes: optimalSpellScores.highestAttributes,
+          optimalDamage: optimalSpellScores.maxValue + 100,
+          disposablePoints:
+            endAdjustedSpendable - sumObjectValues(optimalSpellScores.highestAttributes),
+        } as OptimalAttributeForAttackType;
+      }
+
+      return {
+        attackPower: {
+          optimalDamage: optimalAttackScores.maxValue + dmg.base,
+          optimalAttributes: optimalAttackScores.highestAttributes,
+          disposablePoints:
+            endAdjustedSpendable - sumObjectValues(optimalAttackScores.highestAttributes),
+        },
+        spellPower,
+        endurance: {
+          total: totalEndurance,
+          incremental: incrementalEndurance,
+        },
+      };
     },
     [
       sa,
-      startingClass,
-      weaponAdjustedEndurance,
-      regularUpgradeLevel,
+      spendablePoints,
+      adjustEnduranceForWeapon,
+      upgradeLevel,
       twoHanding,
       rollType,
       armorWeight,
     ],
   );
 
-  const calculateOptimalAttributes = useCallback(async () => {
-    setOptimalAttributesForWeapon(); // Reset the calculated state
-    const batchSize = 100;
-    const batches = [];
-    for (let i = 0; i < weapons.length; i += batchSize) {
-      batches.push(weapons.slice(i, i + batchSize));
-    }
+  const calculateOptimalAttributesForWeapons = useCallback(
+    async (weapons: Weapon[], reset?: boolean) => {
+      if (reset) setOptimalAttributesForWeapon();
+      const batchSize = 100;
+      const batches: Weapon[][] = [];
+      for (let i = 0; i < weapons.length; i += batchSize) {
+        batches.push(weapons.slice(i, i + batchSize));
+      }
+      // Process each batch in series
+      for (let i = 0; i < batches.length; i++) {
+        const update = batches[i]
+          .map(calculateHighestWeaponAttackResult)
+          .reduce((acc, optimalAttribute, j) => {
+            acc[batches[i][j].name] = optimalAttribute;
+            return acc;
+          }, {} as Record<Weapon["name"], OptimalAttribute>);
+        setOptimalAttributesForWeapon(update);
+        await wait(10);
+      }
+    },
+    [calculateHighestWeaponAttackResult, setOptimalAttributesForWeapon],
+  );
 
-    // Process each batch in series
-    for (const batch of batches) {
-      const optimalAttributesForBatch = await Promise.all(
-        batch.map(calculateHighestWeaponAttackResult),
-      );
-      const update = optimalAttributesForBatch.reduce((acc, optimalAttribute, i) => {
-        acc[batch[i].name] = optimalAttribute;
-        return acc;
-      }, {} as Record<Weapon["name"], OptimalAttribute>);
-      setOptimalAttributesForWeapon(update);
-      await wait(10);
+  useEffect(() => {
+    // TODO: Debounce this so that can't be changed in quick succession
+    const weaponsChanged = weaponsMemo.current !== weapons;
+    if (weaponsChanged) {
+      // Only recalculate the new weapons
+      const newWeapons = diffArraysByKey(weaponsMemo.current, weapons, "name");
+      weaponsMemo.current = weapons;
+      calculateOptimalAttributesForWeapons(newWeapons);
+    } else {
+      // An input into the calulations has changed, and we must calculate all again
+      calculateOptimalAttributesForWeapons(weapons, true);
     }
-  }, [calculateHighestWeaponAttackResult, weapons, setOptimalAttributesForWeapon]);
-
-  return calculateOptimalAttributes;
+  }, [weapons, calculateOptimalAttributesForWeapons]);
 };

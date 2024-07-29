@@ -8,7 +8,7 @@ interface Props {
 }
 
 /**
- * Dropdown used to select the desired roll type in the attribute solver when "weaponAdjustedEndurance" is enabled
+ * Dropdown used to select the desired roll type in the attribute solver when "adjustEnduranceForWeapon" is enabled
  */
 function RollTypePicker({ rollType, onRollTypeChanged }: Props) {
   return (

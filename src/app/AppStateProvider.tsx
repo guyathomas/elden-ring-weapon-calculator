@@ -11,7 +11,7 @@ import type { SortBy } from "../search/sortWeapons";
 import type { RegulationVersionName } from "./regulationVersions";
 import regulationVersions from "./regulationVersions";
 import { dlcWeaponTypes } from "./uiUtils";
-import { getEnduranceForWeight, type OptimalAttribute } from "./weaponTable/useOptimalAttributes";
+import { type OptimalAttribute } from "./weaponTable/useOptimalAttributes";
 import { INITIAL_CLASS_VALUES, type StartingClass } from "./ClassPicker";
 import type { RollType } from "./weaponTable/constants";
 import type { WeaponOption } from "./WeaponPicker";
@@ -21,7 +21,7 @@ interface AppState {
   readonly attributes: DamageAttributeValues;
   readonly solverAttributes: AttributeSolverValues;
   readonly twoHanding: boolean;
-  readonly weaponAdjustedEndurance: boolean;
+  readonly adjustEnduranceForWeapon: boolean;
   readonly upgradeLevel: number;
   readonly weaponTypes: readonly WeaponType[];
   readonly affinityIds: readonly number[];
@@ -48,7 +48,7 @@ interface UpdateAppState extends AppState {
   setWeaponTypes(weaponTypes: readonly WeaponType[]): void;
   setAffinityIds(affinityIds: readonly number[]): void;
   setIncludeDLC(includeDLC: boolean): void;
-  setWeaponAdjustedEndurance(weaponAdjustedEndurance: boolean): void;
+  setWeaponAdjustedEndurance(adjustEnduranceForWeapon: boolean): void;
   setEffectiveOnly(effectiveOnly: boolean): void;
   setSplitDamage(splitDamage: boolean): void;
   setGroupWeaponTypes(groupWeaponTypes: boolean): void;
@@ -105,7 +105,7 @@ const defaultAppState: AppState = {
   sortBy: "totalAttack",
   reverse: false,
   optimalAttributes: {},
-  weaponAdjustedEndurance: false,
+  adjustEnduranceForWeapon: false,
   rollType: "medium",
   armorWeight: 24,
   selectedWeapons: [],
@@ -280,8 +280,8 @@ function useCreateAppState() {
       setStartingClass(startingClass) {
         setAppState((prevAppState) => ({ ...prevAppState, startingClass }));
       },
-      setWeaponAdjustedEndurance(weaponAdjustedEndurance) {
-        setAppState((prevAppState) => ({ ...prevAppState, weaponAdjustedEndurance }));
+      setWeaponAdjustedEndurance(adjustEnduranceForWeapon) {
+        setAppState((prevAppState) => ({ ...prevAppState, adjustEnduranceForWeapon }));
       },
       setRollType(rollType) {
         setAppState((prevAppState) => ({ ...prevAppState, rollType }));
