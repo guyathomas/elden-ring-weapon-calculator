@@ -125,7 +125,7 @@ export const OptimizedAttributeRenderer = memo(function AttributeRequirementRend
 }) {
   const { startingClass } = useAppStateContext();
 
-  if (typeof value === "undefined") return <>?</>; // Loading
+  if (typeof value === "undefined") return blankIcon; // Loading or spell power for non spell weapon
 
   const startingClassStats = INITIAL_CLASS_VALUES[startingClass];
   if (value === 0 || (attribute && value <= startingClassStats[attribute])) {
