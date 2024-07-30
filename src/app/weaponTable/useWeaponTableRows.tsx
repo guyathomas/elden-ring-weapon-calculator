@@ -11,17 +11,8 @@ import { getNormalizedUpgradeLevel } from "../uiUtils";
 import { type WeaponTableRowData, type WeaponTableRowGroup } from "./WeaponTable";
 import { type SortBy, sortWeapons } from "../../search/sortWeapons";
 import { type RegulationVersion } from "../regulationVersions";
-<<<<<<< HEAD
-import { allWeaponTypes, weaponTypeLabels } from "../uiUtils";
 import { useAppStateContext } from "../AppStateProvider";
-=======
-import {
-  allWeaponTypes,
-  weaponTypeLabels,
-  maxSpecialUpgradeLevel,
-  toSpecialUpgradeLevel,
-} from "../uiUtils";
->>>>>>> origin/master
+import { allWeaponTypes, weaponTypeLabels } from "../uiUtils";
 
 interface WeaponTableRowsOptions {
   weapons: Weapon[];
@@ -36,12 +27,8 @@ interface WeaponTableRowsOptions {
   includeDLC: boolean;
   effectiveOnly: boolean;
   twoHanding: boolean;
-<<<<<<< HEAD
-=======
   upgradeLevel: number;
->>>>>>> origin/master
   groupWeaponTypes: boolean;
-  upgradeLevel: number;
   maxUpgradeLevel: number;
 }
 
@@ -119,7 +106,7 @@ const useWeaponTableRows = ({
     });
 
     return [rows, includedDamageTypes, includeSpellScaling];
-  }, [weapons, attributes, twoHanding, upgradeLevel, regulationVersion]);
+  }, [weapons, attributes, twoHanding, upgradeLevel, regulationVersion, optimalAttributes]);
 
   const memoizedAttackPowerTypes = useMemo(
     () => attackPowerTypes,
