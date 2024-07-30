@@ -107,7 +107,7 @@ const defaultAppState: AppState = {
   optimalAttributes: {},
   adjustEnduranceForWeapon: false,
   rollType: "medium",
-  armorWeight: 24,
+  armorWeight: 34,
   selectedWeapons: [],
 };
 

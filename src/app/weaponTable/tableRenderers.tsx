@@ -8,7 +8,7 @@
 import { memo } from "react";
 import { Box, Link, Typography } from "@mui/material";
 import RemoveIcon from "@mui/icons-material/Remove";
-import { type Weapon, type DamageAttribute, damageAttributes } from "../../calculator/calculator";
+import { type Weapon, type DamageAttribute } from "../../calculator/calculator";
 import { getAttributeLabel } from "../uiUtils";
 import { useAppStateContext } from "../AppStateProvider";
 import { INITIAL_CLASS_VALUES } from "../ClassPicker";
@@ -125,10 +125,25 @@ export const OptimizedAttributeRenderer = memo(function AttributeRequirementRend
 }) {
   const { startingClass } = useAppStateContext();
 
-  if (typeof value === "undefined") return <>?</>;
+  if (typeof value === "undefined") return <>?</>; // Loading
+
   const startingClassStats = INITIAL_CLASS_VALUES[startingClass];
-  if (value === 0 || (attribute && value <= startingClassStats[attribute])) return blankIcon;
-  return <>{Math.floor(value)}</>;
+  if (value === 0 || (attribute && value <= startingClassStats[attribute])) {
+    // Don't show any values when they are just the minimum class values
+    return blankIcon;
+  }
+
+  const attributeValue = Math.floor(value);
+  return (
+    <Typography
+      sx={{ color: (theme) => (attributeValue < 0 ? theme.palette.error.main : undefined) }}
+      aria-label={`${round(
+        attributeValue,
+      )}. Invalid stat allocation. Please adjust your starting class or level`}
+    >
+      {round(attributeValue)}
+    </Typography>
+  );
 });
 
 /**

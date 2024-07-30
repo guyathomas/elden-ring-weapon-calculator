@@ -53,7 +53,7 @@ function getIncrementalEndurance(
   const rollTypeMultiplier = rollTypeToMultiplier[rollType];
   const currentEquipLoad = ENDURANCE_LEVEL_TO_EQUIP_LOAD[initialEndurance];
   const requiredEquipLoad = weaponWeight / rollTypeMultiplier + currentEquipLoad;
-  const totalEndurance = ENDURANCE_LEVEL_TO_EQUIP_LOAD.findIndex((c) => c > requiredEquipLoad) + 1;
+  const totalEndurance = ENDURANCE_LEVEL_TO_EQUIP_LOAD.findIndex((c) => c > requiredEquipLoad);
   return totalEndurance - initialEndurance;
 }
 
@@ -76,7 +76,10 @@ function getEnduranceValues({
   let totalEndurance: number;
   let incrementalEndurance: number;
   if (adjustEnduranceForWeapon) {
-    totalEndurance = getEnduranceForWeight(armorWeight + weaponWeight ?? 0, rollType);
+    totalEndurance = Math.max(
+      endurance,
+      getEnduranceForWeight(armorWeight + weaponWeight ?? 0, rollType),
+    );
     const enduranceWithoutWeapon = Math.max(
       getEnduranceForWeight(armorWeight, rollType),
       endurance,

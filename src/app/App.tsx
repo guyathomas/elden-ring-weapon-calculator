@@ -394,7 +394,11 @@ export default function App() {
             armorWeight={armorWeight}
             setArmorWeight={(weight) => {
               setArmorWeight(weight);
-              setAttributeSolver("end", getEnduranceForWeight(weight, rollType));
+              const endurance = getEnduranceForWeight(weight, rollType);
+              setAttributeSolver(
+                "end",
+                Math.max(endurance, INITIAL_CLASS_VALUES[startingClass].end),
+              );
             }}
           />
 
