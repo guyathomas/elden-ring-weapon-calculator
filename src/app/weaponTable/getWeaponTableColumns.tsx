@@ -471,7 +471,10 @@ export default function getWeaponTableColumns({
                 ),
                 render([weapon, { ineffectiveAttributes }, optimalAttributes]) {
                   return (
-                    <OptimizedEnduranceRenderer endurance={optimalAttributes?.endurance?.total} />
+                    <OptimizedAttributeRenderer
+                      value={optimalAttributes?.endurance?.total}
+                      attribute="end"
+                    />
                   );
                 },
               } as WeaponTableColumnDef,

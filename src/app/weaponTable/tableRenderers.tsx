@@ -8,7 +8,7 @@
 import { memo } from "react";
 import { Box, Link, Typography } from "@mui/material";
 import RemoveIcon from "@mui/icons-material/Remove";
-import { type Weapon, type DamageAttribute } from "../../calculator/calculator";
+import { type Weapon, type DamageAttribute, type AllAttribute } from "../../calculator/calculator";
 import { getAttributeLabel } from "../uiUtils";
 import { useAppStateContext } from "../AppStateProvider";
 import { INITIAL_CLASS_VALUES } from "../ClassPicker";
@@ -121,7 +121,7 @@ export const OptimizedAttributeRenderer = memo(function AttributeRequirementRend
   attribute,
 }: {
   value?: number;
-  attribute?: DamageAttribute;
+  attribute?: AllAttribute;
 }) {
   const { startingClass } = useAppStateContext();
 
@@ -156,7 +156,6 @@ export const OptimizedEnduranceRenderer = memo(function AttributeRequirementRend
 }) {
   const { rollType, armorWeight } = useAppStateContext();
   if (!armorWeight || !rollType || !endurance) return blankIcon;
-  if (endurance < 0) return <>N/A</>;
   return <>{endurance}</>;
 });
 
