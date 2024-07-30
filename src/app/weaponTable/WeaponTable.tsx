@@ -211,7 +211,7 @@ function WeaponTable({
   const { armorWeight, optimalAttributes } = useAppStateContext();
 
   const optimalAttributesPercentageComplete = useMemo(
-    () => Math.floor((100 * Object.values(optimalAttributes).length) / total),
+    () => Math.floor((100 * Object.values(optimalAttributes).length) / total) || 100,
     [optimalAttributes, total],
   );
 
