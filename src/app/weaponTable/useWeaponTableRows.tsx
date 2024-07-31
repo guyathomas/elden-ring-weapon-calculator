@@ -13,6 +13,7 @@ import { type SortBy, sortWeapons } from "../../search/sortWeapons";
 import { type RegulationVersion } from "../regulationVersions";
 import { useAppStateContext } from "../AppStateProvider";
 import { allWeaponTypes, weaponTypeLabels } from "../uiUtils";
+import { getIncrementalDamagePerAttribute } from "../../calculator/newCalculator";
 
 interface WeaponTableRowsOptions {
   weapons: Weapon[];
@@ -84,6 +85,12 @@ const useWeaponTableRows = ({
         ineffectiveAttributePenalty: regulationVersion.ineffectiveAttributePenalty,
       });
 
+      const incrementalDamagePerAttribute = getIncrementalDamagePerAttribute(
+        weapon,
+        normalizedUpgradeLevel,
+        twoHanding,
+      );
+
       // For all of the possible permutations of Attributes, where the sum is smaller than 150
       // Calculate the weaponAttackResult
       // Keep track of the highest weaponAttackResult and then return the combination of attributes that resulted in that weaponAttackResult
@@ -100,8 +107,14 @@ const useWeaponTableRows = ({
 
       return [
         weapon,
-        { ...weaponAttackResult, upgradeLevel: normalizedUpgradeLevel },
-        optimalAttributes[weapon.name],
+        {
+          ...weaponAttackResult,
+          upgradeLevel: normalizedUpgradeLevel,
+        },
+        {
+          ...optimalAttributes[weapon.name],
+          incrementalDamagePerAttribute,
+        },
       ];
     });
 

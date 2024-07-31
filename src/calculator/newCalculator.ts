@@ -69,7 +69,7 @@ export function createDamageScalingPerAttribute(
 const sumObjectValues = (obj: Record<string, number>) =>
   Object.values(obj).reduce((acc, v) => acc + v, 0);
 
-type IncrementalDamagePerAttribute = {
+export type IncrementalDamagePerAttribute = {
   base: number;
   attackPower: Record<DamageAttribute, number[]>;
   spellPower: Record<DamageAttribute, number[]>;

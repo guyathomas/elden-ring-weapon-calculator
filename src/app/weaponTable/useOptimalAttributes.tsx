@@ -8,7 +8,10 @@ import type { Weapon } from "../../calculator/weapon";
 import { useAppStateContext } from "../AppStateProvider";
 import { INITIAL_CLASS_VALUES, type StartingClass } from "../ClassPicker";
 import { ENDURANCE_LEVEL_TO_EQUIP_LOAD, rollTypeToMultiplier, type RollType } from "./constants";
-import { getIncrementalDamagePerAttribute } from "../../calculator/newCalculator";
+import {
+  getIncrementalDamagePerAttribute,
+  type IncrementalDamagePerAttribute,
+} from "../../calculator/newCalculator";
 import { getNormalizedUpgradeLevel } from "../uiUtils";
 import { getMaxAttackPower } from "./getMaxAttackPower";
 
@@ -27,6 +30,7 @@ export interface OptimalAttribute {
     incremental: number;
     total: number;
   };
+  incrementalDamagePerAttribute: IncrementalDamagePerAttribute;
 }
 
 function diffArraysByKey<T>(array1: T[], array2: T[], key: keyof T): T[] {
@@ -177,6 +181,7 @@ export const useOptimalAttributes = ({
           total: totalEndurance,
           incremental: incrementalEndurance,
         },
+        incrementalDamagePerAttribute: dmg,
       };
     },
     [

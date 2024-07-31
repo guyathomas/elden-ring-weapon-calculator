@@ -6,8 +6,10 @@
  * power changes.
  */
 import { memo } from "react";
-import { Box, Link, Typography } from "@mui/material";
+import { Box, IconButton, Link, Typography } from "@mui/material";
 import RemoveIcon from "@mui/icons-material/Remove";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
 import { type Weapon, type DamageAttribute, type AllAttribute } from "../../calculator/calculator";
 import { getAttributeLabel } from "../uiUtils";
 import { useAppStateContext } from "../AppStateProvider";
@@ -29,26 +31,34 @@ export function round(value: number) {
 export const WeaponNameRenderer = memo(function WeaponNameRenderer({
   weapon,
   upgradeLevel,
+  isExpanded,
+  toggleIsExpanded,
 }: {
   weapon: Weapon;
   upgradeLevel: number;
+  isExpanded: boolean;
+  toggleIsExpanded: () => void;
 }) {
   const text = `${weapon.name}${upgradeLevel > 0 ? ` +${upgradeLevel}` : ""}`;
+  const weaponName = weapon.url ? (
+    <Link
+      variant="button"
+      underline="hover"
+      href={weapon.url}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      {text}
+    </Link>
+  ) : (
+    <Typography variant="button">{text}</Typography>
+  );
   return (
     <Box>
-      {weapon.url ? (
-        <Link
-          variant="button"
-          underline="hover"
-          href={weapon.url}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {text}
-        </Link>
-      ) : (
-        <Typography variant="button">{text}</Typography>
-      )}
+      <IconButton aria-label="see scaling data" size="small" onClick={toggleIsExpanded}>
+        {isExpanded ? <ArrowDropUpIcon /> : <ArrowDropDownIcon />}
+      </IconButton>
+      {weaponName}
     </Box>
   );
 });

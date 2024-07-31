@@ -34,8 +34,15 @@ const nameColumn: WeaponTableColumnDef = {
   sx: {
     justifyContent: "start",
   },
-  render([weapon, { upgradeLevel }]) {
-    return <WeaponNameRenderer weapon={weapon} upgradeLevel={upgradeLevel} />;
+  render([weapon, { upgradeLevel }], { isExpanded, toggleIsExpanded }) {
+    return (
+      <WeaponNameRenderer
+        weapon={weapon}
+        upgradeLevel={upgradeLevel}
+        isExpanded={isExpanded}
+        toggleIsExpanded={toggleIsExpanded}
+      />
+    );
   },
 };
 
@@ -379,7 +386,7 @@ export default function getWeaponTableColumns({
   return [
     {
       key: "name",
-      sx: { flex: 1, minWidth: 160 },
+      sx: { flex: 2, minWidth: 160 },
       columns: [nameColumn],
     },
     ...(spellScalingColumnGroup ? [spellScalingColumnGroup] : []),

@@ -1,6 +1,6 @@
-import { memo, type ReactNode, useMemo } from "react";
+import React, { memo, type ReactNode, Suspense, useMemo, useState } from "react";
 import * as ScrollArea from "@radix-ui/react-scroll-area";
-import { Box, Typography } from "@mui/material";
+import { Box, CircularProgress, FormControlLabel, Switch, Typography } from "@mui/material";
 import { type SystemStyleObject, type Theme } from "@mui/system";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
@@ -22,6 +22,10 @@ import {
 import type { OptimalAttribute } from "./useOptimalAttributes";
 import { useAppStateContext } from "../AppStateProvider";
 
+const ResponsiveLine = React.lazy(() =>
+  import("@nivo/line").then((module) => ({ default: module.ResponsiveLine })),
+);
+
 export type WeaponTableRowData = [Weapon, WeaponAttackResult, OptimalAttribute];
 
 export interface WeaponTableRowGroup {
@@ -34,7 +38,7 @@ export interface WeaponTableColumnDef {
   key: string;
   sortBy?: SortBy;
   header: ReactNode;
-  render(row: WeaponTableRowData): ReactNode;
+  render(row: WeaponTableRowData, collapsibleProps: CollapsibleProps): ReactNode;
   sx?: SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>);
 }
 
@@ -168,6 +172,11 @@ const ColumnHeaderRow = memo(function ColumnHeaderRow({
   );
 });
 
+export interface CollapsibleProps {
+  isExpanded: boolean;
+  toggleIsExpanded: () => void;
+}
+
 /**
  * A row in the weapon table containing a single weapon
  */
@@ -178,18 +187,139 @@ const DataRow = memo(function DataRow({
   columnGroups: readonly WeaponTableColumnGroupDef[];
   row: WeaponTableRowData;
 }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [chartType, setChartType] = useState<"incremental" | "cumulative">("incremental");
+  const toggleIsExpanded = React.useCallback(() => setIsExpanded((prev) => !prev), []);
+  const incrementalDamagePerAttribute = row[2].incrementalDamagePerAttribute;
+
+  const lineData = useMemo(() => {
+    if (!isExpanded) return [];
+
+    if (chartType === "cumulative") {
+      return Object.entries(incrementalDamagePerAttribute.attackPower).map(([attr, values]) => ({
+        id: attr,
+        data: values.map((v, i) => ({ x: i + 1, y: (v || 0).toFixed(2) })),
+      }));
+    } else {
+      return Object.entries(incrementalDamagePerAttribute.attackPower).map(([attr, values]) => ({
+        id: attr,
+        data: values.map((v, i, arr) => ({
+          x: i,
+          y: (Math.max(0, v - (arr[i - 1] || 0)) || 0).toFixed(2),
+        })),
+      }));
+    }
+  }, [isExpanded, incrementalDamagePerAttribute, chartType]);
+  const yGrids = useMemo(() => {
+    const gridNumbers = [];
+    const maxValue = Object.values(lineData).reduce(
+      (acc, { data }) => Math.max(acc, ...data.map(({ y }) => parseFloat(y))),
+      0,
+    );
+    const intervalSize = chartType === "cumulative" ? 100 : 2;
+    const numberOfLines = Math.ceil(maxValue / intervalSize);
+    for (let i = 0; i < numberOfLines; i++) {
+      gridNumbers.push(i * intervalSize);
+    }
+    return gridNumbers;
+  }, [chartType, lineData]);
+
   return (
-    <WeaponTableDataRow role="row">
-      {columnGroups.map(({ key, sx, columns }) => (
-        <WeaponTableColumnGroup key={key} sx={sx}>
-          {columns.map((column) => (
-            <WeaponTableColumn key={column.key} role="cell" sx={column.sx}>
-              {column.render(row)}
-            </WeaponTableColumn>
-          ))}
-        </WeaponTableColumnGroup>
-      ))}
-    </WeaponTableDataRow>
+    <>
+      <WeaponTableDataRow role="row">
+        {columnGroups.map(({ key, sx, columns }) => (
+          <WeaponTableColumnGroup key={key} sx={sx}>
+            {columns.map((column) => (
+              <WeaponTableColumn key={column.key} role="cell" sx={column.sx}>
+                {column.render(row, { isExpanded, toggleIsExpanded })}
+              </WeaponTableColumn>
+            ))}
+          </WeaponTableColumnGroup>
+        ))}
+      </WeaponTableDataRow>
+      {isExpanded && (
+        <Suspense
+          fallback={
+            <Box display="flex" alignItems="center">
+              <CircularProgress />
+            </Box>
+          }
+        >
+          <Box style={{ height: 300 }}>
+            <FormControlLabel
+              sx={{
+                marginTop: 1,
+                marginLeft: 1,
+                position: "absolute",
+                zIndex: 1,
+              }}
+              control={
+                <Switch
+                  value={chartType === "cumulative"}
+                  onClick={() => {
+                    setChartType((oldType) =>
+                      oldType === "incremental" ? "cumulative" : "incremental",
+                    );
+                  }}
+                />
+              }
+              label="Show cumulative"
+            />
+            <ResponsiveLine
+              data={lineData}
+              theme={{
+                text: {
+                  fill: "#fff",
+                },
+                tooltip: {
+                  container: {
+                    background: "#333",
+                  },
+                },
+                crosshair: {
+                  line: {
+                    stroke: "#fff",
+                  },
+                },
+              }}
+              margin={{ top: 60, right: 20, bottom: 40, left: 50 }}
+              gridXValues={[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140]}
+              gridYValues={yGrids}
+              axisTop={null}
+              axisRight={null}
+              axisBottom={{
+                tickValues: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140],
+                legendPosition: "start",
+              }}
+              axisLeft={{
+                tickSize: 5,
+                tickPadding: 5,
+                tickRotation: 0,
+                legend: "count",
+                legendOffset: -40,
+                legendPosition: "middle",
+                truncateTickAt: 0,
+              }}
+              legends={[
+                {
+                  anchor: "top",
+                  direction: "row",
+                  translateY: -40,
+                  itemWidth: 60,
+                  itemHeight: 20,
+                  symbolShape: "circle",
+                  symbolBorderColor: "rgba(0, 0, 0, .5)",
+                },
+              ]}
+              enablePoints={false}
+              enableSlices="x"
+              enableCrosshair
+              enableTouchCrosshair={true}
+            />
+          </Box>
+        </Suspense>
+      )}
+    </>
   );
 });
 
