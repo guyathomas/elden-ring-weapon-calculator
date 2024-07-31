@@ -246,7 +246,7 @@ const optimizedAPColumns: WeaponTableColumnDef[] = damageAttributes.map(
       return (
         <OptimizedAttributeRenderer
           key={attribute}
-          value={optimalAttributes?.attackPower.optimalAttributes[attribute]}
+          value={optimalAttributes?.attackPower?.optimalAttributes[attribute]}
           attribute={attribute}
         />
       );
@@ -492,7 +492,7 @@ export default function getWeaponTableColumns({
           render([weapon, { ineffectiveAttributes }, damageAttributeValues]) {
             return (
               <OptimizedAttributeRenderer
-                value={damageAttributeValues?.attackPower.optimalDamage}
+                value={damageAttributeValues?.attackPower?.optimalDamage}
               />
             );
           },
@@ -508,7 +508,7 @@ export default function getWeaponTableColumns({
           render([weapon, { ineffectiveAttributes }, damageAttributeValues]) {
             return (
               <OptimizedAttributeRenderer
-                value={damageAttributeValues?.attackPower.disposablePoints}
+                value={damageAttributeValues?.attackPower?.disposablePoints}
               />
             );
           },

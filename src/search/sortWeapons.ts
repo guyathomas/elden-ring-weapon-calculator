@@ -59,7 +59,7 @@ export function sortWeapons(
 
     if (sortBy === "totalOptimizedAP") {
       return ([weapon, weaponAttack, optimizedStats]) =>
-        -(optimizedStats?.attackPower.optimalDamage ?? 0);
+        -(optimizedStats?.attackPower?.optimalDamage ?? 0);
     }
     if (sortBy === "totalOptimizedSP") {
       return ([weapon, weaponAttack, optimizedStats]) =>
@@ -83,7 +83,7 @@ export function sortWeapons(
     if (sortBy.endsWith("OptimizedAP")) {
       const attributeType = sortBy.slice(0, -1 * "OptimizedAP".length) as DamageAttribute;
       return ([weapon, weaponAttack, optimizedStats]) =>
-        -(optimizedStats?.attackPower.optimalAttributes[attributeType] ?? 0);
+        -(optimizedStats?.attackPower?.optimalAttributes[attributeType] ?? 0);
     }
 
     if (sortBy.endsWith("OptimizedSP")) {
