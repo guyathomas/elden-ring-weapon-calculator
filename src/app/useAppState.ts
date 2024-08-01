@@ -19,6 +19,7 @@ interface AppState {
   readonly numericalScaling: boolean;
   readonly sortBy: SortBy;
   readonly reverse: boolean;
+  readonly selectedWeapons: WeaponOption[];
 }
 
 interface UpdateAppState extends AppState {
@@ -35,6 +36,7 @@ interface UpdateAppState extends AppState {
   setNumericalScaling(numericalScaling: boolean): void;
   setSortBy(sortBy: SortBy): void;
   setReverse(reverse: boolean): void;
+  setSelectedWeapons(weapons: WeaponOption[]): void;
 }
 
 const defaultAppState: AppState = {
@@ -57,6 +59,7 @@ const defaultAppState: AppState = {
   numericalScaling: false,
   sortBy: "totalAttack",
   reverse: false,
+  selectedWeapons: [],
 };
 
 /**
@@ -169,6 +172,9 @@ export default function useAppState() {
       },
       setReverse(reverse) {
         setAppState((prevAppState) => ({ ...prevAppState, reverse }));
+      },
+      setSelectedWeapons(selectedWeapons) {
+        setAppState((prevAppState) => ({ ...prevAppState, selectedWeapons }));
       },
     }),
     [],

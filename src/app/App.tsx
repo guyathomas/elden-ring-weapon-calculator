@@ -25,6 +25,7 @@ import useAppState from "./useAppState";
 import AppBar from "./AppBar";
 import RegulationVersionPicker from "./RegulationVersionPicker";
 import WeaponTypePicker from "./WeaponTypePicker";
+import WeaponPicker from "./WeaponPicker";
 import AffinityPicker from "./AffinityPicker";
 import Footer from "./Footer";
 import MiscFilterPicker from "./MiscFilterPicker";
@@ -125,6 +126,7 @@ export default function App() {
     setNumericalScaling,
     setSortBy,
     setReverse,
+    setSelectedWeapons,
   } = useAppState();
 
   const { isMobile, menuOpen, menuOpenMobile, onMenuOpenChanged } = useMenuState();
@@ -136,6 +138,7 @@ export default function App() {
 
   const regulationVersion = regulationVersions[regulationVersionName];
 
+  const uniqueWeaponOptions = useMemo(() => getUniqueValues(weapons, "weaponName"), [weapons]);
   const { rowGroups, attackPowerTypes, spellScaling, total } = useWeaponTableRows({
     weapons,
     regulationVersion,
@@ -230,6 +233,11 @@ export default function App() {
         affinityOptions={regulationVersion.affinityOptions}
         selectedAffinityIds={affinityIds}
         onAffinityIdsChanged={setAffinityIds}
+      />
+      <WeaponPicker
+        selectedWeapons={selectedWeapons}
+        onSelectedWeaponsChanged={setSelectedWeapons}
+        weaponOptions={uniqueWeaponOptions}
       />
       <WeaponTypePicker
         includeDLCWeaponTypes={canIncludeDLCWeaponTypes}
