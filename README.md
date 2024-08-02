@@ -32,9 +32,8 @@ The Convergence Mod support uses data extracted from [The Convergence Mod](https
 
 ## TODO:
 
-- [ ] Support recalculating only on button press
 - [ ] Copy Stats to optimized stats to Main Calculator
-- [ ] Allow the solver to be toggled on or off.
-- [ ] Enable toggling on off the attribute calculator for the UI / Calculations
-- [ ] Solve why changing fields requires a refresh to take effect
-- [ ] Solve why cached optimal attributes doesn't clear
+- [ ] Allow the solver to be toggled on or off. Or move to a different tab
+- [ ] Add Armour Solving
+- [ ] Add modifiers ( Armour bonuses, buffs, etc... )
+- [ ] When solving for a particular damage type, it doesn't fully allocale points. Also, when optimizing for a damage type it should allocale points according to the total priority after depleting the points for the scaled attribute.

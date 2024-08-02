@@ -77,6 +77,32 @@ const attackColumns = Object.fromEntries(
   ]),
 ) as Record<AttackPowerType, WeaponTableColumnDef>;
 
+const optimizedAttackTypeColumns = Object.fromEntries(
+  allAttackPowerTypes.map((attackPowerType): [AttackPowerType, WeaponTableColumnDef] => [
+    attackPowerType,
+    {
+      key: `${attackPowerType}OptimizedAttackByDamageType`,
+      sortBy: `${attackPowerType}OptimizedAttackByDamageType`,
+      header: damageTypeIcons.has(attackPowerType) ? (
+        <img
+          src={damageTypeIcons.get(attackPowerType)!}
+          alt={damageTypeLabels.get(attackPowerType)!}
+          title={damageTypeLabels.get(attackPowerType)!}
+          width={24}
+          height={24}
+        />
+      ) : (
+        <Typography component="span" variant="subtitle2">
+          {damageTypeLabels.get(attackPowerType)}
+        </Typography>
+      ),
+      render([, { ineffectiveAttackPowerTypes }, { attackPower }]) {
+        return <AttackPowerRenderer value={attackPower?.optimalDamageSplit[attackPowerType]} />;
+      },
+    },
+  ]),
+) as Record<AttackPowerType, WeaponTableColumnDef>;
+
 const splitSpellScalingColumns: WeaponTableColumnDef[] = allDamageTypes.map((damageType) => ({
   key: `${damageType}SpellScaling`,
   sortBy: `${damageType}SpellScaling`,
@@ -445,7 +471,7 @@ export default function getWeaponTableColumns({
     {
       key: "attributesOptimizedAP",
       sx: {
-        width: 40 * (allDamageTypes.length + 1) + 27,
+        width: 45 * (allDamageTypes.length + damageAttributes.length + 4) + 27,
         flex: 2,
       },
       header: `Optimal AP Attributes${completionLabel}`,
@@ -520,6 +546,7 @@ export default function getWeaponTableColumns({
             );
           },
         },
+        ...allDamageTypes.map((damageType) => optimizedAttackTypeColumns[damageType]),
       ],
     },
     ...optimizedSpellScalingColumns,

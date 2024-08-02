@@ -123,6 +123,7 @@ export default function App() {
     rollType,
     armorWeight,
     selectedWeapons,
+    damageTypeToOptimizeFor,
     setRegulationVersionName,
     setAffinityIds,
     setWeaponTypes,
@@ -142,6 +143,7 @@ export default function App() {
     setRollType,
     setArmorWeight,
     setSelectedWeapons,
+    setDamageTypeToOptimizeFor,
   } = useAppStateContext();
 
   const { isMobile, menuOpen, menuOpenMobile, onMenuOpenChanged } = useMenuState();
@@ -181,6 +183,7 @@ export default function App() {
     upgradeLevel,
     rollType,
     weapons: filteredWeapons,
+    damageTypeToOptimizeFor,
   });
 
   const tablePlaceholder = useMemo(
@@ -392,7 +395,7 @@ export default function App() {
             rollType={rollType}
             onRollTypeChanged={setRollType}
             armorWeight={armorWeight}
-            setArmorWeight={(weight) => {
+            onArmorWeightChanged={(weight) => {
               setArmorWeight(weight);
               const endurance = getEnduranceForWeight(weight, rollType);
               setAttributeSolver(
@@ -400,6 +403,8 @@ export default function App() {
                 Math.max(endurance, INITIAL_CLASS_VALUES[startingClass].end),
               );
             }}
+            damageTypeToOptimizeFor={damageTypeToOptimizeFor}
+            onOptimizedDamageTypeChanged={setDamageTypeToOptimizeFor}
           />
 
           <RegulationVersionAlert key={regulationVersionName}>

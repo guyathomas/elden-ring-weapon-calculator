@@ -29,6 +29,8 @@ import ClassPicker, {
 } from "./ClassPicker";
 import type { RollType } from "./weaponTable/constants";
 import RollTypePicker from "./RollTypePicker";
+import OptimizedDamageTypePicker from "./OptimizedDamageTypePicker";
+import type { DamageTypeToOptimizeFor } from "./OptimizedDamageTypePicker";
 
 interface AttributeInputProps {
   attribute: AllAttribute;
@@ -165,6 +167,7 @@ interface Props {
   startingClass: StartingClass;
   rollType: RollType;
   armorWeight: number;
+  damageTypeToOptimizeFor: DamageTypeToOptimizeFor;
   onAttributeChanged(attribute: AllAttributeAndLevel, value: number): void;
   onAttributeSolverChanged(attribute: AttributeSolverKey, value: number): void;
   onTwoHandingChanged(twoHanding: boolean): void;
@@ -175,7 +178,8 @@ interface Props {
   onStartingClassChanged(startingClass: StartingClass): void;
   onWeaponAdjustedEnduranceChanged(adjustEnduranceForWeapon: boolean): void;
   onRollTypeChanged(rollType: RollType): void;
-  setArmorWeight(armorWeight: number): void;
+  onArmorWeightChanged(armorWeight: number): void;
+  onOptimizedDamageTypeChanged(damageTypeToOptimizeFor: DamageTypeToOptimizeFor): void;
 }
 
 /**
@@ -195,6 +199,7 @@ function WeaponListSettings({
   startingClass,
   rollType,
   armorWeight,
+  damageTypeToOptimizeFor,
   onAttributeChanged,
   onAttributeSolverChanged,
   onTwoHandingChanged,
@@ -205,7 +210,8 @@ function WeaponListSettings({
   onStartingClassChanged,
   onWeaponAdjustedEnduranceChanged,
   onRollTypeChanged,
-  setArmorWeight,
+  onArmorWeightChanged,
+  onOptimizedDamageTypeChanged,
 }: Props) {
   const debouncedOnAttributeSolverChanged = debounce(onAttributeSolverChanged, 300);
   return (
@@ -335,10 +341,14 @@ function WeaponListSettings({
                 value={armorWeight}
                 min={0}
                 max={200}
-                onChange={(newValue) => setArmorWeight(newValue)}
+                onChange={(newValue) => onArmorWeightChanged(newValue)}
               />
             </>
           )}
+          <OptimizedDamageTypePicker
+            onOptimizedDamageTypeChanged={onOptimizedDamageTypeChanged}
+            optimizedDamageType={damageTypeToOptimizeFor}
+          />
         </Box>
       </Box>
     </>

@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useRef } from "react";
 import {
+  allDamageTypes,
+  AttackPowerType,
   damageAttributes,
   type AttributeSolverValues,
+  type DamageAttribute,
   type DamageAttributeValues,
 } from "../../calculator/calculator";
 import type { Weapon } from "../../calculator/weapon";
@@ -14,6 +17,7 @@ import {
 } from "../../calculator/newCalculator";
 import { getNormalizedUpgradeLevel } from "../uiUtils";
 import { getMaxAttackPower } from "./getMaxAttackPower";
+import type { DamageTypeToOptimizeFor } from "../OptimizedDamageTypePicker";
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -24,7 +28,9 @@ interface OptimalAttributeForAttackType {
 }
 
 export interface OptimalAttribute {
-  attackPower: OptimalAttributeForAttackType;
+  attackPower: OptimalAttributeForAttackType & {
+    optimalDamageSplit: Record<AttackPowerType, number>;
+  };
   spellPower?: OptimalAttributeForAttackType;
   endurance: {
     incremental: number;
@@ -108,6 +114,7 @@ export const useOptimalAttributes = ({
   adjustEnduranceForWeapon,
   rollType,
   weapons,
+  damageTypeToOptimizeFor,
 }: {
   solverAttributes: AttributeSolverValues;
   twoHanding: boolean;
@@ -116,6 +123,7 @@ export const useOptimalAttributes = ({
   adjustEnduranceForWeapon: boolean;
   rollType: RollType;
   weapons: Weapon[];
+  damageTypeToOptimizeFor: DamageTypeToOptimizeFor;
 }) => {
   const weaponsMemo = useRef(weapons);
   const { setOptimalAttributesForWeapon, armorWeight } = useAppStateContext();
@@ -147,17 +155,38 @@ export const useOptimalAttributes = ({
         Math.max(sa[`${attr}.Min`], weapon.requirements[attr] ?? 0),
         sa[`${attr}.Max`],
       ]);
-      const optimalAttackScores = getMaxAttackPower(
-        damageAttributes.map((attr) => dmg.attackPower[attr]),
+      let optimalAttackScores = getMaxAttackPower(
+        damageAttributes.map((attr) =>
+          dmg.attackPower[attr].map((d) => d[damageTypeToOptimizeFor] || 0),
+        ),
         attributeRanges,
         Math.max(endAdjustedSpendable, 0),
       );
+
+      // Spend the remaining points to optimize for total damage.
+      // i.e. optimizing for fire damage will not spend points on str after faith is capped.
+      if (damageTypeToOptimizeFor !== "total") {
+        optimalAttackScores = getMaxAttackPower(
+          damageAttributes.map((attr) => dmg.attackPower[attr].map((d) => d.total || 0)),
+          damageAttributes.map((attr) => [
+            Math.max(
+              sa[`${attr}.Min`],
+              weapon.requirements[attr] ?? 0,
+              optimalAttackScores.highestAttributes[attr], // Starting from at least the amount available
+            ),
+            sa[`${attr}.Max`],
+          ]),
+          Math.max(endAdjustedSpendable, 0),
+        );
+      }
 
       // Calculate Spell Power
       let spellPower: OptimalAttributeForAttackType | undefined;
       if (weapon.sorceryTool || weapon.incantationTool) {
         const optimalSpellScores = getMaxAttackPower(
-          damageAttributes.map((attr) => dmg.spellPower[attr]),
+          damageAttributes.map((attr) =>
+            dmg.spellPower[attr].map((d) => d[damageTypeToOptimizeFor] || 0),
+          ),
           attributeRanges,
           Math.max(endAdjustedSpendable, 0),
         );
@@ -169,9 +198,28 @@ export const useOptimalAttributes = ({
         } as OptimalAttributeForAttackType;
       }
 
+      const optimalDamageSplit = allDamageTypes.reduce((damageTypeAcc, damageType) => {
+        const baseDamageForType = dmg.base[damageType] || 0;
+        const scaledDamageForType = Object.entries(dmg.attackPower).reduce(
+          (damageOfTypeForAllAttrs, [attr, values]) => {
+            const optimalAttributeLevel =
+              optimalAttackScores.highestAttributes[attr as DamageAttribute];
+            const damageForAttribute = values[optimalAttributeLevel][damageType] || 0;
+            return damageOfTypeForAllAttrs + damageForAttribute;
+          },
+          0,
+        );
+        damageTypeAcc[damageType] = baseDamageForType + scaledDamageForType;
+        return damageTypeAcc;
+      }, {} as Record<AttackPowerType, number>);
+
       return {
         attackPower: {
-          optimalDamage: optimalAttackScores.maxValue + dmg.base,
+          optimalDamage:
+            damageTypeToOptimizeFor === "total"
+              ? optimalAttackScores.maxValue + dmg.base.total
+              : sumObjectValues(optimalDamageSplit),
+          optimalDamageSplit,
           optimalAttributes: optimalAttackScores.highestAttributes,
           disposablePoints:
             endAdjustedSpendable - sumObjectValues(optimalAttackScores.highestAttributes),
@@ -192,6 +240,7 @@ export const useOptimalAttributes = ({
       twoHanding,
       rollType,
       armorWeight,
+      damageTypeToOptimizeFor,
     ],
   );
 

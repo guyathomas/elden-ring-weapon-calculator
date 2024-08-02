@@ -177,7 +177,7 @@ export const AttackPowerRenderer = memo(function AttackPowerRenderer({
   ineffective,
 }: {
   value?: number;
-  ineffective: boolean;
+  ineffective?: boolean;
 }) {
   if (value == null) {
     return blankIcon;

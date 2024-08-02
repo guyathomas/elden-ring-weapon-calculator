@@ -12,6 +12,7 @@ export type SortBy =
   | `${DamageAttribute}Requirement`
   | `${DamageAttribute}OptimizedAP`
   | `${DamageAttribute}OptimizedSP`
+  | `${AttackPowerType}OptimizedAttackByDamageType`
   | `totalOptimizedAP`
   | `totalOptimizedSP`
   | `disposableOptimizedPointsAP`
@@ -50,6 +51,15 @@ export function sortWeapons(
       const attribute = sortBy.slice(0, -1 * "Scaling".length) as DamageAttribute;
       return ([weapon, { upgradeLevel }]) =>
         -(weapon.attributeScaling[upgradeLevel][attribute] ?? 0);
+    }
+
+    if (sortBy.endsWith("OptimizedAttackByDamageType")) {
+      const attackPowerType = +sortBy.slice(
+        0,
+        -1 * "OptimizedAttackByDamageType".length,
+      ) as AttackPowerType;
+      return ([weapon, weaponAttack, optimizedStats]) =>
+        -(optimizedStats?.attackPower?.optimalDamageSplit[attackPowerType] ?? 0);
     }
 
     if (sortBy.endsWith("Requirement")) {

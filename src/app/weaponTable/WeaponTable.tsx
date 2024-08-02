@@ -21,6 +21,8 @@ import {
 } from "./tableStyledComponents";
 import type { OptimalAttribute } from "./useOptimalAttributes";
 import { useAppStateContext } from "../AppStateProvider";
+import type { DamageTypeToOptimizeFor } from "../OptimizedDamageTypePicker";
+import OptimizedDamageTypePicker from "../OptimizedDamageTypePicker";
 
 const ResponsiveLine = React.lazy(() =>
   import("@nivo/line").then((module) => ({ default: module.ResponsiveLine })),
@@ -188,6 +190,8 @@ const DataRow = memo(function DataRow({
   row: WeaponTableRowData;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [damageTypeToOptimizeFor, setDamageTypeToOptimizeFor] =
+    useState<DamageTypeToOptimizeFor>("total");
   const [chartType, setChartType] = useState<"incremental" | "cumulative">("incremental");
   const toggleIsExpanded = React.useCallback(() => setIsExpanded((prev) => !prev), []);
   const incrementalDamagePerAttribute = row[2].incrementalDamagePerAttribute;
@@ -198,18 +202,26 @@ const DataRow = memo(function DataRow({
     if (chartType === "cumulative") {
       return Object.entries(incrementalDamagePerAttribute.attackPower).map(([attr, values]) => ({
         id: attr,
-        data: values.map((v, i) => ({ x: i + 1, y: (v || 0).toFixed(2) })),
+        data: values.map((v, i) => ({
+          x: i + 1,
+          y: (v?.[damageTypeToOptimizeFor] || 0).toFixed(2),
+        })),
       }));
     } else {
       return Object.entries(incrementalDamagePerAttribute.attackPower).map(([attr, values]) => ({
         id: attr,
         data: values.map((v, i, arr) => ({
           x: i,
-          y: (Math.max(0, v - (arr[i - 1] || 0)) || 0).toFixed(2),
+          y: (
+            Math.max(
+              0,
+              (v?.[damageTypeToOptimizeFor] || 0) - (arr[i - 1]?.[damageTypeToOptimizeFor] || 0),
+            ) || 0
+          ).toFixed(2),
         })),
       }));
     }
-  }, [isExpanded, incrementalDamagePerAttribute, chartType]);
+  }, [isExpanded, incrementalDamagePerAttribute, chartType, damageTypeToOptimizeFor]);
   const yGrids = useMemo(() => {
     const gridNumbers = [];
     const maxValue = Object.values(lineData).reduce(
@@ -240,31 +252,51 @@ const DataRow = memo(function DataRow({
       {isExpanded && (
         <Suspense
           fallback={
-            <Box display="flex" alignItems="center">
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                width: "100%",
+                height: 300,
+              }}
+            >
               <CircularProgress />
             </Box>
           }
         >
           <Box style={{ height: 300 }}>
-            <FormControlLabel
+            <Box
               sx={{
                 marginTop: 1,
                 marginLeft: 1,
                 position: "absolute",
                 zIndex: 1,
+                display: "flex",
+                width: 400,
               }}
-              control={
-                <Switch
-                  value={chartType === "cumulative"}
-                  onClick={() => {
-                    setChartType((oldType) =>
-                      oldType === "incremental" ? "cumulative" : "incremental",
-                    );
-                  }}
+            >
+              <FormControlLabel
+                sx={{ flexShrink: 0 }}
+                control={
+                  <Switch
+                    value={chartType === "cumulative"}
+                    onClick={() => {
+                      setChartType((oldType) =>
+                        oldType === "incremental" ? "cumulative" : "incremental",
+                      );
+                    }}
+                  />
+                }
+                label="Show cumulative"
+              />
+              <Box sx={{ flex: 1 }}>
+                <OptimizedDamageTypePicker
+                  optimizedDamageType={damageTypeToOptimizeFor}
+                  onOptimizedDamageTypeChanged={setDamageTypeToOptimizeFor}
                 />
-              }
-              label="Show cumulative"
-            />
+              </Box>
+            </Box>
             <ResponsiveLine
               data={lineData}
               theme={{
@@ -338,7 +370,7 @@ function WeaponTable({
   onSortByChanged,
   onReverseChanged,
 }: Props) {
-  const { armorWeight, optimalAttributes } = useAppStateContext();
+  const { armorWeight, optimalAttributes, damageTypeToOptimizeFor } = useAppStateContext();
 
   const optimalAttributesPercentageComplete = useMemo(
     () => Math.floor((100 * Object.values(optimalAttributes).length) / total) || 100,
@@ -409,6 +441,7 @@ function WeaponTable({
                     key={`${row[0].weaponName},${row[0].affinityId}`}
                     columnGroups={columnGroups}
                     row={row}
+                    damageTypeToOptimizeFor={damageTypeToOptimizeFor}
                   />
                 ))}
               </WeaponTableGroup>

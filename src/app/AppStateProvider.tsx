@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState, createContext, useContext } from "react";
+import { useEffect, useMemo, useState, createContext, useContext, useRef } from "react";
+import isEqual from "lodash/isEqual";
 import {
   type DamageAttribute,
   type DamageAttributeValues,
@@ -15,6 +16,7 @@ import { type OptimalAttribute } from "./weaponTable/useOptimalAttributes";
 import { INITIAL_CLASS_VALUES, type StartingClass } from "./ClassPicker";
 import type { RollType } from "./weaponTable/constants";
 import type { WeaponOption } from "./WeaponPicker";
+import type { DamageTypeToOptimizeFor } from "./OptimizedDamageTypePicker";
 
 interface AppState {
   readonly regulationVersionName: RegulationVersionName;
@@ -32,11 +34,12 @@ interface AppState {
   readonly numericalScaling: boolean;
   readonly sortBy: SortBy;
   readonly reverse: boolean;
-  readonly optimalAttributes: Record<Weapon["name"], OptimalAttribute>;
+  readonly optimalAttributes: Partial<Record<Weapon["name"], OptimalAttribute>>;
   readonly startingClass: StartingClass;
   readonly rollType: RollType;
   readonly armorWeight: number;
   readonly selectedWeapons: WeaponOption[];
+  readonly damageTypeToOptimizeFor: DamageTypeToOptimizeFor;
 }
 
 interface UpdateAppState extends AppState {
@@ -63,6 +66,7 @@ interface UpdateAppState extends AppState {
   setRollType(rollType: RollType): void;
   setArmorWeight(armorWeight: number): void;
   setSelectedWeapons(weapons: WeaponOption[]): void;
+  setDamageTypeToOptimizeFor(damageType: DamageTypeToOptimizeFor): void;
 }
 
 const startingClass: StartingClass = "Vagabond";
@@ -109,6 +113,7 @@ const defaultAppState: AppState = {
   rollType: "medium",
   armorWeight: 34,
   selectedWeapons: [],
+  damageTypeToOptimizeFor: "total",
 };
 
 /**
@@ -171,6 +176,7 @@ const AppStateContext = createContext<UpdateAppState>({
   setRollType: () => undefined,
   setArmorWeight: () => undefined,
   setSelectedWeapons: () => undefined,
+  setDamageTypeToOptimizeFor: () => undefined,
 });
 
 export const AppStateProvider = ({ children }: { children: React.ReactNode }) => {
@@ -179,6 +185,29 @@ export const AppStateProvider = ({ children }: { children: React.ReactNode }) =>
 };
 
 export const useAppStateContext = () => useContext(AppStateContext);
+
+const useUpdateLocalStorage = (appState: AppState) => {
+  const previousProps = useRef<AppState>(appState);
+
+  useEffect(() => {
+    if (previousProps.current) {
+      const allowUpdate = isEqual(
+        previousProps.current.optimalAttributes,
+        appState.optimalAttributes,
+      );
+      // Don't allow updaets when optimalAttributes changes, since this will be high frequency and we don't want to store in localStorage anyway.
+      if (allowUpdate) {
+        const { optimalAttributes, ...fieldsToSave } = appState;
+        onAppStateChanged({
+          ...fieldsToSave,
+          optimalAttributes: defaultAppState.optimalAttributes,
+        });
+      }
+    }
+
+    previousProps.current = appState;
+  });
+};
 
 /**
  * Manages all of the user selectable filters and display options, and saves/loads them in
@@ -192,9 +221,7 @@ function useCreateAppState() {
     updateUrl(appState.regulationVersionName);
   }, [appState.regulationVersionName]);
 
-  useEffect(() => {
-    onAppStateChanged(appState);
-  }, [appState]);
+  useUpdateLocalStorage(appState);
 
   useEffect(() => {
     function onPopState() {
@@ -291,6 +318,9 @@ function useCreateAppState() {
       },
       setSelectedWeapons(selectedWeapons) {
         setAppState((prevAppState) => ({ ...prevAppState, selectedWeapons }));
+      },
+      setDamageTypeToOptimizeFor(damageTypeToOptimizeFor) {
+        setAppState((prevAppState) => ({ ...prevAppState, damageTypeToOptimizeFor }));
       },
     }),
     [],
