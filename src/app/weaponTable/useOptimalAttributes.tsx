@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from "react";
-import {
+import getWeaponAttack, {
   allDamageTypes,
   AttackPowerType,
   damageAttributes,
@@ -30,6 +30,7 @@ interface OptimalAttributeForAttackType {
 export interface OptimalAttribute {
   attackPower: OptimalAttributeForAttackType & {
     optimalDamageSplit: Record<AttackPowerType, number>;
+    efficiencyScore: number;
   };
   spellPower?: OptimalAttributeForAttackType;
   endurance: {
@@ -213,16 +214,33 @@ export const useOptimalAttributes = ({
         return damageTypeAcc;
       }, {} as Record<AttackPowerType, number>);
 
+      const optimalDamage =
+        damageTypeToOptimizeFor === "total"
+          ? optimalAttackScores.maxValue + dmg.base.total
+          : sumObjectValues(optimalDamageSplit);
+
+      const maxDamage = sumObjectValues(
+        getWeaponAttack({
+          weapon,
+          attributes: {
+            str: 99,
+            dex: 99,
+            int: 99,
+            fai: 99,
+            arc: 99,
+          },
+          upgradeLevel: normalizedUpgradeLevel,
+          twoHanding,
+        }).attackPower,
+      );
       return {
         attackPower: {
-          optimalDamage:
-            damageTypeToOptimizeFor === "total"
-              ? optimalAttackScores.maxValue + dmg.base.total
-              : sumObjectValues(optimalDamageSplit),
+          optimalDamage,
           optimalDamageSplit,
           optimalAttributes: optimalAttackScores.highestAttributes,
           disposablePoints:
             endAdjustedSpendable - sumObjectValues(optimalAttackScores.highestAttributes),
+          efficiencyScore: Math.round((100 * optimalDamage) / maxDamage),
         },
         spellPower,
         endurance: {

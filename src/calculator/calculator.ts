@@ -18,6 +18,7 @@ export interface WeaponAttackResult {
   ineffectiveAttributes: DamageAttribute[];
   ineffectiveAttackPowerTypes: AttackPowerType[];
   upgradeLevel: number;
+  efficiencyScore: number;
 }
 
 /**

@@ -45,6 +45,10 @@ interface WeaponTableRowsResult {
   total: number;
 }
 
+// TODO: Extract into util
+const sumObjectValues = (obj: Record<string, number>) =>
+  Object.values(obj).reduce((acc, v) => acc + v, 0);
+
 /**
  * Filter, sort, and paginate the weapon list based on the current selections
  */
@@ -85,6 +89,21 @@ const useWeaponTableRows = ({
         ineffectiveAttributePenalty: regulationVersion.ineffectiveAttributePenalty,
       });
 
+      const maxWeaponAttackResult = getWeaponAttack({
+        weapon,
+        attributes: {
+          str: 99,
+          dex: 99,
+          int: 99,
+          fai: 99,
+          arc: 99,
+        },
+        twoHanding,
+        upgradeLevel: normalizedUpgradeLevel,
+        disableTwoHandingAttackPowerBonus: regulationVersion.disableTwoHandingAttackPowerBonus,
+        ineffectiveAttributePenalty: regulationVersion.ineffectiveAttributePenalty,
+      });
+
       const incrementalDamagePerAttribute = getIncrementalDamagePerAttribute(
         weapon,
         normalizedUpgradeLevel,
@@ -110,7 +129,12 @@ const useWeaponTableRows = ({
         {
           ...weaponAttackResult,
           upgradeLevel: normalizedUpgradeLevel,
+          efficiencyScore: Math.round(
+            (100 * sumObjectValues(weaponAttackResult.attackPower)) /
+              sumObjectValues(maxWeaponAttackResult.attackPower),
+          ),
         },
+        // TODO: Missing some values here, are they necessary?
         {
           ...optimalAttributes[weapon.name],
           incrementalDamagePerAttribute,

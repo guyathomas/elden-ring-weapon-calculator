@@ -409,6 +409,19 @@ export default function getWeaponTableColumns({
       ]
     : [];
 
+  const attackPowerEfficiencyColumn: WeaponTableColumnDef = {
+    key: `attackPowerEfficiency`,
+    sortBy: `attackPowerEfficiency`,
+    header: (
+      <Typography component="span" variant="subtitle2" title={`Disposable Points`}>
+        Eff
+      </Typography>
+    ),
+    render([weapon, { efficiencyScore }]) {
+      return <OptimizedAttributeRenderer value={efficiencyScore} />;
+    },
+  };
+
   return [
     {
       key: "name",
@@ -427,6 +440,7 @@ export default function getWeaponTableColumns({
           columns: [
             ...allDamageTypes.map((damageType) => attackColumns[damageType]),
             totalSplitAttackPowerColumn,
+            attackPowerEfficiencyColumn,
           ],
         }
       : {
@@ -435,7 +449,7 @@ export default function getWeaponTableColumns({
             width: 128,
             flex: 1,
           },
-          columns: [totalAttackPowerColumn],
+          columns: [totalAttackPowerColumn, attackPowerEfficiencyColumn],
         },
     ...(includedStatusTypes.length > 0
       ? [
@@ -530,6 +544,7 @@ export default function getWeaponTableColumns({
             );
           },
         },
+
         {
           key: `disposableOptimizedPointsAP`,
           sortBy: `disposableOptimizedPointsAP`,
@@ -542,6 +557,23 @@ export default function getWeaponTableColumns({
             return (
               <OptimizedAttributeRenderer
                 value={damageAttributeValues?.attackPower?.disposablePoints}
+              />
+            );
+          },
+        },
+
+        {
+          key: `totalOptimizedEfficiency`,
+          sortBy: `totalOptimizedEfficiency`,
+          header: (
+            <Typography component="span" variant="subtitle2" title={`Disposable Points`}>
+              Eff
+            </Typography>
+          ),
+          render([weapon, { ineffectiveAttributes }, damageAttributeValues]) {
+            return (
+              <OptimizedAttributeRenderer
+                value={damageAttributeValues?.attackPower?.efficiencyScore}
               />
             );
           },

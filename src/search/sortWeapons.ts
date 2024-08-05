@@ -14,6 +14,8 @@ export type SortBy =
   | `${DamageAttribute}OptimizedSP`
   | `${AttackPowerType}OptimizedAttackByDamageType`
   | `totalOptimizedAP`
+  | `attackPowerEfficiency`
+  | `totalOptimizedEfficiency`
   | `totalOptimizedSP`
   | `disposableOptimizedPointsAP`
   | `disposableOptimizedPointsSP`
@@ -79,6 +81,15 @@ export function sortWeapons(
     if (sortBy === "disposableOptimizedPointsAP") {
       return ([weapon, weaponAttack, optimizedStats]) =>
         -(optimizedStats?.attackPower?.disposablePoints ?? 0);
+    }
+
+    if (sortBy === "totalOptimizedEfficiency") {
+      return ([weapon, weaponAttack, optimizedStats]) =>
+        -(optimizedStats?.attackPower?.efficiencyScore ?? 0);
+    }
+
+    if (sortBy === "attackPowerEfficiency") {
+      return ([weapon, weaponAttack, optimizedStats]) => -(weaponAttack.efficiencyScore ?? 0);
     }
 
     if (sortBy === "disposableOptimizedPointsSP") {
