@@ -1,8 +1,8 @@
 import {
   adjustAttributesForTwoHanding,
   WeaponType,
-  type Attribute,
-  type Attributes,
+  type DamageAttribute,
+  type DamageAttributeValues,
   type Weapon,
 } from "../calculator/calculator";
 
@@ -20,7 +20,7 @@ export interface FilterWeaponsOptions {
   /**
    * Only include weapons that are effective with the given player attribute values
    */
-  effectiveWithAttributes?: Attributes;
+  effectiveWithAttributes?: DamageAttributeValues;
 
   /**
    * Include weapons from the Shadow of the Erdtree expansion if true
@@ -34,13 +34,18 @@ export interface FilterWeaponsOptions {
    * filtering purposes since no weapons can have affinities
    */
   uninfusableWeaponTypes?: Set<WeaponType>;
+
+  /**
+   * Weapon Names to apply to the filter. The weapon name will be "Dagger", not "Cold Dagger" for affinities
+   */
+  weaponNames?: Set<string>;
 }
 
 /**
  * Implements the UI/business logic for filtering weapons by type, affinity, etc.
  */
 export default function filterWeapons(
-  weapons: readonly Weapon[],
+  weapons: Weapon[],
   {
     weaponTypes,
     affinityIds,
@@ -48,9 +53,28 @@ export default function filterWeapons(
     includeDLC,
     twoHanding,
     uninfusableWeaponTypes,
+    weaponNames,
   }: FilterWeaponsOptions,
-): readonly Weapon[] {
+): Weapon[] {
   function filterWeapon(weapon: Weapon): boolean {
+    if (affinityIds.size > 0) {
+      if (
+        !affinityIds.has(weapon.affinityId) &&
+        // Treat uninfusable categories of armaments (torches etc.) as either standard or unique,
+        // since the distinction doesn't apply to these categories
+        !(
+          uninfusableWeaponTypes?.has(weapon.weaponType) &&
+          (affinityIds.has(0) || affinityIds.has(-1))
+        )
+      ) {
+        return false;
+      }
+    }
+
+    if (weaponNames && weaponNames.size > 0) {
+      return weaponNames.has(weapon.weaponName);
+    }
+
     if (!includeDLC && weapon.dlc) {
       return false;
     }
@@ -68,20 +92,6 @@ export default function filterWeapons(
       }
     }
 
-    if (affinityIds.size > 0) {
-      if (
-        !affinityIds.has(weapon.affinityId) &&
-        // Treat uninfusable categories of armaments (torches etc.) as either standard or unique,
-        // since the distinction doesn't apply to these categories
-        !(
-          uninfusableWeaponTypes?.has(weapon.weaponType) &&
-          (affinityIds.has(0) || affinityIds.has(-1))
-        )
-      ) {
-        return false;
-      }
-    }
-
     if (effectiveWithAttributes != null) {
       const attributes = adjustAttributesForTwoHanding({
         twoHanding,
@@ -90,7 +100,7 @@ export default function filterWeapons(
       });
 
       if (
-        (Object.entries(weapon.requirements) as [Attribute, number][]).some(
+        (Object.entries(weapon.requirements) as [DamageAttribute, number][]).some(
           ([attribute, requirement]) => attributes[attribute] < requirement,
         )
       ) {

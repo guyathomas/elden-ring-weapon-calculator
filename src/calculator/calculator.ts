@@ -1,11 +1,11 @@
-import { allAttributes, type Attribute, type Attributes } from "./attributes";
-import { AttackPowerType, allDamageTypes, allStatusTypes } from "./attackPowerTypes";
+import { damageAttributes, type DamageAttribute, type DamageAttributeValues } from "./attributes";
+import { AttackPowerType, allAttackPowerTypes, allDamageTypes } from "./attackPowerTypes";
 import type { Weapon } from "./weapon";
 import { WeaponType } from "./weaponTypes";
 
 interface WeaponAttackOptions {
   weapon: Weapon;
-  attributes: Attributes;
+  attributes: DamageAttributeValues;
   twoHanding?: boolean;
   upgradeLevel: number;
   disableTwoHandingAttackPowerBonus?: boolean;
@@ -13,11 +13,12 @@ interface WeaponAttackOptions {
 }
 
 export interface WeaponAttackResult {
-  upgradeLevel: number;
   attackPower: Partial<Record<AttackPowerType, number>>;
   spellScaling: Partial<Record<AttackPowerType, number>>;
-  ineffectiveAttributes: Attribute[];
+  ineffectiveAttributes: DamageAttribute[];
   ineffectiveAttackPowerTypes: AttackPowerType[];
+  upgradeLevel: number;
+  efficiencyScore: number;
 }
 
 /**
@@ -31,13 +32,28 @@ export function adjustAttributesForTwoHanding({
 }: {
   twoHanding?: boolean;
   weapon: Weapon;
-  attributes: Attributes;
-}): Attributes {
-  let twoHandingBonus = twoHanding;
+  attributes: DamageAttributeValues;
+}): DamageAttributeValues {
+  return {
+    ...attributes,
+    str: adjustStrengthForTwoHanding({ twoHanding, weapon, str: attributes.str }),
+  };
+}
+
+export function adjustStrengthForTwoHanding({
+  twoHanding = false,
+  weapon,
+  str,
+}: {
+  twoHanding?: boolean;
+  weapon: Weapon;
+  str: number;
+}): number {
+  let applyTwoHandingBonus = twoHanding;
 
   // Paired weapons do not get the two handing bonus
   if (weapon.paired) {
-    twoHandingBonus = false;
+    applyTwoHandingBonus = false;
   }
 
   // Bows and ballistae can only be two handed
@@ -47,17 +63,9 @@ export function adjustAttributesForTwoHanding({
     weapon.weaponType === WeaponType.GREATBOW ||
     weapon.weaponType === WeaponType.BALLISTA
   ) {
-    twoHandingBonus = true;
+    applyTwoHandingBonus = true;
   }
-
-  if (twoHandingBonus) {
-    return {
-      ...attributes,
-      str: Math.floor(attributes.str * 1.5),
-    };
-  }
-
-  return attributes;
+  return applyTwoHandingBonus ? Math.floor(str * 1.5) : str;
 }
 
 /**
@@ -67,13 +75,13 @@ export default function getWeaponAttack({
   weapon,
   attributes,
   twoHanding,
-  upgradeLevel,
   disableTwoHandingAttackPowerBonus,
   ineffectiveAttributePenalty = 0.4,
+  upgradeLevel,
 }: WeaponAttackOptions): WeaponAttackResult {
   const adjustedAttributes = adjustAttributesForTwoHanding({ twoHanding, weapon, attributes });
 
-  const ineffectiveAttributes = (Object.entries(weapon.requirements) as [Attribute, number][])
+  const ineffectiveAttributes = (Object.entries(weapon.requirements) as [DamageAttribute, number][])
     .filter(([attribute, requirement]) => adjustedAttributes[attribute] < requirement)
     .map(([attribute]) => attribute);
 
@@ -82,7 +90,7 @@ export default function getWeaponAttack({
   const attackPower: Partial<Record<AttackPowerType, number>> = {};
   const spellScaling: Partial<Record<AttackPowerType, number>> = {};
 
-  for (const attackPowerType of [...allDamageTypes, ...allStatusTypes]) {
+  for (const attackPowerType of allAttackPowerTypes) {
     const isDamageType = allDamageTypes.includes(attackPowerType);
 
     const baseAttackPower = weapon.attack[upgradeLevel][attackPowerType] ?? 0;
@@ -103,7 +111,7 @@ export default function getWeaponAttack({
         // multiplied by the scaling for that attribute
         const effectiveAttributes =
           !disableTwoHandingAttackPowerBonus && isDamageType ? adjustedAttributes : attributes;
-        for (const attribute of allAttributes) {
+        for (const attribute of damageAttributes) {
           const attributeCorrect = scalingAttributes[attribute];
           if (attributeCorrect) {
             let scaling: number;
@@ -136,11 +144,11 @@ export default function getWeaponAttack({
   }
 
   return {
-    upgradeLevel,
     attackPower,
     spellScaling,
     ineffectiveAttributes,
     ineffectiveAttackPowerTypes,
+    upgradeLevel,
   };
 }
 

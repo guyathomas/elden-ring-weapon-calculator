@@ -11,9 +11,13 @@ import { getNormalizedUpgradeLevel } from "../uiUtils";
 import { type WeaponTableRowData, type WeaponTableRowGroup } from "./WeaponTable";
 import { type SortBy, sortWeapons } from "../../search/sortWeapons";
 import { type RegulationVersion } from "../regulationVersions";
+<<<<<<< HEAD
+import { allWeaponTypes, weaponTypeLabels } from "../uiUtils";
+import { useAppStateContext } from "../AppStateProvider";
+=======
 import { useAppStateContext } from "../AppStateProvider";
 import { allWeaponTypes, weaponTypeLabels } from "../uiUtils";
-import { getIncrementalDamagePerAttribute } from "../../calculator/newCalculator";
+>>>>>>> deab724 (fix merge confligs)
 
 interface WeaponTableRowsOptions {
   weapons: Weapon[];
@@ -28,7 +32,10 @@ interface WeaponTableRowsOptions {
   includeDLC: boolean;
   effectiveOnly: boolean;
   twoHanding: boolean;
+<<<<<<< HEAD
+=======
   upgradeLevel: number;
+>>>>>>> deab724 (fix merge confligs)
   groupWeaponTypes: boolean;
   maxUpgradeLevel: number;
 }
@@ -44,10 +51,6 @@ interface WeaponTableRowsResult {
 
   total: number;
 }
-
-// TODO: Extract into util
-const sumObjectValues = (obj: Record<string, number>) =>
-  Object.values(obj).reduce((acc, v) => acc + v, 0);
 
 /**
  * Filter, sort, and paginate the weapon list based on the current selections
@@ -88,27 +91,6 @@ const useWeaponTableRows = ({
         ineffectiveAttributePenalty: regulationVersion.ineffectiveAttributePenalty,
       });
 
-      const maxWeaponAttackResult = getWeaponAttack({
-        weapon,
-        attributes: {
-          str: 99,
-          dex: 99,
-          int: 99,
-          fai: 99,
-          arc: 99,
-        },
-        twoHanding,
-        upgradeLevel: normalizedUpgradeLevel,
-        disableTwoHandingAttackPowerBonus: regulationVersion.disableTwoHandingAttackPowerBonus,
-        ineffectiveAttributePenalty: regulationVersion.ineffectiveAttributePenalty,
-      });
-
-      const incrementalDamagePerAttribute = getIncrementalDamagePerAttribute(
-        weapon,
-        normalizedUpgradeLevel,
-        twoHanding,
-      );
-
       // For all of the possible permutations of Attributes, where the sum is smaller than 150
       // Calculate the weaponAttackResult
       // Keep track of the highest weaponAttackResult and then return the combination of attributes that resulted in that weaponAttackResult
@@ -125,23 +107,17 @@ const useWeaponTableRows = ({
 
       return [
         weapon,
-        {
-          ...weaponAttackResult,
-          upgradeLevel: normalizedUpgradeLevel,
-          efficiencyScore: Math.round(
-            (100 * sumObjectValues(weaponAttackResult.attackPower)) /
-              sumObjectValues(maxWeaponAttackResult.attackPower),
-          ),
-        },
-        {
-          ...optimalAttributes[weapon.name],
-          incrementalDamagePerAttribute,
-        },
+        { ...weaponAttackResult, upgradeLevel: normalizedUpgradeLevel },
+        optimalAttributes[weapon.name],
       ];
     });
 
     return [rows, includedDamageTypes, includeSpellScaling];
+<<<<<<< HEAD
+  }, [attributes, twoHanding, weapons, regulationVersion, optimalAttributes, upgradeLevel]);
+=======
   }, [weapons, attributes, twoHanding, upgradeLevel, regulationVersion, optimalAttributes]);
+>>>>>>> deab724 (fix merge confligs)
 
   const memoizedAttackPowerTypes = useMemo(
     () => attackPowerTypes,

@@ -29,3 +29,11 @@ Regulation data was extracted from the game using [WitchyBND](https://github.com
 Elden Ring Reforged support uses data from the [Elden Ring Reforged](https://www.nexusmods.com/eldenring/mods/541) mod provided by [ivi](https://github.com/ividyon) from the ERR team.
 
 The Convergence Mod support uses data extracted from [The Convergence Mod](https://www.nexusmods.com/eldenring/mods/3419) public alpha on Nexus Mods.
+
+## TODO:
+
+- [ ] Copy Stats to optimized stats to Main Calculator
+- [ ] Allow the solver to be toggled on or off. Or move to a different tab
+- [ ] Add Armour Solving
+- [ ] Add modifiers ( Armour bonuses, buffs, etc... )
+- [ ] Incant scaling does not include base scaling factor of 100 correctly. Need "base" to be a component of the melee or spell aspects respectively.

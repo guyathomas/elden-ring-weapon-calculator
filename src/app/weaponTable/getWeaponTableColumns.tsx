@@ -2,9 +2,9 @@ import { Typography } from "@mui/material";
 import {
   AttackPowerType,
   allAttackPowerTypes,
-  allAttributes,
   allDamageTypes,
   allStatusTypes,
+  damageAttributes,
 } from "../../calculator/calculator";
 import {
   damageTypeIcons,
@@ -19,6 +19,8 @@ import {
   ScalingRenderer,
   AttributeRequirementRenderer,
   AttackPowerRenderer,
+  OptimizedAttributeRenderer,
+  OptimizedEnduranceRenderer,
 } from "./tableRenderers";
 
 const nameColumn: WeaponTableColumnDef = {
@@ -32,8 +34,15 @@ const nameColumn: WeaponTableColumnDef = {
   sx: {
     justifyContent: "start",
   },
-  render([weapon, { upgradeLevel }]) {
-    return <WeaponNameRenderer weapon={weapon} upgradeLevel={upgradeLevel} />;
+  render([weapon, { upgradeLevel }], { isExpanded, toggleIsExpanded }) {
+    return (
+      <WeaponNameRenderer
+        weapon={weapon}
+        upgradeLevel={upgradeLevel}
+        isExpanded={isExpanded}
+        toggleIsExpanded={toggleIsExpanded}
+      />
+    );
   },
 };
 
@@ -63,6 +72,32 @@ const attackColumns = Object.fromEntries(
             ineffective={ineffectiveAttackPowerTypes.includes(attackPowerType)}
           />
         );
+      },
+    },
+  ]),
+) as Record<AttackPowerType, WeaponTableColumnDef>;
+
+const optimizedAttackTypeColumns = Object.fromEntries(
+  allAttackPowerTypes.map((attackPowerType): [AttackPowerType, WeaponTableColumnDef] => [
+    attackPowerType,
+    {
+      key: `${attackPowerType}OptimizedAttackByDamageType`,
+      sortBy: `${attackPowerType}OptimizedAttackByDamageType`,
+      header: damageTypeIcons.has(attackPowerType) ? (
+        <img
+          src={damageTypeIcons.get(attackPowerType)!}
+          alt={damageTypeLabels.get(attackPowerType)!}
+          title={damageTypeLabels.get(attackPowerType)!}
+          width={24}
+          height={24}
+        />
+      ) : (
+        <Typography component="span" variant="subtitle2">
+          {damageTypeLabels.get(attackPowerType)}
+        </Typography>
+      ),
+      render([, { ineffectiveAttackPowerTypes }, { attackPower }]) {
+        return <AttackPowerRenderer value={attackPower?.optimalDamageSplit[attackPowerType]} />;
       },
     },
   ]),
@@ -161,7 +196,7 @@ const totalAttackPowerColumn: WeaponTableColumnDef = {
   },
 };
 
-const scalingColumns: WeaponTableColumnDef[] = allAttributes.map((attribute) => ({
+const scalingColumns: WeaponTableColumnDef[] = damageAttributes.map((attribute) => ({
   key: `${attribute}Scaling`,
   sortBy: `${attribute}Scaling`,
   header: (
@@ -178,7 +213,7 @@ const scalingColumns: WeaponTableColumnDef[] = allAttributes.map((attribute) => 
   },
 }));
 
-const numericalScalingColumns: WeaponTableColumnDef[] = allAttributes.map((attribute) => ({
+const numericalScalingColumns: WeaponTableColumnDef[] = damageAttributes.map((attribute) => ({
   key: `${attribute}Scaling`,
   sortBy: `${attribute}Scaling`,
   header: (
@@ -202,7 +237,7 @@ const numericalScalingColumns: WeaponTableColumnDef[] = allAttributes.map((attri
   },
 }));
 
-const requirementColumns = allAttributes.map(
+const requirementColumns: WeaponTableColumnDef[] = damageAttributes.map(
   (attribute): WeaponTableColumnDef => ({
     key: `${attribute}Requirement`,
     sortBy: `${attribute}Requirement`,
@@ -227,12 +262,64 @@ const requirementColumns = allAttributes.map(
   }),
 );
 
+const optimizedAPColumns: WeaponTableColumnDef[] = damageAttributes.map(
+  (attribute): WeaponTableColumnDef => ({
+    key: `${attribute}OptimizedAP`,
+    sortBy: `${attribute}OptimizedAP`,
+    header: (
+      <Typography
+        component="span"
+        variant="subtitle2"
+        title={`${getAttributeLabel(attribute)} Optimized AP`}
+      >
+        {getShortAttributeLabel(attribute)}
+      </Typography>
+    ),
+    render([weapon, { ineffectiveAttributes }, optimalAttributes]) {
+      return (
+        <OptimizedAttributeRenderer
+          key={attribute}
+          value={optimalAttributes?.attackPower?.optimalAttributes[attribute]}
+          attribute={attribute}
+        />
+      );
+    },
+  }),
+);
+
+const optimizedSPColumns: WeaponTableColumnDef[] = damageAttributes.map(
+  (attribute): WeaponTableColumnDef => ({
+    key: `${attribute}OptimizedSP`,
+    sortBy: `${attribute}OptimizedSP`,
+    header: (
+      <Typography
+        component="span"
+        variant="subtitle2"
+        title={`${getAttributeLabel(attribute)} SP Optimized`}
+      >
+        {getShortAttributeLabel(attribute)}
+      </Typography>
+    ),
+    render([weapon, { ineffectiveAttributes }, optimalAttributes]) {
+      return (
+        <OptimizedAttributeRenderer
+          key={attribute}
+          value={optimalAttributes?.spellPower?.optimalAttributes[attribute]}
+          attribute={attribute}
+        />
+      );
+    },
+  }),
+);
+
 interface WeaponTableColumnsOptions {
   splitDamage: boolean;
   splitSpellScaling: boolean;
   numericalScaling: boolean;
   attackPowerTypes: ReadonlySet<AttackPowerType>;
   spellScaling: boolean;
+  optimalAttributesPercentageComplete: number;
+  showEndurance: boolean;
 }
 
 export default function getWeaponTableColumns({
@@ -241,6 +328,8 @@ export default function getWeaponTableColumns({
   numericalScaling,
   attackPowerTypes,
   spellScaling,
+  optimalAttributesPercentageComplete,
+  showEndurance,
 }: WeaponTableColumnsOptions): WeaponTableColumnGroupDef[] {
   const includedStatusTypes = allStatusTypes.filter((statusType) =>
     attackPowerTypes.has(statusType),
@@ -253,6 +342,7 @@ export default function getWeaponTableColumns({
         key: "spellScaling",
         sx: {
           width: 40 * splitSpellScalingColumns.length + 27,
+          flex: 1,
         },
         header: "Spell Scaling",
         columns: splitSpellScalingColumns,
@@ -262,16 +352,80 @@ export default function getWeaponTableColumns({
         key: "spellScaling",
         sx: {
           width: 128,
+          flex: 1,
         },
         columns: [spellScalingColumn],
       };
     }
   }
+  const completionLabel =
+    optimalAttributesPercentageComplete >= 100 ? "" : ` (${optimalAttributesPercentageComplete}%)`;
+
+  const optimizedSpellScalingColumns: WeaponTableColumnGroupDef[] = spellScaling
+    ? [
+        {
+          key: "attributesOptimizedSP",
+          sx: {
+            width: 40 * (allDamageTypes.length + 1) + 27,
+            flex: 1,
+          },
+          header: `Optimal SP Attributes${completionLabel}`,
+          columns: [
+            ...optimizedSPColumns,
+            {
+              key: `totalOptimizedSP`,
+              sortBy: `totalOptimizedSP`,
+              header: (
+                <Typography component="span" variant="subtitle2" title={`Total SP`}>
+                  SP
+                </Typography>
+              ),
+              render([weapon, { ineffectiveAttributes }, damageAttributeValues]) {
+                return (
+                  <OptimizedAttributeRenderer
+                    value={damageAttributeValues?.spellPower?.optimalDamage}
+                  />
+                );
+              },
+            } as WeaponTableColumnDef,
+            {
+              key: `disposableOptimizedPointsSP`,
+              sortBy: `disposableOptimizedPointsSP`,
+              header: (
+                <Typography component="span" variant="subtitle2" title={`Disposable Points`}>
+                  DP
+                </Typography>
+              ),
+              render([weapon, { ineffectiveAttributes }, damageAttributeValues]) {
+                return (
+                  <OptimizedAttributeRenderer
+                    value={damageAttributeValues?.spellPower?.disposablePoints}
+                  />
+                );
+              },
+            },
+          ],
+        },
+      ]
+    : [];
+
+  const attackPowerEfficiencyColumn: WeaponTableColumnDef = {
+    key: `attackPowerEfficiency`,
+    sortBy: `attackPowerEfficiency`,
+    header: (
+      <Typography component="span" variant="subtitle2" title={`Disposable Points`}>
+        Eff
+      </Typography>
+    ),
+    render([weapon, { efficiencyScore }]) {
+      return <OptimizedAttributeRenderer value={efficiencyScore} />;
+    },
+  };
 
   return [
     {
       key: "name",
-      sx: { flex: 1, minWidth: 320 },
+      sx: { flex: 2, minWidth: 160 },
       columns: [nameColumn],
     },
     ...(spellScalingColumnGroup ? [spellScalingColumnGroup] : []),
@@ -280,19 +434,22 @@ export default function getWeaponTableColumns({
           key: "attack",
           sx: {
             width: 40 * (allDamageTypes.length + 1) + 27,
+            flex: 1,
           },
           header: "Attack Power",
           columns: [
             ...allDamageTypes.map((damageType) => attackColumns[damageType]),
             totalSplitAttackPowerColumn,
+            attackPowerEfficiencyColumn,
           ],
         }
       : {
           key: "attack",
           sx: {
             width: 128,
+            flex: 1,
           },
-          columns: [totalAttackPowerColumn],
+          columns: [totalAttackPowerColumn, attackPowerEfficiencyColumn],
         },
     ...(includedStatusTypes.length > 0
       ? [
@@ -300,6 +457,7 @@ export default function getWeaponTableColumns({
             key: "statusEffects",
             sx: {
               width: Math.max(40 * includedStatusTypes.length + 21, 141),
+              flex: 1,
             },
             header: "Status Effects",
             columns: includedStatusTypes.map((statusType) => attackColumns[statusType]),
@@ -310,6 +468,7 @@ export default function getWeaponTableColumns({
       key: "scaling",
       sx: {
         width: (numericalScaling ? 40 : 36) * scalingColumns.length + 21,
+        flex: 1,
       },
       header: "Attribute Scaling",
       columns: numericalScaling ? numericalScalingColumns : scalingColumns,
@@ -318,9 +477,110 @@ export default function getWeaponTableColumns({
       key: "requirements",
       sx: {
         width: 36 * requirementColumns.length + 21,
+        flex: 1,
       },
       header: "Attributes Required",
       columns: requirementColumns,
     },
+    {
+      key: "attributesOptimizedAP",
+      sx: {
+        width: 45 * (allDamageTypes.length + damageAttributes.length + 4) + 27,
+        flex: 2,
+      },
+      header: `Optimal AP Attributes${completionLabel}`,
+      columns: [
+        ...(showEndurance
+          ? [
+              {
+                key: `incrementalOptimizedEnd`,
+                sortBy: `incrementalOptimizedEnd`,
+                header: (
+                  <Typography component="span" variant="subtitle2" title={`Incremental Endurance`}>
+                    End+
+                  </Typography>
+                ),
+                render([weapon, { ineffectiveAttributes }, optimalAttributes]) {
+                  return (
+                    <OptimizedEnduranceRenderer
+                      endurance={optimalAttributes?.endurance?.incremental}
+                    />
+                  );
+                },
+              } as WeaponTableColumnDef,
+              {
+                key: `totalOptimizedEnd`,
+                sortBy: `totalOptimizedEnd`,
+                header: (
+                  <Typography component="span" variant="subtitle2" title={`Endurance`}>
+                    End
+                  </Typography>
+                ),
+                render([weapon, { ineffectiveAttributes }, optimalAttributes]) {
+                  return (
+                    <OptimizedAttributeRenderer
+                      value={optimalAttributes?.endurance?.total}
+                      attribute="end"
+                    />
+                  );
+                },
+              } as WeaponTableColumnDef,
+            ]
+          : []),
+        ...optimizedAPColumns,
+        {
+          key: `totalOptimizedAP`,
+          sortBy: `totalOptimizedAP`,
+          header: (
+            <Typography component="span" variant="subtitle2" title={`Total AR`}>
+              AR
+            </Typography>
+          ),
+          render([weapon, { ineffectiveAttributes }, damageAttributeValues]) {
+            return (
+              <OptimizedAttributeRenderer
+                value={damageAttributeValues?.attackPower?.optimalDamage}
+              />
+            );
+          },
+        },
+
+        {
+          key: `disposableOptimizedPointsAP`,
+          sortBy: `disposableOptimizedPointsAP`,
+          header: (
+            <Typography component="span" variant="subtitle2" title={`Disposable Points`}>
+              DP
+            </Typography>
+          ),
+          render([weapon, { ineffectiveAttributes }, damageAttributeValues]) {
+            return (
+              <OptimizedAttributeRenderer
+                value={damageAttributeValues?.attackPower?.disposablePoints}
+              />
+            );
+          },
+        },
+
+        {
+          key: `totalOptimizedEfficiency`,
+          sortBy: `totalOptimizedEfficiency`,
+          header: (
+            <Typography component="span" variant="subtitle2" title={`Disposable Points`}>
+              Eff
+            </Typography>
+          ),
+          render([weapon, { ineffectiveAttributes }, damageAttributeValues]) {
+            return (
+              <OptimizedAttributeRenderer
+                value={damageAttributeValues?.attackPower?.efficiencyScore}
+              />
+            );
+          },
+        },
+        ...allDamageTypes.map((damageType) => optimizedAttackTypeColumns[damageType]),
+      ],
+    },
+    ...optimizedSpellScalingColumns,
   ];
 }

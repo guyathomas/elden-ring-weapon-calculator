@@ -19,7 +19,7 @@ import makeDebug from "debug";
 import dotenv from "dotenv";
 import { XMLParser } from "fast-xml-parser";
 import {
-  type Attribute,
+  type DamageAttribute,
   WeaponType,
   AttackPowerType,
   allDamageTypes,
@@ -721,10 +721,10 @@ function parseCalcCorrectGraph(row: ParamRow): CalcCorrectGraph {
 }
 
 function parseAttackElementCorrect(row: ParamRow): AttackElementCorrect {
-  function buildAttackElementCorrect(...args: [Attribute, boolean, number][]) {
+  function buildAttackElementCorrect(...args: [DamageAttribute, boolean, number][]) {
     const entries = args
       .filter(([, isCorrect]) => isCorrect)
-      .map(([attribute, , overwriteCorrect]): [Attribute, number | true] => [
+      .map(([attribute, , overwriteCorrect]): [DamageAttribute, number | true] => [
         attribute,
         overwriteCorrect === -1 ? true : overwriteCorrect / 100,
       ]);

@@ -1,4 +1,11 @@
-import { type ChangeEvent, type KeyboardEvent, useCallback, useState } from "react";
+import {
+  type ChangeEvent,
+  type KeyboardEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import type { TextFieldProps } from "@mui/material";
 import { TextField } from "@mui/material";
 
@@ -11,7 +18,7 @@ interface Props extends Omit<TextFieldProps, "value" | "inputMode" | "onKeyDown"
   step?: number;
   onChange(
     value: number,
-    evt: ChangeEvent<HTMLInputElement> | KeyboardEvent<HTMLInputElement>,
+    evt?: ChangeEvent<HTMLInputElement> | KeyboardEvent<HTMLInputElement>,
   ): void;
 }
 
@@ -24,7 +31,7 @@ export default function NumberTextField({
   ...props
 }: Props) {
   const [valueStr, setValueStr] = useState(value.toString());
-
+  const inputRef = useRef<HTMLInputElement>(null);
   const handleKeyDown = useCallback(
     (evt: KeyboardEvent<HTMLInputElement>) => {
       // Allow typing numbers or using built-in keyboard shortcuts normally
@@ -67,13 +74,21 @@ export default function NumberTextField({
     [value, min, max, step, onChange],
   );
 
+  useEffect(() => {
+    const isFocused = inputRef.current === document.activeElement;
+    if (!isFocused) {
+      // Only clamp when controlled updates are made
+      const clamped = clampValue(value, min, max);
+      setValueStr(clamped.toString());
+    }
+  }, [max, min, value]);
+
   const handleChange = useCallback(
     (evt: ChangeEvent<HTMLInputElement>) => {
       const newValueStr = evt.currentTarget.value;
 
       if (newValueStr === "") {
         setValueStr("");
-        onChange?.(min, evt);
         return;
       }
 
@@ -82,20 +97,24 @@ export default function NumberTextField({
         return;
       }
 
-      const clamped = clampValue(newValue, min, max);
-      setValueStr(newValue === clamped ? newValueStr : clamped.toString());
-      onChange?.(clamped, evt);
+      setValueStr(newValueStr);
+      onChange?.(newValue, evt);
     },
-    [min, max, onChange],
+    [onChange],
   );
 
   const handleBlur = useCallback(() => {
-    setValueStr(value.toString());
-  }, [value]);
+    const clamped = clampValue(value, min, max);
+    setValueStr(clamped.toString());
+    if (value !== clamped) {
+      onChange?.(clamped);
+    }
+  }, [value, onChange, min, max]);
 
   return (
     <TextField
       {...props}
+      inputRef={inputRef}
       inputProps={{ inputMode: "decimal" }}
       onKeyDown={handleKeyDown}
       onChange={handleChange}

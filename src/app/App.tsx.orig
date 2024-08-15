@@ -25,14 +25,13 @@ import { useAppStateContext } from "./AppStateProvider";
 import AppBar from "./AppBar";
 import RegulationVersionPicker from "./RegulationVersionPicker";
 import WeaponTypePicker from "./WeaponTypePicker";
-import WeaponPicker from "./WeaponPicker";
 import AffinityPicker from "./AffinityPicker";
 import Footer from "./Footer";
 import MiscFilterPicker from "./MiscFilterPicker";
-import { getEnduranceForWeight, useOptimalAttributes } from "./weaponTable/useOptimalAttributes";
+import { useOptimalAttributes } from "./weaponTable/useOptimalAttributes";
 import useFilteredWeapons from "./weaponTable/useFilteredWeapons";
 import { INITIAL_CLASS_VALUES, type StartingClass } from "./ClassPicker";
-import { getUniqueValues, maxRegularUpgradeLevel } from "./uiUtils";
+import { maxRegularUpgradeLevel } from "./uiUtils";
 
 const useMenuState = () => {
   const theme = useTheme();
@@ -119,11 +118,7 @@ export default function App() {
     sortBy,
     reverse,
     startingClass,
-    adjustEnduranceForWeapon,
-    rollType,
-    armorWeight,
-    selectedWeapons,
-    damageTypeToOptimizeFor,
+    weaponAdjustedEndurance,
     setRegulationVersionName,
     setAffinityIds,
     setWeaponTypes,
@@ -140,10 +135,6 @@ export default function App() {
     setReverse,
     setStartingClass,
     setWeaponAdjustedEndurance,
-    setRollType,
-    setArmorWeight,
-    setSelectedWeapons,
-    setDamageTypeToOptimizeFor,
   } = useAppStateContext();
 
   const { isMobile, menuOpen, menuOpenMobile, onMenuOpenChanged } = useMenuState();
@@ -156,7 +147,6 @@ export default function App() {
   const regulationVersion = regulationVersions[regulationVersionName];
 
   const filteredWeapons = useFilteredWeapons(weapons, regulationVersion);
-  const uniqueWeaponOptions = useMemo(() => getUniqueValues(weapons, "weaponName"), [weapons]);
   const { rowGroups, attackPowerTypes, spellScaling, total } = useWeaponTableRows({
     weapons: filteredWeapons,
     regulationVersion,
@@ -171,19 +161,20 @@ export default function App() {
     effectiveOnly,
     twoHanding,
     upgradeLevel,
+<<<<<<< HEAD
+=======
     maxUpgradeLevel: regulationVersion.maxUpgradeLevel || maxRegularUpgradeLevel,
+>>>>>>> 95dc1ca (Add Solver)
     groupWeaponTypes,
   });
 
   useOptimalAttributes({
+    weapons: filteredWeapons,
     solverAttributes,
     twoHanding,
     startingClass,
-    adjustEnduranceForWeapon,
+    weaponAdjustedEndurance,
     upgradeLevel,
-    rollType,
-    weapons: filteredWeapons,
-    damageTypeToOptimizeFor,
   });
 
   const tablePlaceholder = useMemo(
@@ -241,6 +232,7 @@ export default function App() {
       />
     );
   }
+
   const handleStartingClassChanged = (startingClass: StartingClass) => {
     const startingAttributes = INITIAL_CLASS_VALUES[startingClass];
 
@@ -283,11 +275,6 @@ export default function App() {
         affinityOptions={regulationVersion.affinityOptions}
         selectedAffinityIds={affinityIds}
         onAffinityIdsChanged={setAffinityIds}
-      />
-      <WeaponPicker
-        selectedWeapons={selectedWeapons}
-        onSelectedWeaponsChanged={setSelectedWeapons}
-        weaponOptions={uniqueWeaponOptions}
       />
       <WeaponTypePicker
         includeDLCWeaponTypes={canIncludeDLCWeaponTypes}
@@ -381,7 +368,7 @@ export default function App() {
             splitDamage={splitDamage}
             groupWeaponTypes={groupWeaponTypes}
             numericalScaling={numericalScaling}
-            adjustEnduranceForWeapon={adjustEnduranceForWeapon}
+            weaponAdjustedEndurance={weaponAdjustedEndurance}
             onAttributeChanged={setAttribute}
             onAttributeSolverChanged={setAttributeSolver}
             onTwoHandingChanged={setTwoHanding}
@@ -392,26 +379,6 @@ export default function App() {
             onStartingClassChanged={handleStartingClassChanged}
             onWeaponAdjustedEnduranceChanged={setWeaponAdjustedEndurance}
             startingClass={startingClass}
-            rollType={rollType}
-            onRollTypeChanged={(rollType) => {
-              setRollType(rollType);
-              const endurance = getEnduranceForWeight(armorWeight, rollType);
-              setAttributeSolver(
-                "end",
-                Math.max(endurance, INITIAL_CLASS_VALUES[startingClass].end),
-              );
-            }}
-            armorWeight={armorWeight}
-            onArmorWeightChanged={(weight) => {
-              setArmorWeight(weight);
-              const endurance = getEnduranceForWeight(weight, rollType);
-              setAttributeSolver(
-                "end",
-                Math.max(endurance, INITIAL_CLASS_VALUES[startingClass].end),
-              );
-            }}
-            damageTypeToOptimizeFor={damageTypeToOptimizeFor}
-            onOptimizedDamageTypeChanged={setDamageTypeToOptimizeFor}
           />
 
           <RegulationVersionAlert key={regulationVersionName}>
