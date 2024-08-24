@@ -36,4 +36,7 @@ The Convergence Mod support uses data extracted from [The Convergence Mod](https
 - [ ] Allow the solver to be toggled on or off. Or move to a different tab
 - [ ] Add Armour Solving
 - [ ] Add modifiers ( Armour bonuses, buffs, etc... )
-- [ ] Incant scaling does not include base scaling factor of 100 correctly. Need "base" to be a component of the melee or spell aspects respectively.
+- [ ] Incant scaling does not include base scaling factor of 100 correctly. Need "base" to be a component of the melee or spell aspects respectively. i.e. Dragon Communion Seal doesn't show the correct value
+- [ ] Move calculation optimizations to service worker
+- [ ] Add Ashes of War Calculations [Compatible Ashes - Non DLC](https://docs.google.com/spreadsheets/d/1BTwjJaSX8iEK7TjUi0TbCY34apgH_028_a_j2XcITqY/edit?gid=0#gid=0) [Damage Calculation Doc](https://docs.google.com/document/u/1/d/17og1zLnCfdL9TFvTnI4A9Nf9EwkBbutishHPTGBDAE8/mobilebasic?pli=1) [Motion Values](https://docs.google.com/spreadsheets/d/1j4bpTbsnp5Xsgw9TP2xv6d8R4qk0ErpE9r_5LGIDraU/edit?gid=362983777#gid=362983777) [Damage Calculation Video](https://www.youtube.com/watch?v=5F9-TyuIICw)
+- [ ] Add filters to columns

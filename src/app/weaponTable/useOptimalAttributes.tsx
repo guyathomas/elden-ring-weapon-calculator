@@ -174,7 +174,7 @@ export const useOptimalAttributes = ({
         );
         spellPower = {
           optimalAttributes: optimalSpellScores.highestAttributes,
-          optimalDamage: optimalSpellScores.maxValue + 100,
+          optimalDamage: optimalSpellScores.maxValue,
           disposablePoints:
             endAdjustedSpendable - sumObjectValues(optimalSpellScores.highestAttributes),
         } as OptimalAttributeForAttackType;

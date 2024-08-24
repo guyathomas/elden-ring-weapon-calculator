@@ -196,19 +196,25 @@ const DataRow = memo(function DataRow({
   const [chartType, setChartType] = useState<"incremental" | "cumulative">("incremental");
   const toggleIsExpanded = React.useCallback(() => setIsExpanded((prev) => !prev), []);
   const incrementalDamagePerAttribute = row[2].incrementalDamagePerAttribute;
-  const baseDamage = incrementalDamagePerAttribute.base[damageTypeToOptimizeFor] || 0;
+  const baseDamage = Math.round(incrementalDamagePerAttribute.base[damageTypeToOptimizeFor] ?? 0);
 
   const lineData = useMemo(() => {
     if (!isExpanded) return [];
-
     if (chartType === "cumulative") {
-      return Object.entries(incrementalDamagePerAttribute.attackPower).map(([attr, values]) => ({
-        id: attr,
-        data: values.map((v, i) => ({
-          x: i + 1,
-          y: (baseDamage + (v?.[damageTypeToOptimizeFor] || 0)).toFixed(2),
-        })),
-      }));
+      const basePoints = {
+        id: "base",
+        data: new Array(150).fill(true).map((_, i) => ({ x: i, y: baseDamage })),
+      };
+      const attributeScaling = Object.entries(incrementalDamagePerAttribute.attackPower).map(
+        ([attr, values]) => ({
+          id: attr,
+          data: values.map((v, i) => ({
+            x: i + 1,
+            y: (v?.[damageTypeToOptimizeFor] || 0).toFixed(2),
+          })),
+        }),
+      );
+      return [...attributeScaling, basePoints];
     } else {
       return Object.entries(incrementalDamagePerAttribute.attackPower).map(([attr, values]) => ({
         id: attr,
@@ -317,7 +323,7 @@ const DataRow = memo(function DataRow({
                 },
               }}
               yScale={{
-                min: chartType === "cumulative" ? baseDamage : 0,
+                min: 0,
                 max: "auto",
                 type: "linear",
               }}

@@ -3,7 +3,7 @@ import type { DamageAttribute } from "./attributes";
 import { adjustStrengthForTwoHanding } from "./calculator";
 import type { Weapon } from "./weapon";
 
-type DamageTypeScaling = Partial<Record<AttackPowerType, number>>;
+export type DamageTypeScaling = Partial<Record<AttackPowerType, number>>;
 const damageTypeScaling: DamageTypeScaling = {};
 type Attribute = "str" | "dex" | "int" | "fai" | "arc";
 

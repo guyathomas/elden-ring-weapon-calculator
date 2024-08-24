@@ -46,21 +46,38 @@ export interface AffinityOption {
   icon?: string;
 }
 
+export enum AffinityType {
+  STANDARD = 0,
+  HEAVY = 1,
+  KEEN = 2,
+  QUALITY = 3,
+  FIRE = 4,
+  FLAME_ART = 5,
+  LIGHTNING = 6,
+  SACRED = 7,
+  MAGIC = 8,
+  COLD = 9,
+  POISON = 10,
+  BLOOD = 11,
+  OCCULT = 12,
+  UNIQUE = -1,
+}
+
 export const affinityOptions = new Map<number, AffinityOption>([
-  [0, { text: "Standard", icon: standardAffinityIcon }],
-  [1, { text: "Heavy", icon: heavyAffinityIcon }],
-  [2, { text: "Keen", icon: keenAffinityIcon }],
-  [3, { text: "Quality", icon: qualityAffinityIcon }],
-  [8, { text: "Magic", icon: magicAffinityIcon }],
-  [4, { text: "Fire", icon: fireAffinityIcon }],
-  [5, { text: "Flame Art", icon: fireAffinityIcon }],
-  [6, { text: "Lightning", icon: lightningAffinityIcon }],
-  [7, { text: "Sacred", icon: sacredAffinityIcon }],
-  [9, { text: "Cold", icon: coldAffinityIcon }],
-  [10, { text: "Poison", icon: poisonAffinityIcon }],
-  [11, { text: "Blood", icon: bloodAffinityIcon }],
-  [12, { text: "Occult", icon: occultAffinityIcon }],
-  [-1, { text: "Unique", icon: specialWeaponIcon }], // Special fake affinity ID for uninfusable weapon s
+  [AffinityType.STANDARD, { text: "Standard", icon: standardAffinityIcon }],
+  [AffinityType.HEAVY, { text: "Heavy", icon: heavyAffinityIcon }],
+  [AffinityType.KEEN, { text: "Keen", icon: keenAffinityIcon }],
+  [AffinityType.QUALITY, { text: "Quality", icon: qualityAffinityIcon }],
+  [AffinityType.MAGIC, { text: "Magic", icon: magicAffinityIcon }],
+  [AffinityType.FIRE, { text: "Fire", icon: fireAffinityIcon }],
+  [AffinityType.FLAME_ART, { text: "Flame Art", icon: fireAffinityIcon }],
+  [AffinityType.LIGHTNING, { text: "Lightning", icon: lightningAffinityIcon }],
+  [AffinityType.SACRED, { text: "Sacred", icon: sacredAffinityIcon }],
+  [AffinityType.COLD, { text: "Cold", icon: coldAffinityIcon }],
+  [AffinityType.POISON, { text: "Poison", icon: poisonAffinityIcon }],
+  [AffinityType.BLOOD, { text: "Blood", icon: bloodAffinityIcon }],
+  [AffinityType.OCCULT, { text: "Occult", icon: occultAffinityIcon }],
+  [AffinityType.UNIQUE, { text: "Unique", icon: specialWeaponIcon }], // Special fake affinity ID for uninfusable weapon s
 ]);
 
 /**

@@ -17,11 +17,14 @@
   },
   "include": ["src"],
   "ts-node": {
-    "extends": "@tsconfig/node16/tsconfig.json",
-    "transpileOnly": true,
-    "files": true,
+    "extends": "@tsconfig/node18/tsconfig.json",
+    "include": ["scripts/**/*.ts"],
     "compilerOptions": {
-      "module": "commonjs"
+      "target": "ESNext",
+      "module": "ESNext",
+      "esModuleInterop": true,
+      "moduleResolution": "NodeNext",
+      "allowSyntheticDefaultImports": true
     }
   },
   "references": [{ "path": "./tsconfig.node.json" }]

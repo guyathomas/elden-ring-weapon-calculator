@@ -30,6 +30,7 @@
     "@typescript-eslint/eslint-plugin": "^5.59.1",
     "@typescript-eslint/parser": "^5.59.1",
     "@vitejs/plugin-react-swc": "^3.0.0",
+    "csvtojson": "^2.0.10",
     "debug": "^4.3.4",
     "dotenv": "^16.3.1",
     "eslint": "^8.36.0",
@@ -50,6 +51,7 @@
     "buildData:latest": "ts-node-esm src/buildData.ts vanilla public/regulation-vanilla-v1.13.js",
     "buildData:reforged": "ts-node-esm src/buildData.ts reforged public/regulation-reforged-v0.13.5A.js",
     "buildData:convergence": "ts-node-esm src/buildData.ts convergence public/regulation-convergence-v2.0.3b.js",
+    "buildData:motionData": "node --loader ts-node/esm scripts/buildAshOfWarData.ts",
     "rebuildWeaponData": "yarn buildData:latest && yarn buildData:reforged && yarn buildData:convergence"
   },
   "eslintConfig": {

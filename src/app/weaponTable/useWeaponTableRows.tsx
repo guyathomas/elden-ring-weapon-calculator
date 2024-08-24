@@ -14,6 +14,7 @@ import { type RegulationVersion } from "../regulationVersions";
 import { useAppStateContext } from "../AppStateProvider";
 import { allWeaponTypes, weaponTypeLabels } from "../uiUtils";
 import { getIncrementalDamagePerAttribute } from "../../calculator/newCalculator";
+import { calculateWeaponArtDamage } from "../../calculator/weaponArt";
 
 interface WeaponTableRowsOptions {
   weapons: Weapon[];
@@ -44,6 +45,113 @@ interface WeaponTableRowsResult {
 
   total: number;
 }
+
+const mockWeaponHitWeaponArt = {
+  "Unique Skill Weapon": "",
+  Name: "Lion's Claw",
+  AtkId: "300300820",
+  movement: {
+    0: 240,
+    1: 240,
+    2: 240,
+    3: 240,
+    4: 240,
+  },
+  "Stam Dmg MV": 500,
+  "Status MV": 100,
+  "Weapon Buff MV": 100,
+  "Poise Dmg MV": 600,
+  "Atk Repel MV": 500,
+  StaminaCost: 45,
+  PhysAtkAttribute: "253",
+  "Shield Chip": 0,
+  disableGuard: false,
+  DamageLevel: 6,
+  dmgLevel_vsPlayer: 0,
+  ignoreDmgCount: false,
+  attack: {
+    0: 0,
+    1: 0,
+    2: 0,
+    3: 0,
+    4: 0,
+  },
+  AtkStam: 0,
+  AtkSuperArmor: 0,
+  isAddBaseAtk: false,
+  overwriteAttackElementCorrectId: "-1",
+  isDisableBothHandsAtkBonus: true,
+  IsArrowAtk: false,
+  subCategory1: "Weapon Skill",
+  subCategory2: "Redmane Battle Skill",
+  subCategory3: "-",
+  subCategory4: "-",
+  spEffectId0: "6903",
+  spEffectId1: "-1",
+  spEffectId2: "-1",
+  spEffectId3: "-1",
+  spEffectId4: "-1",
+  "PvP Dmg Mult": 0.8,
+  "PvP Stam Dmg Mult": 1.25,
+  "PvP Poise Dmg Mult": 2.7,
+  parsedProperties: {
+    AshOfWarName: "Lion's Claw",
+  },
+};
+
+const mockEnhancedHitWeaponArt = {
+  "Unique Skill Weapon": "",
+  Name: "Glintstone Pebble R2",
+  AtkId: "300200895",
+  movement: {
+    0: 160,
+    1: 160,
+    2: 160,
+    3: 160,
+    4: 160,
+  },
+  "Stam Dmg MV": 200,
+  "Status MV": 100,
+  "Weapon Buff MV": 100,
+  "Poise Dmg MV": 400,
+  "Atk Repel MV": 500,
+  StaminaCost: 30,
+  PhysAtkAttribute: "252",
+  "Shield Chip": 0,
+  disableGuard: false,
+  DamageLevel: 3,
+  dmgLevel_vsPlayer: 0,
+  ignoreDmgCount: false,
+  attack: {
+    0: 0,
+    1: 45,
+    2: 0,
+    3: 0,
+    4: 0,
+  },
+  AtkStam: 0,
+  AtkSuperArmor: 0,
+  isAddBaseAtk: true,
+  overwriteAttackElementCorrectId: "-1",
+  isDisableBothHandsAtkBonus: true,
+  IsArrowAtk: false,
+  subCategory1: "Weapon Skill",
+  subCategory2: "-",
+  subCategory3: "-",
+  subCategory4: "-",
+  spEffectId0: "6903",
+  spEffectId1: "-1",
+  spEffectId2: "-1",
+  spEffectId3: "-1",
+  spEffectId4: "-1",
+  "PvP Dmg Mult": 0.8,
+  "PvP Stam Dmg Mult": 1.25,
+  "PvP Poise Dmg Mult": 2.7,
+  parsedProperties: {
+    AshOfWarName: "Glintstone Pebble ",
+    Button: "R2",
+  },
+};
 
 // TODO: Extract into util
 const sumObjectValues = (obj: Record<string, number>) =>
@@ -101,6 +209,23 @@ const useWeaponTableRows = ({
         upgradeLevel: normalizedUpgradeLevel,
         disableTwoHandingAttackPowerBonus: regulationVersion.disableTwoHandingAttackPowerBonus,
         ineffectiveAttributePenalty: regulationVersion.ineffectiveAttributePenalty,
+      });
+
+      const weaponArtResult = calculateWeaponArtDamage(
+        weapon,
+        attributes,
+        mockEnhancedHitWeaponArt,
+        weaponAttackResult.attackPower,
+        normalizedUpgradeLevel / 25, // This is already normalized so that a somber upgrade of 10 will be 25
+      );
+
+      console.log("zzz", {
+        weaponArtResult,
+        weaponAttackResult,
+        weapon,
+        attributes,
+        twoHanding,
+        normalizedUpgradeLevel,
       });
 
       const incrementalDamagePerAttribute = getIncrementalDamagePerAttribute(
