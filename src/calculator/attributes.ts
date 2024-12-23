@@ -1,4 +1,13 @@
-export const allAttributes = ["str", "dex", "int", "fai", "arc"] as const;
-
-export type Attribute = typeof allAttributes[number];
-export type Attributes = Record<Attribute, number>;
+export const damageAttributes = ["str", "dex", "int", "fai", "arc"] as const;
+export const nonDamageAttributes = ["vig", "min", "end"] as const;
+export const allAttributes = [...damageAttributes, ...nonDamageAttributes] as const;
+export const allAttributesAndLvl = [...allAttributes, "lvl"] as const;
+export type DamageAttribute = typeof damageAttributes[number];
+export type NonDamageAttribute = typeof nonDamageAttributes[number];
+export type AllAttribute = typeof allAttributes[number];
+export type AllAttributeAndLevel = typeof allAttributesAndLvl[number];
+export type DamageAttributeValues = Record<DamageAttribute, number>;
+export type BoundsOptions = "Min" | "Max";
+export type AttributeRangeKey = `${DamageAttribute}.${BoundsOptions}`;
+export type AttributeSolverKey = AttributeRangeKey | NonDamageAttribute | "lvl";
+export type AttributeSolverValues = Record<AttributeSolverKey, number>;
