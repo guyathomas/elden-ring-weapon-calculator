@@ -19,7 +19,7 @@ import makeDebug from "debug";
 import dotenv from "dotenv";
 import { XMLParser } from "fast-xml-parser";
 import {
-  type Attribute,
+  type DamageAttribute,
   WeaponType,
   AttackPowerType,
   allDamageTypes,

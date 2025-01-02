@@ -6,9 +6,11 @@
  * power changes.
  */
 import { memo } from "react";
-import { Box, Link, Typography } from "@mui/material";
+import { Box, IconButton, Link, Typography } from "@mui/material";
 import RemoveIcon from "@mui/icons-material/Remove";
-import { type Weapon, type Attribute } from "../../calculator/calculator";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
+import { type Weapon, type DamageAttribute, type AllAttribute } from "../../calculator/calculator";
 import { getAttributeLabel } from "../uiUtils";
 
 export const blankIcon = <RemoveIcon color="disabled" fontSize="small" />;
@@ -27,26 +29,34 @@ export function round(value: number) {
 export const WeaponNameRenderer = memo(function WeaponNameRenderer({
   weapon,
   upgradeLevel,
+  isExpanded,
+  toggleIsExpanded,
 }: {
   weapon: Weapon;
   upgradeLevel: number;
+  isExpanded: boolean;
+  toggleIsExpanded: () => void;
 }) {
   const text = `${weapon.name}${upgradeLevel > 0 ? ` +${upgradeLevel}` : ""}`;
+  const weaponName = weapon.url ? (
+    <Link
+      variant="button"
+      underline="hover"
+      href={weapon.url}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      {text}
+    </Link>
+  ) : (
+    <Typography variant="button">{text}</Typography>
+  );
   return (
     <Box>
-      {weapon.url ? (
-        <Link
-          variant="button"
-          underline="hover"
-          href={weapon.url}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {text}
-        </Link>
-      ) : (
-        <Typography variant="button">{text}</Typography>
-      )}
+      <IconButton aria-label="see scaling data" size="small" onClick={toggleIsExpanded}>
+        {isExpanded ? <ArrowDropUpIcon /> : <ArrowDropDownIcon />}
+      </IconButton>
+      {weaponName}
       {weapon.variant && (
         <Typography component="span" variant="body2">
           {" "}
@@ -68,7 +78,7 @@ export const ScalingRenderer = memo(function ScalingRenderer({
 }: {
   weapon: Weapon;
   upgradeLevel: number;
-  attribute: Attribute;
+  attribute: DamageAttribute;
   numerical?: boolean;
 }) {
   const scalingValue = attributeScaling[upgradeLevel][attribute];
@@ -92,7 +102,7 @@ export const AttributeRequirementRenderer = memo(function AttributeRequirementRe
   ineffective,
 }: {
   weapon: Weapon;
-  attribute: Attribute;
+  attribute: DamageAttribute;
   ineffective: boolean;
 }) {
   const requirement = requirements[attribute] ?? 0;
@@ -118,6 +128,47 @@ export const AttributeRequirementRenderer = memo(function AttributeRequirementRe
 });
 
 /**
+ * Component that displays the best stats to use given the provided constraints for this weapon
+ */
+export const OptimizedAttributeRenderer = memo(function AttributeRequirementRenderer({
+  value,
+}: {
+  value?: number;
+}) {
+  // TODO: Include this logic in the caller of this renderer so that value is undefined and will render the blankIcon
+  // const startingClassStats = INITIAL_CLASS_VALUES[startingClass];
+  // if (value === 0 || (attribute && value <= startingClassStats[attribute])) {
+  //   // Don't show any values when they are just the minimum class values
+  //   return blankIcon;
+  // }
+  if (typeof value === "undefined") return blankIcon; // Loading or spell power for non spell weapon
+  const attributeValue = Math.floor(value);
+
+  return (
+    <Typography
+      sx={{ color: (theme) => (attributeValue < 0 ? theme.palette.error.main : undefined) }}
+      aria-label={`${round(
+        attributeValue,
+      )}. Invalid stat allocation. Please adjust your starting class or level`}
+    >
+      {round(attributeValue)}
+    </Typography>
+  );
+});
+
+/**
+ * Component that displays the endurance required for the given armor weight and weapon weight
+ */
+export const OptimizedEnduranceRenderer = memo(function AttributeRequirementRenderer({
+  endurance,
+}: {
+  endurance: number;
+}) {
+  if (!endurance) return blankIcon;
+  return <>{endurance}</>;
+});
+
+/**
  * Component that displays one damage type / status effect / spell scaling of a weapon.
  */
 export const AttackPowerRenderer = memo(function AttackPowerRenderer({
@@ -125,7 +176,7 @@ export const AttackPowerRenderer = memo(function AttackPowerRenderer({
   ineffective,
 }: {
   value?: number;
-  ineffective: boolean;
+  ineffective?: boolean;
 }) {
   if (value == null) {
     return blankIcon;

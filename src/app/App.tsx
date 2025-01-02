@@ -2,33 +2,35 @@ import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react
 import {
   Alert,
   Box,
-  CircularProgress,
   CssBaseline,
   Divider,
   Drawer,
   IconButton,
   ThemeProvider,
   Toolbar,
-  Typography,
   useMediaQuery,
   useTheme,
   type Theme,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBackRounded";
 import WeaponListSettings from "./WeaponListSettings";
-import WeaponTable from "./weaponTable/WeaponTable";
-import useWeaponTableRows from "./weaponTable/useWeaponTableRows";
+import WeaponTable from "./weaponTable/FixedWeaponTable";
 import theme from "./theme";
 import regulationVersions from "./regulationVersions";
 import useWeapons from "./useWeapons";
-import useAppState from "./useAppState";
+import { useAppState } from "./reducers/useAppState";
+import { useFixedAttributeState } from "./reducers/useFixedAttributeState";
+import { useSolvedAttributeState } from "./reducers/useSolvedAttributeState";
 import AppBar from "./AppBar";
 import RegulationVersionPicker from "./RegulationVersionPicker";
 import WeaponTypePicker from "./WeaponTypePicker";
+import WeaponPicker, { makeWeaponOptionsFromWeapon } from "./WeaponPicker";
 import AffinityPicker from "./AffinityPicker";
 import Footer from "./Footer";
 import MiscFilterPicker from "./MiscFilterPicker";
-import WeaponPicker, { makeWeaponOptionsFromWeapon } from "./WeaponPicker";
+import { getEnduranceForWeight } from "./weaponTable/useOptimalAttributes";
+import useFilteredWeapons from "./weaponTable/useFilteredWeapons";
+import { INITIAL_CLASS_VALUES, type StartingClass } from "./ClassPicker";
 import type { Weapon } from "../calculator/weapon";
 
 const useMenuState = () => {
@@ -100,118 +102,51 @@ function RegulationVersionAlert({ children }: { children: ReactNode }) {
 }
 
 export default function App() {
-  const {
-    regulationVersionName,
-    affinityIds,
-    weaponTypes,
-    attributes,
-    includeDLC,
-    effectiveOnly,
-    splitDamage,
-    twoHanding,
-    upgradeLevel,
-    groupWeaponTypes,
-    numericalScaling,
-    sortBy,
-    reverse,
-    selectedWeapons,
-    setRegulationVersionName,
-    setAffinityIds,
-    setWeaponTypes,
-    setAttribute,
-    setIncludeDLC,
-    setEffectiveOnly,
-    setSplitDamage,
-    setTwoHanding,
-    setUpgradeLevel,
-    setGroupWeaponTypes,
-    setNumericalScaling,
-    setSortBy,
-    setReverse,
-    setSelectedWeapons,
-  } = useAppState();
-
   const { isMobile, menuOpen, menuOpenMobile, onMenuOpenChanged } = useMenuState();
+  const [tableView, setTableView] = useState<"fixed" | "solver">("fixed"); // TODO: Add different table views
+  const {
+    state: {
+      regulationVersionName,
+      affinityIds,
+      weaponTypes,
+      includeDLC,
+      effectiveOnly,
+      twoHanding,
+      upgradeLevel,
+      groupWeaponTypes,
+      startingClass,
+      selectedWeapons,
+    },
+    dispatch: dispatchAppState,
+  } = useAppState();
+  const {
+    state: { attributes, splitDamage, numericalScaling },
+    dispatch: dispatchFixedAttributeState,
+  } = useFixedAttributeState();
+  const {
+    state: {
+      solverAttributes,
+      adjustEnduranceForWeapon,
+      rollType,
+      armorWeight,
+      damageTypeToOptimizeFor,
+      optimalAttributes,
+    },
+    dispatch: dispatchSolvedAttributeState,
+  } = useSolvedAttributeState();
 
-  // TODO pagination if there are >200 results
-  const offset = 0;
-  const limit = 200;
   const { weapons, loading, error } = useWeapons(regulationVersionName);
-
   const regulationVersion = regulationVersions[regulationVersionName];
 
-  const { rowGroups, attackPowerTypes, spellScaling, total } = useWeaponTableRows({
-    weapons,
-    regulationVersion,
-    offset,
-    limit,
-    sortBy,
-    reverse,
-    affinityIds,
-    weaponTypes,
-    attributes,
-    includeDLC,
-    effectiveOnly,
+  const filteredWeapons = useFilteredWeapons(weapons, regulationVersion, {
     twoHanding,
-    upgradeLevel,
-    groupWeaponTypes,
+    weaponTypes,
+    affinityIds,
+    effectiveOnly,
+    includeDLC,
     selectedWeapons,
+    attributes,
   });
-
-  const tablePlaceholder = useMemo(
-    () =>
-      loading ? (
-        <>
-          <Typography variant="body1" align="center" sx={{ alignSelf: "end" }}>
-            Loading weapon data
-          </Typography>
-          <Box display="grid" sx={{ alignSelf: "start", justifyContent: "center" }}>
-            <CircularProgress />
-          </Box>
-        </>
-      ) : (
-        <Typography variant="body1" align="center" sx={{ alignSelf: "center" }}>
-          No weapons match your selections
-        </Typography>
-      ),
-    [loading],
-  );
-
-  const tableFooter = useMemo(
-    () =>
-      total > limit ? (
-        <Typography variant="body1" align="center" sx={{ alignSelf: "center" }}>
-          {total} weapons match your selections - showing the first {limit}
-        </Typography>
-      ) : undefined,
-    [total, limit],
-  );
-
-  let mainContent: ReactNode;
-  if (error) {
-    mainContent = (
-      <Alert severity="error" sx={{ my: 3 }}>
-        Oops, something went wrong loading weapons ({error.message})
-      </Alert>
-    );
-  } else {
-    mainContent = (
-      <WeaponTable
-        rowGroups={rowGroups}
-        placeholder={tablePlaceholder}
-        footer={tableFooter}
-        sortBy={sortBy}
-        reverse={reverse}
-        splitDamage={splitDamage}
-        splitSpellScaling={!!regulationVersion.splitSpellScaling}
-        numericalScaling={numericalScaling}
-        attackPowerTypes={attackPowerTypes}
-        spellScaling={spellScaling}
-        onSortByChanged={setSortBy}
-        onReverseChanged={setReverse}
-      />
-    );
-  }
 
   // The Convergence and Reforged don't separate DLC content, so this option is only relevant to
   // vanilla
@@ -221,12 +156,9 @@ export default function App() {
   const weaponPickerOptions = useMemo(() => {
     const dedupedWeaponsByWeaponName = [
       ...weapons
-        .reduce((acc, weapon) => {
-          return acc.set(weapon.weaponName, weapon);
-        }, new Map<string, Weapon>())
+        .reduce((acc, weapon) => acc.set(weapon.weaponName, weapon), new Map<string, Weapon>())
         .values(),
     ].filter((weapon) => (includeDLC ? true : !weapon.dlc));
-
     return makeWeaponOptionsFromWeapon(dedupedWeaponsByWeaponName);
   }, [weapons, includeDLC]);
 
@@ -234,29 +166,41 @@ export default function App() {
     <>
       <RegulationVersionPicker
         regulationVersionName={regulationVersionName}
-        onRegulationVersionNameChanged={setRegulationVersionName}
+        onRegulationVersionNameChanged={(regulationVersionName) => {
+          dispatchAppState({ type: "setRegulationVersionName", payload: regulationVersionName });
+        }}
       />
       <MiscFilterPicker
         showIncludeDLC={showIncludeDLC}
         includeDLC={includeDLC}
         effectiveOnly={effectiveOnly}
-        onIncludeDLCChanged={setIncludeDLC}
-        onEffectiveOnlyChanged={setEffectiveOnly}
+        onIncludeDLCChanged={(includeDLC) => {
+          dispatchAppState({ type: "setIncludeDLC", payload: includeDLC });
+        }}
+        onEffectiveOnlyChanged={(effectiveOnly) => {
+          dispatchAppState({ type: "setEffectiveOnly", payload: effectiveOnly });
+        }}
       />
       <WeaponPicker
         selectedWeapons={selectedWeapons}
-        onSelectedWeaponsChanged={setSelectedWeapons}
+        onSelectedWeaponsChanged={(selectedWeapons) => {
+          dispatchAppState({ type: "setSelectedWeapons", payload: selectedWeapons });
+        }}
         weaponOptions={weaponPickerOptions}
       />
       <AffinityPicker
         affinityOptions={regulationVersion.affinityOptions}
         selectedAffinityIds={affinityIds}
-        onAffinityIdsChanged={setAffinityIds}
+        onAffinityIdsChanged={(affinityIds) => {
+          dispatchAppState({ type: "setAffinityIds", payload: affinityIds });
+        }}
       />
       <WeaponTypePicker
         includeDLCWeaponTypes={includeDLCWeaponTypes}
         weaponTypes={weaponTypes}
-        onWeaponTypesChanged={setWeaponTypes}
+        onWeaponTypesChanged={(weaponTypes) => {
+          dispatchAppState({ type: "setWeaponTypes", payload: weaponTypes });
+        }}
       />
     </>
   );
@@ -338,25 +282,136 @@ export default function App() {
           <WeaponListSettings
             breakpoint={menuOpen ? "lg" : "md"}
             attributes={attributes}
+            attributeSolverValues={solverAttributes}
             twoHanding={twoHanding}
             upgradeLevel={upgradeLevel}
             maxUpgradeLevel={regulationVersion.maxUpgradeLevel}
             splitDamage={splitDamage}
             groupWeaponTypes={groupWeaponTypes}
             numericalScaling={numericalScaling}
-            onAttributeChanged={setAttribute}
-            onTwoHandingChanged={setTwoHanding}
-            onUpgradeLevelChanged={setUpgradeLevel}
-            onSplitDamageChanged={setSplitDamage}
-            onGroupWeaponTypesChanged={setGroupWeaponTypes}
-            onNumericalScalingChanged={setNumericalScaling}
+            adjustEnduranceForWeapon={adjustEnduranceForWeapon}
+            onStartingClassChanged={(startingClass: StartingClass) => {
+              const { arc, dex, str, int, fai, vig, end, lvl, min } =
+                INITIAL_CLASS_VALUES[startingClass];
+
+              dispatchAppState({ type: "setStartingClass", payload: startingClass });
+              dispatchSolvedAttributeState({
+                type: "setSolverAttributes",
+                payload: {
+                  [`str.Min`]: Math.max(solverAttributes[`str.Min`], str),
+                  [`dex.Min`]: Math.max(solverAttributes[`dex.Min`], dex),
+                  [`int.Min`]: Math.max(solverAttributes[`int.Min`], int),
+                  [`fai.Min`]: Math.max(solverAttributes[`fai.Min`], fai),
+                  [`arc.Min`]: Math.max(solverAttributes[`arc.Min`], arc),
+                  end,
+                  min,
+                  vig,
+                  lvl,
+                },
+              });
+              dispatchFixedAttributeState({
+                type: "setAttributes",
+                payload: {
+                  str: Math.max(attributes.str, str),
+                  dex: Math.max(attributes.dex, dex),
+                  int: Math.max(attributes.int, int),
+                  fai: Math.max(attributes.fai, fai),
+                  arc: Math.max(attributes.arc, arc),
+                },
+              });
+            }}
+            startingClass={startingClass}
+            rollType={rollType}
+            onRollTypeChanged={(rollType) => {
+              dispatchSolvedAttributeState({ type: "setRollType", payload: rollType });
+              const endurance = getEnduranceForWeight(armorWeight, rollType);
+              dispatchSolvedAttributeState({
+                type: "setSolverAttributes",
+                payload: {
+                  end: Math.max(endurance, INITIAL_CLASS_VALUES[startingClass].end),
+                },
+              });
+            }}
+            armorWeight={armorWeight}
+            onArmorWeightChanged={(weight) => {
+              dispatchSolvedAttributeState({
+                type: "setArmorWeight",
+                payload: weight,
+              });
+              const endurance = getEnduranceForWeight(weight, rollType);
+              dispatchSolvedAttributeState({
+                type: "setSolverAttributes",
+                payload: {
+                  end: Math.max(endurance, INITIAL_CLASS_VALUES[startingClass].end),
+                },
+              });
+            }}
+            damageTypeToOptimizeFor={damageTypeToOptimizeFor}
+            onOptimizedDamageTypeChanged={(damageTypeToOptimizeFor) => {
+              dispatchSolvedAttributeState({
+                type: "setDamageTypeToOptimizeFor",
+                payload: damageTypeToOptimizeFor,
+              });
+            }}
+            onAttributeChanged={(attributeChanged, attributeValue) => {
+              dispatchFixedAttributeState({
+                type: "setAttributes",
+                payload: {
+                  [attributeChanged]: attributeValue,
+                },
+              });
+            }}
+            onAttributeSolverChanged={(attributeChanged, attributeValue) => {
+              dispatchSolvedAttributeState({
+                type: "setSolverAttributes",
+                payload: {
+                  [attributeChanged]: attributeValue,
+                },
+              });
+            }}
+            onTwoHandingChanged={(twoHandingChanged) => {
+              dispatchAppState({ type: "setTwoHanding", payload: twoHandingChanged });
+            }}
+            onUpgradeLevelChanged={(upgradeLevelChanged) => {
+              dispatchAppState({ type: "setUpgradeLevel", payload: upgradeLevelChanged });
+            }}
+            onGroupWeaponTypesChanged={(groupWeaponTypesChanged) => {
+              dispatchAppState({ type: "setGroupWeaponTypes", payload: groupWeaponTypesChanged });
+            }}
+            onSplitDamageChanged={(splitDamageChanged) => {
+              dispatchFixedAttributeState({ type: "setSplitDamage", payload: splitDamageChanged });
+            }}
+            onNumericalScalingChanged={(numericalScalingChanged) => {
+              dispatchFixedAttributeState({
+                type: "setNumericalScaling",
+                payload: numericalScalingChanged,
+              });
+            }}
+            onWeaponAdjustedEnduranceChanged={(weaponAdjustedEnduranceChanged) => {
+              dispatchSolvedAttributeState({
+                type: "setAdjustEnduranceForWeapon",
+                payload: weaponAdjustedEnduranceChanged,
+              });
+            }}
           />
 
           <RegulationVersionAlert key={regulationVersionName}>
             {regulationVersion.info}
           </RegulationVersionAlert>
-
-          {mainContent}
+          {tableView === "fixed" ? (
+            <WeaponTable
+              weapons={filteredWeapons}
+              weaponsError={error}
+              isWeaponsLoading={loading}
+              regulationVersion={regulationVersion}
+              splitDamage={splitDamage}
+              numericalScaling={numericalScaling}
+              twoHanding={twoHanding}
+              upgradeLevel={upgradeLevel}
+              groupWeaponTypes={groupWeaponTypes}
+              attributes={attributes}
+            />
+          ) : null}
 
           <Footer />
         </Box>

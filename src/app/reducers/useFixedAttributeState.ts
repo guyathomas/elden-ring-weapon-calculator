@@ -1,0 +1,63 @@
+import { defaultStartingClass, type ActionMap } from "./useAppState";
+import type { SortBy } from "../../search/sortWeapons";
+import type { DamageAttributeValues } from "../../calculator/attributes";
+import { INITIAL_CLASS_VALUES } from "../ClassPicker";
+import { useReducer } from "react";
+
+// FixedAttributeState - Values that only impact the fixed calculator view
+export interface FixedAttributeState {
+  readonly splitDamage: boolean;
+  readonly attributes: DamageAttributeValues;
+  readonly numericalScaling: boolean;
+  readonly sortBy: SortBy; // TODO: guyathomas Move this to locale state for the table rendered.
+  readonly reverse: boolean; // TODO: guyathomas Move this to locale state for the table rendered.
+}
+
+/* Custom actions - Start */
+// It's not convenient to have all actions that are expressed automatically by replacing the state with the same type
+type AttributePatchUpdate = { type: "setAttributes"; payload: Partial<DamageAttributeValues> };
+/* Custom actions - End */
+
+export type FixedAttributeAction =
+  | ActionMap<FixedAttributeState>[keyof ActionMap<FixedAttributeState>]
+  | AttributePatchUpdate;
+
+export function fixedAttributeStateReducer(
+  state: FixedAttributeState,
+  action: FixedAttributeAction,
+): FixedAttributeState {
+  switch (action.type) {
+    case "setAttributes":
+      return { ...state, attributes: { ...state.attributes, ...action.payload } };
+    case "setSplitDamage":
+      return { ...state, splitDamage: action.payload };
+    case "setNumericalScaling":
+      return { ...state, numericalScaling: action.payload };
+    case "setSortBy":
+      return { ...state, sortBy: action.payload };
+    case "setReverse":
+      return { ...state, reverse: action.payload };
+    default:
+      return state;
+  }
+}
+
+const initialState: FixedAttributeState = {
+  splitDamage: true,
+  attributes: {
+    str: INITIAL_CLASS_VALUES[defaultStartingClass].str,
+    dex: INITIAL_CLASS_VALUES[defaultStartingClass].dex,
+    int: INITIAL_CLASS_VALUES[defaultStartingClass].int,
+    fai: INITIAL_CLASS_VALUES[defaultStartingClass].fai,
+    arc: INITIAL_CLASS_VALUES[defaultStartingClass].arc,
+  },
+  numericalScaling: false,
+  sortBy: "totalAttack",
+  reverse: false,
+};
+
+export function useFixedAttributeState() {
+  const [state, dispatch] = useReducer(fixedAttributeStateReducer, initialState);
+
+  return { state, dispatch };
+}

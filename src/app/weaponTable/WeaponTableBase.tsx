@@ -1,12 +1,11 @@
-import { memo, type ReactNode, useMemo } from "react";
+import { memo, type ReactNode } from "react";
 import * as ScrollArea from "@radix-ui/react-scroll-area";
-import { Box, Typography } from "@mui/material";
+import { Alert, Box, CircularProgress, Typography } from "@mui/material";
 import { type SystemStyleObject, type Theme } from "@mui/system";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
-import { AttackPowerType, type Weapon, type WeaponAttackResult } from "../../calculator/calculator";
+import { type Weapon } from "../../calculator/calculator";
 import type { SortBy } from "../../search/sortWeapons";
-import getWeaponTableColumns from "./getWeaponTableColumns";
 import {
   Scrollbar,
   ScrollbarThumb,
@@ -20,9 +19,9 @@ import {
   WeaponTableGroupHeaderRow,
 } from "./tableStyledComponents";
 
-export type WeaponTableRowData = [Weapon, WeaponAttackResult];
+export type WeaponTableRowData = { weapon: Weapon };
 
-export interface WeaponTableRowGroup {
+export interface WeaponTableRow {
   key: string;
   name?: string;
   rows: readonly WeaponTableRowData[];
@@ -44,58 +43,36 @@ export interface WeaponTableColumnGroupDef {
 }
 
 interface Props {
-  rowGroups: readonly WeaponTableRowGroup[];
-  placeholder?: ReactNode;
-  footer?: ReactNode;
+  rows: readonly WeaponTableRow[];
+  columns: readonly WeaponTableColumnGroupDef[];
   sortBy: SortBy;
   reverse: boolean;
-
-  /**
-   * If true, include columns for each individual damage type as well as total attack power
-   */
-  splitDamage: boolean;
-
-  /**
-   * If true, include columns for each individual damage type for Spell Scaling
-   */
-  splitSpellScaling: boolean;
-
-  /**
-   * If true, show scaling as integers instead of S/A/B/C/D/E ranks
-   */
-  numericalScaling: boolean;
-
-  /**
-   * Attack power types that must be included as columns in the table
-   */
-  attackPowerTypes: ReadonlySet<AttackPowerType>;
-
-  /**
-   * Include spell scaling columns in the table
-   */
-  spellScaling: boolean;
-
   onSortByChanged(sortBy: SortBy): void;
   onReverseChanged(reverse: boolean): void;
+  isWeaponsLoading: boolean;
+  errorWeapons?: Error;
+  total: number;
+  limit: number;
 }
 
 /**
  * The row in the weapon table containing headers for each column
  */
 const ColumnHeaderRow = memo(function ColumnHeaderRow({
-  columnGroups,
+  columns,
   sortBy,
   reverse,
   onSortByChanged,
   onReverseChanged,
 }: {
-  columnGroups: readonly WeaponTableColumnGroupDef[];
-  sortBy: SortBy;
-  reverse: boolean;
-  onSortByChanged(sortBy: SortBy): void;
-  onReverseChanged(reverse: boolean): void;
+  columns: Props["columns"];
+  sortBy: Props["sortBy"];
+  reverse: Props["reverse"];
+  onSortByChanged: Props["onSortByChanged"];
+  onReverseChanged: Props["onReverseChanged"];
 }) {
-  const onColumnClicked = (column: WeaponTableColumnDef) => {
+  type TableColumn = WeaponTableColumnDef;
+  const onColumnClicked = (column: TableColumn) => {
     if (column.sortBy) {
       if (column.sortBy === sortBy) {
         onReverseChanged(!reverse);
@@ -108,7 +85,7 @@ const ColumnHeaderRow = memo(function ColumnHeaderRow({
 
   return (
     <WeaponTableColumnHeaderRow role="row">
-      {columnGroups.map(({ key, sx, columns }) => (
+      {columns.map(({ key, sx, columns }) => (
         <WeaponTableColumnGroup key={key} sx={sx}>
           {columns.map((column) => (
             <Box
@@ -169,15 +146,15 @@ const ColumnHeaderRow = memo(function ColumnHeaderRow({
  * A row in the weapon table containing a single weapon
  */
 const DataRow = memo(function DataRow({
-  columnGroups,
+  columns,
   row,
 }: {
-  columnGroups: readonly WeaponTableColumnGroupDef[];
+  columns: readonly WeaponTableColumnGroupDef[];
   row: WeaponTableRowData;
 }) {
   return (
     <WeaponTableDataRow role="row">
-      {columnGroups.map(({ key, sx, columns }) => (
+      {columns.map(({ key, sx, columns }) => (
         <WeaponTableColumnGroup key={key} sx={sx}>
           {columns.map((column) => (
             <WeaponTableColumn key={column.key} role="cell" sx={column.sx}>
@@ -191,37 +168,30 @@ const DataRow = memo(function DataRow({
 });
 
 function WeaponTable({
-  rowGroups,
-  placeholder,
-  footer,
+  rows,
+  columns,
   sortBy,
   reverse,
-  splitDamage,
-  splitSpellScaling,
-  numericalScaling,
-  attackPowerTypes,
-  spellScaling,
   onSortByChanged,
   onReverseChanged,
+  isWeaponsLoading,
+  errorWeapons,
+  total,
+  limit,
 }: Props) {
-  const columnGroups = useMemo(
-    () =>
-      getWeaponTableColumns({
-        splitDamage,
-        splitSpellScaling,
-        numericalScaling,
-        attackPowerTypes,
-        spellScaling,
-      }),
-    [splitDamage, splitSpellScaling, numericalScaling, attackPowerTypes, spellScaling],
-  );
-
+  if (errorWeapons) {
+    return (
+      <Alert severity="error" sx={{ my: 3 }}>
+        Oops, something went wrong loading weapons ({errorWeapons.message})
+      </Alert>
+    );
+  }
   return (
     <ScrollArea.Root asChild>
       <WeaponTableBody role="table">
         <ScrollArea.Viewport>
           <WeaponTableColumnGroupHeaderRow role="row">
-            {columnGroups.map(({ key, sx, header }) => (
+            {columns.map(({ key, sx, header }) => (
               <WeaponTableColumnGroup
                 key={key}
                 sx={[sx ?? {}, { alignItems: "center", justifyContent: "center" }]}
@@ -236,14 +206,14 @@ function WeaponTable({
           </WeaponTableColumnGroupHeaderRow>
 
           <ColumnHeaderRow
-            columnGroups={columnGroups}
+            columns={columns}
             sortBy={sortBy}
             reverse={reverse}
             onSortByChanged={onSortByChanged}
             onReverseChanged={onReverseChanged}
           />
-          {rowGroups.length > 0 ? (
-            rowGroups.map(({ key, name, rows }) => (
+          {rows.length > 0 ? (
+            rows.map(({ key, name, rows }) => (
               <WeaponTableGroup key={key} role="rowgroup">
                 {name != null && (
                   <WeaponTableGroupHeaderRow role="row">
@@ -255,8 +225,10 @@ function WeaponTable({
 
                 {rows.map((row) => (
                   <DataRow
-                    key={`${row[0].weaponName},${row[0].affinityId},${row[0].variant ?? ""}`}
-                    columnGroups={columnGroups}
+                    key={`${row.weapon.weaponName},${row.weapon.affinityId},${
+                      row.weapon.variant ?? ""
+                    }`}
+                    columns={columns}
                     row={row}
                   />
                 ))}
@@ -264,12 +236,27 @@ function WeaponTable({
             ))
           ) : (
             <Box display="grid" sx={{ minHeight: "480px", px: "10px", gap: 3 }}>
-              {placeholder}
+              {isWeaponsLoading ? (
+                <>
+                  <Typography variant="body1" align="center" sx={{ alignSelf: "end" }}>
+                    Loading weapon data
+                  </Typography>
+                  <Box display="grid" sx={{ alignSelf: "start", justifyContent: "center" }}>
+                    <CircularProgress />
+                  </Box>
+                </>
+              ) : (
+                <Typography variant="body1" align="center" sx={{ alignSelf: "center" }}>
+                  No weapons match your selections
+                </Typography>
+              )}
             </Box>
           )}
-          {footer != null && (
+          {total > limit && (
             <Box display="grid" sx={{ minHeight: "36px", px: "10px" }}>
-              {footer}
+              <Typography variant="body1" align="center" sx={{ alignSelf: "center" }}>
+                {total} weapons match your selections - showing the first {limit}
+              </Typography>
             </Box>
           )}
         </ScrollArea.Viewport>
