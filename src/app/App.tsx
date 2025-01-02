@@ -13,7 +13,7 @@ import {
   type Theme,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBackRounded";
-import WeaponListSettings from "./WeaponListSettings";
+import WeaponListSettings from "./FixedTableWeaponListSetting";
 import WeaponTable from "./weaponTable/FixedWeaponTable";
 import theme from "./theme";
 import regulationVersions from "./regulationVersions";
@@ -32,6 +32,7 @@ import { getEnduranceForWeight } from "./weaponTable/useOptimalAttributes";
 import useFilteredWeapons from "./weaponTable/useFilteredWeapons";
 import { INITIAL_CLASS_VALUES, type StartingClass } from "./ClassPicker";
 import type { Weapon } from "../calculator/weapon";
+import SolvedTableWeaponListSettings from "./SolvedTableWeaponListSettings";
 
 const useMenuState = () => {
   const theme = useTheme();
@@ -88,14 +89,20 @@ const useMenuState = () => {
 };
 
 function RegulationVersionAlert({ children }: { children: ReactNode }) {
-  const [dismissed, setDismissed] = useState(false);
+  const SESSION_STORAGE_KEY = "hasDismissedRegulationAlert";
+  const [dismissed, setDismissed] = useState(
+    () => sessionStorage.getItem(SESSION_STORAGE_KEY) || false,
+  );
 
-  if (!children || dismissed) {
-    return null;
-  }
+  const handleSetDismissed = useCallback(() => {
+    setDismissed(true);
+    sessionStorage.setItem(SESSION_STORAGE_KEY, "true");
+  }, []);
+
+  if (!children || dismissed) return null;
 
   return (
-    <Alert icon={false} severity="info" onClose={() => setDismissed(true)}>
+    <Alert icon={false} severity="info" onClose={handleSetDismissed}>
       {children}
     </Alert>
   );
@@ -198,8 +205,15 @@ export default function App() {
       <WeaponTypePicker
         includeDLCWeaponTypes={includeDLCWeaponTypes}
         weaponTypes={weaponTypes}
+        groupWeaponTypes={groupWeaponTypes}
         onWeaponTypesChanged={(weaponTypes) => {
           dispatchAppState({ type: "setWeaponTypes", payload: weaponTypes });
+        }}
+        onGroupWeaponTypesChanged={(groupWeaponTypesChanged) => {
+          dispatchAppState({
+            type: "setGroupWeaponTypes",
+            payload: groupWeaponTypesChanged,
+          });
         }}
       />
     </>
@@ -277,141 +291,264 @@ export default function App() {
             {drawerContent}
           </Box>
         </Drawer>
-
         <Box display="grid" sx={{ gap: 2 }}>
-          <WeaponListSettings
-            breakpoint={menuOpen ? "lg" : "md"}
-            attributes={attributes}
-            attributeSolverValues={solverAttributes}
-            twoHanding={twoHanding}
-            upgradeLevel={upgradeLevel}
-            maxUpgradeLevel={regulationVersion.maxUpgradeLevel}
-            splitDamage={splitDamage}
-            groupWeaponTypes={groupWeaponTypes}
-            numericalScaling={numericalScaling}
-            adjustEnduranceForWeapon={adjustEnduranceForWeapon}
-            onStartingClassChanged={(startingClass: StartingClass) => {
-              const { arc, dex, str, int, fai, vig, end, lvl, min } =
-                INITIAL_CLASS_VALUES[startingClass];
-
-              dispatchAppState({ type: "setStartingClass", payload: startingClass });
-              dispatchSolvedAttributeState({
-                type: "setSolverAttributes",
-                payload: {
-                  [`str.Min`]: Math.max(solverAttributes[`str.Min`], str),
-                  [`dex.Min`]: Math.max(solverAttributes[`dex.Min`], dex),
-                  [`int.Min`]: Math.max(solverAttributes[`int.Min`], int),
-                  [`fai.Min`]: Math.max(solverAttributes[`fai.Min`], fai),
-                  [`arc.Min`]: Math.max(solverAttributes[`arc.Min`], arc),
-                  end,
-                  min,
-                  vig,
-                  lvl,
-                },
-              });
-              dispatchFixedAttributeState({
-                type: "setAttributes",
-                payload: {
-                  str: Math.max(attributes.str, str),
-                  dex: Math.max(attributes.dex, dex),
-                  int: Math.max(attributes.int, int),
-                  fai: Math.max(attributes.fai, fai),
-                  arc: Math.max(attributes.arc, arc),
-                },
-              });
-            }}
-            startingClass={startingClass}
-            rollType={rollType}
-            onRollTypeChanged={(rollType) => {
-              dispatchSolvedAttributeState({ type: "setRollType", payload: rollType });
-              const endurance = getEnduranceForWeight(armorWeight, rollType);
-              dispatchSolvedAttributeState({
-                type: "setSolverAttributes",
-                payload: {
-                  end: Math.max(endurance, INITIAL_CLASS_VALUES[startingClass].end),
-                },
-              });
-            }}
-            armorWeight={armorWeight}
-            onArmorWeightChanged={(weight) => {
-              dispatchSolvedAttributeState({
-                type: "setArmorWeight",
-                payload: weight,
-              });
-              const endurance = getEnduranceForWeight(weight, rollType);
-              dispatchSolvedAttributeState({
-                type: "setSolverAttributes",
-                payload: {
-                  end: Math.max(endurance, INITIAL_CLASS_VALUES[startingClass].end),
-                },
-              });
-            }}
-            damageTypeToOptimizeFor={damageTypeToOptimizeFor}
-            onOptimizedDamageTypeChanged={(damageTypeToOptimizeFor) => {
-              dispatchSolvedAttributeState({
-                type: "setDamageTypeToOptimizeFor",
-                payload: damageTypeToOptimizeFor,
-              });
-            }}
-            onAttributeChanged={(attributeChanged, attributeValue) => {
-              dispatchFixedAttributeState({
-                type: "setAttributes",
-                payload: {
-                  [attributeChanged]: attributeValue,
-                },
-              });
-            }}
-            onAttributeSolverChanged={(attributeChanged, attributeValue) => {
-              dispatchSolvedAttributeState({
-                type: "setSolverAttributes",
-                payload: {
-                  [attributeChanged]: attributeValue,
-                },
-              });
-            }}
-            onTwoHandingChanged={(twoHandingChanged) => {
-              dispatchAppState({ type: "setTwoHanding", payload: twoHandingChanged });
-            }}
-            onUpgradeLevelChanged={(upgradeLevelChanged) => {
-              dispatchAppState({ type: "setUpgradeLevel", payload: upgradeLevelChanged });
-            }}
-            onGroupWeaponTypesChanged={(groupWeaponTypesChanged) => {
-              dispatchAppState({ type: "setGroupWeaponTypes", payload: groupWeaponTypesChanged });
-            }}
-            onSplitDamageChanged={(splitDamageChanged) => {
-              dispatchFixedAttributeState({ type: "setSplitDamage", payload: splitDamageChanged });
-            }}
-            onNumericalScalingChanged={(numericalScalingChanged) => {
-              dispatchFixedAttributeState({
-                type: "setNumericalScaling",
-                payload: numericalScalingChanged,
-              });
-            }}
-            onWeaponAdjustedEnduranceChanged={(weaponAdjustedEnduranceChanged) => {
-              dispatchSolvedAttributeState({
-                type: "setAdjustEnduranceForWeapon",
-                payload: weaponAdjustedEnduranceChanged,
-              });
-            }}
-          />
-
           <RegulationVersionAlert key={regulationVersionName}>
             {regulationVersion.info}
           </RegulationVersionAlert>
           {tableView === "fixed" ? (
-            <WeaponTable
-              weapons={filteredWeapons}
-              weaponsError={error}
-              isWeaponsLoading={loading}
-              regulationVersion={regulationVersion}
-              splitDamage={splitDamage}
-              numericalScaling={numericalScaling}
-              twoHanding={twoHanding}
-              upgradeLevel={upgradeLevel}
-              groupWeaponTypes={groupWeaponTypes}
-              attributes={attributes}
-            />
-          ) : null}
+            <>
+              <WeaponListSettings
+                breakpoint={menuOpen ? "lg" : "md"}
+                attributes={attributes}
+                attributeSolverValues={solverAttributes}
+                twoHanding={twoHanding}
+                upgradeLevel={upgradeLevel}
+                maxUpgradeLevel={regulationVersion.maxUpgradeLevel}
+                splitDamage={splitDamage}
+                numericalScaling={numericalScaling}
+                adjustEnduranceForWeapon={adjustEnduranceForWeapon}
+                onStartingClassChanged={(startingClass: StartingClass) => {
+                  const { arc, dex, str, int, fai, vig, end, lvl, min } =
+                    INITIAL_CLASS_VALUES[startingClass];
+
+                  dispatchAppState({ type: "setStartingClass", payload: startingClass });
+                  dispatchSolvedAttributeState({
+                    type: "setSolverAttributes",
+                    payload: {
+                      [`str.Min`]: Math.max(solverAttributes[`str.Min`], str),
+                      [`dex.Min`]: Math.max(solverAttributes[`dex.Min`], dex),
+                      [`int.Min`]: Math.max(solverAttributes[`int.Min`], int),
+                      [`fai.Min`]: Math.max(solverAttributes[`fai.Min`], fai),
+                      [`arc.Min`]: Math.max(solverAttributes[`arc.Min`], arc),
+                      end,
+                      min,
+                      vig,
+                      lvl,
+                    },
+                  });
+                  dispatchFixedAttributeState({
+                    type: "setAttributes",
+                    payload: {
+                      str: Math.max(attributes.str, str),
+                      dex: Math.max(attributes.dex, dex),
+                      int: Math.max(attributes.int, int),
+                      fai: Math.max(attributes.fai, fai),
+                      arc: Math.max(attributes.arc, arc),
+                    },
+                  });
+                }}
+                startingClass={startingClass}
+                rollType={rollType}
+                onRollTypeChanged={(rollType) => {
+                  dispatchSolvedAttributeState({ type: "setRollType", payload: rollType });
+                  const endurance = getEnduranceForWeight(armorWeight, rollType);
+                  dispatchSolvedAttributeState({
+                    type: "setSolverAttributes",
+                    payload: {
+                      end: Math.max(endurance, INITIAL_CLASS_VALUES[startingClass].end),
+                    },
+                  });
+                }}
+                armorWeight={armorWeight}
+                onArmorWeightChanged={(weight) => {
+                  dispatchSolvedAttributeState({
+                    type: "setArmorWeight",
+                    payload: weight,
+                  });
+                  const endurance = getEnduranceForWeight(weight, rollType);
+                  dispatchSolvedAttributeState({
+                    type: "setSolverAttributes",
+                    payload: {
+                      end: Math.max(endurance, INITIAL_CLASS_VALUES[startingClass].end),
+                    },
+                  });
+                }}
+                damageTypeToOptimizeFor={damageTypeToOptimizeFor}
+                onOptimizedDamageTypeChanged={(damageTypeToOptimizeFor) => {
+                  dispatchSolvedAttributeState({
+                    type: "setDamageTypeToOptimizeFor",
+                    payload: damageTypeToOptimizeFor,
+                  });
+                }}
+                onAttributeChanged={(attributeChanged, attributeValue) => {
+                  dispatchFixedAttributeState({
+                    type: "setAttributes",
+                    payload: {
+                      [attributeChanged]: attributeValue,
+                    },
+                  });
+                }}
+                onAttributeSolverChanged={(attributeChanged, attributeValue) => {
+                  dispatchSolvedAttributeState({
+                    type: "setSolverAttributes",
+                    payload: {
+                      [attributeChanged]: attributeValue,
+                    },
+                  });
+                }}
+                onTwoHandingChanged={(twoHandingChanged) => {
+                  dispatchAppState({ type: "setTwoHanding", payload: twoHandingChanged });
+                }}
+                onUpgradeLevelChanged={(upgradeLevelChanged) => {
+                  dispatchAppState({ type: "setUpgradeLevel", payload: upgradeLevelChanged });
+                }}
+                onSplitDamageChanged={(splitDamageChanged) => {
+                  dispatchFixedAttributeState({
+                    type: "setSplitDamage",
+                    payload: splitDamageChanged,
+                  });
+                }}
+                onNumericalScalingChanged={(numericalScalingChanged) => {
+                  dispatchFixedAttributeState({
+                    type: "setNumericalScaling",
+                    payload: numericalScalingChanged,
+                  });
+                }}
+                onWeaponAdjustedEnduranceChanged={(weaponAdjustedEnduranceChanged) => {
+                  dispatchSolvedAttributeState({
+                    type: "setAdjustEnduranceForWeapon",
+                    payload: weaponAdjustedEnduranceChanged,
+                  });
+                }}
+              />
+              <WeaponTable
+                weapons={filteredWeapons}
+                weaponsError={error}
+                isWeaponsLoading={loading}
+                regulationVersion={regulationVersion}
+                splitDamage={splitDamage}
+                numericalScaling={numericalScaling}
+                twoHanding={twoHanding}
+                upgradeLevel={upgradeLevel}
+                groupWeaponTypes={groupWeaponTypes}
+                attributes={attributes}
+              />
+            </>
+          ) : (
+            <>
+              <SolvedTableWeaponListSettings
+                breakpoint={menuOpen ? "lg" : "md"}
+                attributes={attributes}
+                attributeSolverValues={solverAttributes}
+                twoHanding={twoHanding}
+                upgradeLevel={upgradeLevel}
+                maxUpgradeLevel={regulationVersion.maxUpgradeLevel}
+                splitDamage={splitDamage}
+                groupWeaponTypes={groupWeaponTypes}
+                numericalScaling={numericalScaling}
+                adjustEnduranceForWeapon={adjustEnduranceForWeapon}
+                onStartingClassChanged={(startingClass: StartingClass) => {
+                  const { arc, dex, str, int, fai, vig, end, lvl, min } =
+                    INITIAL_CLASS_VALUES[startingClass];
+
+                  dispatchAppState({ type: "setStartingClass", payload: startingClass });
+                  dispatchSolvedAttributeState({
+                    type: "setSolverAttributes",
+                    payload: {
+                      [`str.Min`]: Math.max(solverAttributes[`str.Min`], str),
+                      [`dex.Min`]: Math.max(solverAttributes[`dex.Min`], dex),
+                      [`int.Min`]: Math.max(solverAttributes[`int.Min`], int),
+                      [`fai.Min`]: Math.max(solverAttributes[`fai.Min`], fai),
+                      [`arc.Min`]: Math.max(solverAttributes[`arc.Min`], arc),
+                      end,
+                      min,
+                      vig,
+                      lvl,
+                    },
+                  });
+                  dispatchFixedAttributeState({
+                    type: "setAttributes",
+                    payload: {
+                      str: Math.max(attributes.str, str),
+                      dex: Math.max(attributes.dex, dex),
+                      int: Math.max(attributes.int, int),
+                      fai: Math.max(attributes.fai, fai),
+                      arc: Math.max(attributes.arc, arc),
+                    },
+                  });
+                }}
+                startingClass={startingClass}
+                rollType={rollType}
+                onRollTypeChanged={(rollType) => {
+                  dispatchSolvedAttributeState({ type: "setRollType", payload: rollType });
+                  const endurance = getEnduranceForWeight(armorWeight, rollType);
+                  dispatchSolvedAttributeState({
+                    type: "setSolverAttributes",
+                    payload: {
+                      end: Math.max(endurance, INITIAL_CLASS_VALUES[startingClass].end),
+                    },
+                  });
+                }}
+                armorWeight={armorWeight}
+                onArmorWeightChanged={(weight) => {
+                  dispatchSolvedAttributeState({
+                    type: "setArmorWeight",
+                    payload: weight,
+                  });
+                  const endurance = getEnduranceForWeight(weight, rollType);
+                  dispatchSolvedAttributeState({
+                    type: "setSolverAttributes",
+                    payload: {
+                      end: Math.max(endurance, INITIAL_CLASS_VALUES[startingClass].end),
+                    },
+                  });
+                }}
+                damageTypeToOptimizeFor={damageTypeToOptimizeFor}
+                onOptimizedDamageTypeChanged={(damageTypeToOptimizeFor) => {
+                  dispatchSolvedAttributeState({
+                    type: "setDamageTypeToOptimizeFor",
+                    payload: damageTypeToOptimizeFor,
+                  });
+                }}
+                onAttributeChanged={(attributeChanged, attributeValue) => {
+                  dispatchFixedAttributeState({
+                    type: "setAttributes",
+                    payload: {
+                      [attributeChanged]: attributeValue,
+                    },
+                  });
+                }}
+                onAttributeSolverChanged={(attributeChanged, attributeValue) => {
+                  dispatchSolvedAttributeState({
+                    type: "setSolverAttributes",
+                    payload: {
+                      [attributeChanged]: attributeValue,
+                    },
+                  });
+                }}
+                onTwoHandingChanged={(twoHandingChanged) => {
+                  dispatchAppState({ type: "setTwoHanding", payload: twoHandingChanged });
+                }}
+                onUpgradeLevelChanged={(upgradeLevelChanged) => {
+                  dispatchAppState({ type: "setUpgradeLevel", payload: upgradeLevelChanged });
+                }}
+                onGroupWeaponTypesChanged={(groupWeaponTypesChanged) => {
+                  dispatchAppState({
+                    type: "setGroupWeaponTypes",
+                    payload: groupWeaponTypesChanged,
+                  });
+                }}
+                onSplitDamageChanged={(splitDamageChanged) => {
+                  dispatchFixedAttributeState({
+                    type: "setSplitDamage",
+                    payload: splitDamageChanged,
+                  });
+                }}
+                onNumericalScalingChanged={(numericalScalingChanged) => {
+                  dispatchFixedAttributeState({
+                    type: "setNumericalScaling",
+                    payload: numericalScalingChanged,
+                  });
+                }}
+                onWeaponAdjustedEnduranceChanged={(weaponAdjustedEnduranceChanged) => {
+                  dispatchSolvedAttributeState({
+                    type: "setAdjustEnduranceForWeapon",
+                    payload: weaponAdjustedEnduranceChanged,
+                  });
+                }}
+              />
+            </>
+          )}
 
           <Footer />
         </Box>

@@ -32,6 +32,8 @@ The Convergence Mod support uses data extracted from [The Convergence Mod](https
 
 ## TODO:
 
+- [ ] Show different views for Solver vs Fixed Attributes
+- [ ] Add expanding rows to show calculated data
 - [ ] Copy Stats to optimized stats to Main Calculator
 - [ ] Allow the solver to be toggled on or off. Or move to a different tab
 - [ ] Add Armour Solving

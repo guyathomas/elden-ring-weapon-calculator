@@ -9,17 +9,26 @@ import {
   weaponTypeLabels,
   dlcWeaponTypes,
 } from "./uiUtils";
+import { BooleanInput } from "./FixedTableWeaponListSetting";
 
 interface Props {
   includeDLCWeaponTypes?: boolean;
   weaponTypes: readonly WeaponType[];
+  groupWeaponTypes: boolean;
   onWeaponTypesChanged(weaponTypes: WeaponType[]): void;
+  onGroupWeaponTypesChanged(groupWeaponTypes: boolean): void;
 }
 
 /**
  * Set of checkboxes for selecting weapon types to include in the search results
  */
-function WeaponTypePicker({ includeDLCWeaponTypes, weaponTypes, onWeaponTypesChanged }: Props) {
+function WeaponTypePicker({
+  includeDLCWeaponTypes,
+  weaponTypes,
+  onWeaponTypesChanged,
+  groupWeaponTypes,
+  onGroupWeaponTypesChanged,
+}: Props) {
   const renderWeaponCategory = (label: string, weaponTypesInCategory: WeaponType[]) => {
     let checked = false;
     let indeterminate = false;
@@ -33,7 +42,7 @@ function WeaponTypePicker({ includeDLCWeaponTypes, weaponTypes, onWeaponTypesCha
       <FormControlLabel
         key={label}
         label={label}
-        sx={{ display: "block", mr: 0, my: "-4px" }}
+        sx={{ display: "block", mr: 0, my: "-4px", mt: 1 }}
         control={
           <Checkbox
             size="small"
@@ -89,7 +98,13 @@ function WeaponTypePicker({ includeDLCWeaponTypes, weaponTypes, onWeaponTypesCha
       <Typography component="h2" variant="h6" sx={{ mb: 1 }}>
         Weapon Type
       </Typography>
-
+      <Box marginTop={-1} borderBottom={1} sx={{ borderColor: "divider" }}>
+        <BooleanInput
+          label="Group table by type"
+          checked={groupWeaponTypes}
+          onChange={onGroupWeaponTypesChanged}
+        />
+      </Box>
       {renderWeaponCategory("Melee Weapons", meleeWeaponTypes)}
       <Box sx={{ ml: 3 }}>{meleeWeaponTypes.map(renderWeaponType)}</Box>
 

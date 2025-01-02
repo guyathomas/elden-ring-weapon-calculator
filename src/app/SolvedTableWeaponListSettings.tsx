@@ -186,7 +186,7 @@ interface Props {
 /**
  * Form controls for entering player attributes, basic filters, and display options
  */
-function WeaponListSettings({
+function SolvedWeaponListSettings({
   breakpoint,
   attributes,
   attributeSolverValues,
@@ -366,4 +366,4 @@ function WeaponListSettings({
   );
 }
 
-export default memo(WeaponListSettings);
+export default memo(SolvedWeaponListSettings);
