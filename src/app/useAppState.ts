@@ -1,5 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { type Attribute, type Attributes, WeaponType } from "../calculator/calculator";
+import {
+  type DamageAttribute,
+  type DamageAttributeValues,
+} from "../calculator/calculator";
 import type { SortBy } from "../search/sortWeapons";
 import type { RegulationVersionName } from "./regulationVersions";
 import regulationVersions from "./regulationVersions";
@@ -8,7 +12,7 @@ import { type WeaponOption } from "./WeaponPicker";
 
 interface AppState {
   readonly regulationVersionName: RegulationVersionName;
-  readonly attributes: Attributes;
+  readonly attributes: DamageAttributeValues;
   readonly twoHanding: boolean;
   readonly upgradeLevel: number;
   readonly weaponTypes: readonly WeaponType[];
@@ -25,7 +29,7 @@ interface AppState {
 
 interface UpdateAppState extends AppState {
   setRegulationVersionName(regulationVersionName: RegulationVersionName): void;
-  setAttribute(attribute: Attribute, value: number): void;
+  setAttribute(attribute: DamageAttribute, value: number): void;
   setTwoHanding(twoHanding: boolean): void;
   setUpgradeLevel(upgradeLevel: number): void;
   setWeaponTypes(weaponTypes: readonly WeaponType[]): void;

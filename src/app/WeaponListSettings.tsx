@@ -8,14 +8,18 @@ import {
   MenuItem,
   Select,
 } from "@mui/material";
-import { allAttributes, type Attribute, type Attributes } from "../calculator/calculator";
+import {
+  type DamageAttributeValues,
+  type AllAttribute,
+  type AllAttributeAndLevel,
+} from "../calculator/calculator";
 import NumberTextField from "./NumberTextField";
 import { getAttributeLabel, maxRegularUpgradeLevel, toSpecialUpgradeLevel } from "./uiUtils";
 
 interface AttributeInputProps {
-  attribute: Attribute;
+  attribute: AllAttribute;
   value: number;
-  onAttributeChanged(attribute: Attribute, value: number): void;
+  onAttributeChanged(attribute: AllAttribute, value: number): void;
 }
 
 /**
@@ -104,14 +108,14 @@ const BooleanInput = memo(function BooleanInput({ label, checked, onChange }: Bo
 
 interface Props {
   breakpoint: "md" | "lg";
-  attributes: Attributes;
+  attributes: DamageAttributeValues;
   twoHanding: boolean;
   upgradeLevel: number;
   maxUpgradeLevel?: number;
   splitDamage: boolean;
   groupWeaponTypes: boolean;
   numericalScaling: boolean;
-  onAttributeChanged(attribute: Attribute, value: number): void;
+  onAttributeChanged(attribute: AllAttributeAndLevel, value: number): void;
   onTwoHandingChanged(twoHanding: boolean): void;
   onUpgradeLevelChanged(upgradeLevel: number): void;
   onSplitDamageChanged(splitDamage: boolean): void;

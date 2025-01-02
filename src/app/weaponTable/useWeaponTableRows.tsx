@@ -27,7 +27,7 @@ interface WeaponTableRowsOptions {
   reverse: boolean;
   affinityIds: readonly number[];
   weaponTypes: readonly WeaponType[];
-  attributes: Attributes;
+  attributes: DamageAttributeValues;
   includeDLC: boolean;
   effectiveOnly: boolean;
   twoHanding: boolean;
