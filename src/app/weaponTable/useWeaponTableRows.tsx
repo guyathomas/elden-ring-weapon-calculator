@@ -3,23 +3,20 @@ import getWeaponAttack, {
   allAttackPowerTypes,
   AttackPowerType,
   WeaponType,
-  type Attributes,
+  type DamageAttributeValues,
   type Weapon,
 } from "../../calculator/calculator";
-import filterWeapons from "../../search/filterWeapons";
+import { getNormalizedUpgradeLevel } from "../uiUtils";
+
 import { type WeaponTableRowData, type WeaponTableRowGroup } from "./WeaponTable";
 import { type SortBy, sortWeapons } from "../../search/sortWeapons";
 import { type RegulationVersion } from "../regulationVersions";
-import {
-  allWeaponTypes,
-  weaponTypeLabels,
-  maxSpecialUpgradeLevel,
-  toSpecialUpgradeLevel,
-} from "../uiUtils";
-import type { WeaponOption } from "../WeaponPicker";
+import { type AppState } from "../useAppState";
+import { allWeaponTypes, weaponTypeLabels } from "../uiUtils";
+import { getIncrementalDamagePerAttribute } from "../../calculator/newCalculator";
 
 interface WeaponTableRowsOptions {
-  weapons: readonly Weapon[];
+  weapons: Weapon[];
   regulationVersion: RegulationVersion;
   offset: number;
   limit: number;
@@ -33,7 +30,8 @@ interface WeaponTableRowsOptions {
   twoHanding: boolean;
   upgradeLevel: number;
   groupWeaponTypes: boolean;
-  selectedWeapons: WeaponOption[];
+  maxUpgradeLevel: number;
+  optimalAttributes: AppState["optimalAttributes"];
 }
 
 interface WeaponTableRowsResult {
@@ -48,6 +46,10 @@ interface WeaponTableRowsResult {
   total: number;
 }
 
+// TODO: Extract into util
+const sumObjectValues = (obj: Record<string, number>) =>
+  Object.values(obj).reduce((acc, v) => acc + v, 0);
+
 /**
  * Filter, sort, and paginate the weapon list based on the current selections
  */
@@ -56,35 +58,17 @@ const useWeaponTableRows = ({
   regulationVersion,
   offset,
   limit,
-  upgradeLevel: regularUpgradeLevel,
   groupWeaponTypes,
   sortBy,
   reverse,
+  upgradeLevel,
+  optimalAttributes,
   ...options
 }: WeaponTableRowsOptions): WeaponTableRowsResult => {
   // Defer filtering based on app state changes because this can be CPU intensive if done while
   // busy rendering
   const attributes = useDeferredValue(options.attributes);
   const twoHanding = useDeferredValue(options.twoHanding);
-  const weaponTypes = useDeferredValue(options.weaponTypes);
-  const affinityIds = useDeferredValue(options.affinityIds);
-  const effectiveOnly = useDeferredValue(options.effectiveOnly);
-  const includeDLC = useDeferredValue(options.includeDLC);
-  const selectedWeapons = useDeferredValue(options.selectedWeapons);
-
-  const specialUpgradeLevel = toSpecialUpgradeLevel(regularUpgradeLevel);
-
-  // Determine which weapon types can never be given an affinity. It's convenient for them to
-  // show up under both "Standard" and "Unique" filtering options
-  const uninfusableWeaponTypes = useMemo(() => {
-    const tmp = new Set(allWeaponTypes);
-    for (const weapon of weapons) {
-      if (weapon.affinityId !== 0 && weapon.affinityId !== -1) {
-        tmp.delete(weapon.weaponType);
-      }
-    }
-    return tmp;
-  }, [weapons]);
 
   const [filteredRows, attackPowerTypes, spellScaling] = useMemo<
     [WeaponTableRowData[], Set<AttackPowerType>, boolean]
@@ -92,37 +76,43 @@ const useWeaponTableRows = ({
     const includedDamageTypes = new Set<AttackPowerType>();
     let includeSpellScaling = false;
 
-    const filteredWeapons = filterWeapons(weapons, {
-      weaponTypes: new Set(weaponTypes.filter((weaponType) => allWeaponTypes.includes(weaponType))),
-      affinityIds: new Set(
-        affinityIds.filter((affinityId) => regulationVersion.affinityOptions.has(affinityId)),
-      ),
-      effectiveWithAttributes: effectiveOnly ? attributes : undefined,
-      includeDLC,
-      twoHanding,
-      uninfusableWeaponTypes,
-      selectedWeapons: selectedWeapons.reduce(
-        (acc, weapon) => (acc.add(weapon.value), acc),
-        new Set<string>(),
-      ),
-    });
-
-    const rows = filteredWeapons.map((weapon): WeaponTableRowData => {
-      let upgradeLevel = 0;
-      if (weapon.attack.length - 1 === maxSpecialUpgradeLevel) {
-        upgradeLevel = specialUpgradeLevel;
-      } else {
-        upgradeLevel = Math.min(regularUpgradeLevel, weapon.attack.length - 1);
-      }
+    const rows = weapons.map((weapon): WeaponTableRowData => {
+      // TODO: This is used in 2 places. Extract into func
+      const normalizedUpgradeLevel = getNormalizedUpgradeLevel(weapon, upgradeLevel);
 
       const weaponAttackResult = getWeaponAttack({
         weapon,
         attributes,
         twoHanding,
-        upgradeLevel,
+        upgradeLevel: normalizedUpgradeLevel,
         disableTwoHandingAttackPowerBonus: regulationVersion.disableTwoHandingAttackPowerBonus,
         ineffectiveAttributePenalty: regulationVersion.ineffectiveAttributePenalty,
       });
+
+      const maxWeaponAttackResult = getWeaponAttack({
+        weapon,
+        attributes: {
+          str: 99,
+          dex: 99,
+          int: 99,
+          fai: 99,
+          arc: 99,
+        },
+        twoHanding,
+        upgradeLevel: normalizedUpgradeLevel,
+        disableTwoHandingAttackPowerBonus: regulationVersion.disableTwoHandingAttackPowerBonus,
+        ineffectiveAttributePenalty: regulationVersion.ineffectiveAttributePenalty,
+      });
+
+      const incrementalDamagePerAttribute = getIncrementalDamagePerAttribute(
+        weapon,
+        normalizedUpgradeLevel,
+        twoHanding,
+      );
+
+      // For all of the possible permutations of Attributes, where the sum is smaller than 150
+      // Calculate the weaponAttackResult
+      // Keep track of the highest weaponAttackResult and then return the combination of attributes that resulted in that weaponAttackResult
 
       for (const statusType of allAttackPowerTypes) {
         if (weaponAttackResult.attackPower[statusType]) {
@@ -134,24 +124,25 @@ const useWeaponTableRows = ({
         includeSpellScaling = true;
       }
 
-      return [weapon, weaponAttackResult];
+      return [
+        weapon,
+        {
+          ...weaponAttackResult,
+          upgradeLevel: normalizedUpgradeLevel,
+          efficiencyScore: Math.round(
+            (100 * sumObjectValues(weaponAttackResult.attackPower)) /
+              sumObjectValues(maxWeaponAttackResult.attackPower),
+          ),
+        },
+        {
+          ...(optimalAttributes?.[weapon.name] || {}),
+          incrementalDamagePerAttribute,
+        },
+      ];
     });
 
     return [rows, includedDamageTypes, includeSpellScaling];
-  }, [
-    attributes,
-    twoHanding,
-    weapons,
-    regulationVersion,
-    regularUpgradeLevel,
-    specialUpgradeLevel,
-    weaponTypes,
-    affinityIds,
-    includeDLC,
-    effectiveOnly,
-    uninfusableWeaponTypes,
-    selectedWeapons,
-  ]);
+  }, [weapons, attributes, twoHanding, upgradeLevel, regulationVersion, optimalAttributes]);
 
   const memoizedAttackPowerTypes = useMemo(
     () => attackPowerTypes,

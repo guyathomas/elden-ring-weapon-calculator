@@ -45,7 +45,7 @@ export interface FilterWeaponsOptions {
  * Implements the UI/business logic for filtering weapons by type, affinity, etc.
  */
 export default function filterWeapons(
-  weapons: readonly Weapon[],
+  weapons: Weapon[],
   {
     weaponTypes,
     affinityIds,

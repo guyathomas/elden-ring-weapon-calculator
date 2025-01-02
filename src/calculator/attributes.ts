@@ -9,3 +9,8 @@ export type AllAttribute = typeof allAttributes[number];
 export type AllAttributeAndLevel = typeof allAttributesAndLvl[number];
 export type DamageAttributeValues = Record<DamageAttribute, number>;
 
+// Solver Types
+export type BoundsOptions = "Min" | "Max";
+export type AttributeRangeKey = `${DamageAttribute}.${BoundsOptions}`;
+export type AttributeSolverKey = AttributeRangeKey | NonDamageAttribute | "lvl";
+export type AttributeSolverValues = Record<AttributeSolverKey, number>;
