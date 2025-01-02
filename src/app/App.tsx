@@ -2,34 +2,46 @@ import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react
 import {
   Alert,
   Box,
-  CircularProgress,
   CssBaseline,
   Divider,
   Drawer,
   IconButton,
   ThemeProvider,
   Toolbar,
-  Typography,
   useMediaQuery,
   useTheme,
+  Tab,
+  Tabs,
   type Theme,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBackRounded";
-import WeaponListSettings from "./WeaponListSettings";
-import WeaponTable from "./weaponTable/WeaponTable";
-import useWeaponTableRows from "./weaponTable/useWeaponTableRows";
+import WeaponListSettings from "./weaponTable/FixedAttributeTable/FixedTableWeaponListSetting";
+import FixedWeaponTable from "./weaponTable/FixedAttributeTable/FixedAttributeTable";
 import theme from "./theme";
-import regulationVersions from "./regulationVersions";
+import regulationVersions, { type RegulationVersionName } from "./regulationVersions";
 import useWeapons from "./useWeapons";
-import useAppState from "./useAppState";
+import { useAppState } from "./reducers/useAppState";
+import { useFixedAttributeState } from "./reducers/useFixedAttributeState";
+import {
+  useSolvedAttributeState,
+  type SolvedAttributeState,
+} from "./reducers/useSolvedAttributeState";
 import AppBar from "./AppBar";
 import RegulationVersionPicker from "./RegulationVersionPicker";
 import WeaponTypePicker from "./WeaponTypePicker";
+import WeaponPicker, { makeWeaponOptionsFromWeapon, type WeaponOption } from "./WeaponPicker";
 import AffinityPicker from "./AffinityPicker";
 import Footer from "./Footer";
 import MiscFilterPicker from "./MiscFilterPicker";
-import WeaponPicker, { makeWeaponOptionsFromWeapon } from "./WeaponPicker";
+import { getEnduranceForWeight } from "./weaponTable/OptimalAttributeTable/useOptimalAttributes";
+import useFilteredWeapons from "./weaponTable/useFilteredWeapons";
+import { INITIAL_CLASS_VALUES, type StartingClass } from "./ClassPicker";
 import type { Weapon } from "../calculator/weapon";
+import SolvedTableWeaponListSettings from "./weaponTable/OptimalAttributeTable/SolvedTableWeaponListSettings";
+import SolverWeaponTable from "./weaponTable/OptimalAttributeTable/OptimalAttributeTable";
+import type { WeaponType } from "../calculator/weaponTypes";
+import type { AllAttributeAndLevel } from "../calculator/attributes";
+import type { RollType } from "./RollTypePicker";
 
 const useMenuState = () => {
   const theme = useTheme();
@@ -86,132 +98,72 @@ const useMenuState = () => {
 };
 
 function RegulationVersionAlert({ children }: { children: ReactNode }) {
-  const [dismissed, setDismissed] = useState(false);
+  const SESSION_STORAGE_KEY = "hasDismissedRegulationAlert";
+  const [dismissed, setDismissed] = useState(
+    () => sessionStorage.getItem(SESSION_STORAGE_KEY) || false,
+  );
 
-  if (!children || dismissed) {
-    return null;
-  }
+  const handleSetDismissed = useCallback(() => {
+    setDismissed(true);
+    sessionStorage.setItem(SESSION_STORAGE_KEY, "true");
+  }, []);
+
+  if (!children || dismissed) return null;
 
   return (
-    <Alert icon={false} severity="info" onClose={() => setDismissed(true)}>
+    <Alert icon={false} severity="info" onClose={handleSetDismissed}>
       {children}
     </Alert>
   );
 }
+type TableView = "fixed" | "solver";
 
 export default function App() {
-  const {
-    regulationVersionName,
-    affinityIds,
-    weaponTypes,
-    attributes,
-    includeDLC,
-    effectiveOnly,
-    splitDamage,
-    twoHanding,
-    upgradeLevel,
-    groupWeaponTypes,
-    numericalScaling,
-    sortBy,
-    reverse,
-    selectedWeapons,
-    setRegulationVersionName,
-    setAffinityIds,
-    setWeaponTypes,
-    setAttribute,
-    setIncludeDLC,
-    setEffectiveOnly,
-    setSplitDamage,
-    setTwoHanding,
-    setUpgradeLevel,
-    setGroupWeaponTypes,
-    setNumericalScaling,
-    setSortBy,
-    setReverse,
-    setSelectedWeapons,
-  } = useAppState();
-
   const { isMobile, menuOpen, menuOpenMobile, onMenuOpenChanged } = useMenuState();
+  const [tableView, setTableView] = useState<TableView>("solver");
+  const {
+    state: {
+      regulationVersionName,
+      affinityIds,
+      weaponTypes,
+      includeDLC,
+      effectiveOnly,
+      twoHanding,
+      upgradeLevel,
+      groupWeaponTypes,
+      startingClass,
+      selectedWeapons,
+    },
+    dispatch: dispatchAppState,
+  } = useAppState();
+  const {
+    state: { attributes, splitDamage, numericalScaling },
+    dispatch: dispatchFixedAttributeState,
+  } = useFixedAttributeState();
+  const {
+    state: {
+      solverAttributes,
+      adjustEnduranceForWeapon,
+      rollType,
+      armorWeight,
+      damageTypeToOptimizeFor,
+      optimalAttributes,
+    },
+    dispatch: dispatchSolvedAttributeState,
+  } = useSolvedAttributeState();
 
-  // TODO pagination if there are >200 results
-  const offset = 0;
-  const limit = 200;
   const { weapons, loading, error } = useWeapons(regulationVersionName);
-
   const regulationVersion = regulationVersions[regulationVersionName];
 
-  const { rowGroups, attackPowerTypes, spellScaling, total } = useWeaponTableRows({
-    weapons,
-    regulationVersion,
-    offset,
-    limit,
-    sortBy,
-    reverse,
-    affinityIds,
-    weaponTypes,
-    attributes,
-    includeDLC,
-    effectiveOnly,
+  const filteredWeapons = useFilteredWeapons(weapons, regulationVersion, {
     twoHanding,
-    upgradeLevel,
-    groupWeaponTypes,
+    weaponTypes,
+    affinityIds,
+    effectiveOnly,
+    includeDLC,
     selectedWeapons,
+    attributes,
   });
-
-  const tablePlaceholder = useMemo(
-    () =>
-      loading ? (
-        <>
-          <Typography variant="body1" align="center" sx={{ alignSelf: "end" }}>
-            Loading weapon data
-          </Typography>
-          <Box display="grid" sx={{ alignSelf: "start", justifyContent: "center" }}>
-            <CircularProgress />
-          </Box>
-        </>
-      ) : (
-        <Typography variant="body1" align="center" sx={{ alignSelf: "center" }}>
-          No weapons match your selections
-        </Typography>
-      ),
-    [loading],
-  );
-
-  const tableFooter = useMemo(
-    () =>
-      total > limit ? (
-        <Typography variant="body1" align="center" sx={{ alignSelf: "center" }}>
-          {total} weapons match your selections - showing the first {limit}
-        </Typography>
-      ) : undefined,
-    [total, limit],
-  );
-
-  let mainContent: ReactNode;
-  if (error) {
-    mainContent = (
-      <Alert severity="error" sx={{ my: 3 }}>
-        Oops, something went wrong loading weapons ({error.message})
-      </Alert>
-    );
-  } else {
-    mainContent = (
-      <WeaponTable
-        rowGroups={rowGroups}
-        placeholder={tablePlaceholder}
-        footer={tableFooter}
-        sortBy={sortBy}
-        reverse={reverse}
-        splitDamage={splitDamage}
-        splitSpellScaling={!!regulationVersion.splitSpellScaling}
-        numericalScaling={numericalScaling}
-        attackPowerTypes={attackPowerTypes}
-        spellScaling={spellScaling}
-        onSortByChanged={setSortBy}
-        onReverseChanged={setReverse}
-      />
-    );
-  }
 
   // The Convergence and Reforged don't separate DLC content, so this option is only relevant to
   // vanilla
@@ -221,44 +173,250 @@ export default function App() {
   const weaponPickerOptions = useMemo(() => {
     const dedupedWeaponsByWeaponName = [
       ...weapons
-        .reduce((acc, weapon) => {
-          return acc.set(weapon.weaponName, weapon);
-        }, new Map<string, Weapon>())
+        .reduce((acc, weapon) => acc.set(weapon.weaponName, weapon), new Map<string, Weapon>())
         .values(),
     ].filter((weapon) => (includeDLC ? true : !weapon.dlc));
-
     return makeWeaponOptionsFromWeapon(dedupedWeaponsByWeaponName);
   }, [weapons, includeDLC]);
 
+  const handleRegulationVersionNameChanged = useCallback(
+    (regulationVersionName: RegulationVersionName) => {
+      dispatchAppState({ type: "setRegulationVersionName", payload: regulationVersionName });
+    },
+    [dispatchAppState],
+  );
+
+  const handleIncludeDLCChanged = useCallback(
+    (includeDLC: boolean) => {
+      dispatchAppState({ type: "setIncludeDLC", payload: includeDLC });
+    },
+    [dispatchAppState],
+  );
+
+  const handleEffectiveOnlyChanged = useCallback(
+    (effectiveOnly: boolean) => {
+      dispatchAppState({ type: "setEffectiveOnly", payload: effectiveOnly });
+    },
+    [dispatchAppState],
+  );
+
+  const handleSelectedWeaponsChanged = useCallback(
+    (selectedWeapons: WeaponOption[]) => {
+      dispatchAppState({ type: "setSelectedWeapons", payload: selectedWeapons });
+    },
+    [dispatchAppState],
+  );
+
+  const handleAffinityIdsChanged = useCallback(
+    (affinityIds: readonly number[]) => {
+      dispatchAppState({ type: "setAffinityIds", payload: affinityIds });
+    },
+    [dispatchAppState],
+  );
+
+  const handleWeaponTypesChanged = useCallback(
+    (weaponTypes: WeaponType[]) => {
+      dispatchAppState({ type: "setWeaponTypes", payload: weaponTypes });
+    },
+    [dispatchAppState],
+  );
+
+  const handleGroupWeaponTypesChanged = useCallback(
+    (groupWeaponTypesChanged: boolean) => {
+      dispatchAppState({
+        type: "setGroupWeaponTypes",
+        payload: groupWeaponTypesChanged,
+      });
+    },
+    [dispatchAppState],
+  );
+
+  const handleOnAttributeChanges = useCallback(
+    (attribute: AllAttributeAndLevel, value: number) => {
+      dispatchFixedAttributeState({
+        type: "setAttributes",
+        payload: {
+          [attribute]: value,
+        },
+      });
+    },
+    [dispatchFixedAttributeState],
+  );
+
+  const handleSetTableView = useCallback(
+    (event: React.SyntheticEvent, newValue: TableView) => setTableView(newValue),
+    [setTableView],
+  );
+
+  const handleSetOptimalAttributes = useCallback(
+    (optimalAttributes: SolvedAttributeState["optimalAttributes"] | null) => {
+      dispatchSolvedAttributeState({ type: "setOptimalAttributes", payload: optimalAttributes });
+    },
+    [dispatchSolvedAttributeState],
+  );
+
   const drawerContent = (
     <>
+      <Box mb={2}>
+        <Tabs variant="fullWidth" value={tableView} onChange={handleSetTableView}>
+          <Tab value={"fixed"} label="Fixed Attributes" />
+          <Tab value={"solver"} label="Attribute Solver" />
+        </Tabs>
+      </Box>
       <RegulationVersionPicker
         regulationVersionName={regulationVersionName}
-        onRegulationVersionNameChanged={setRegulationVersionName}
+        onRegulationVersionNameChanged={handleRegulationVersionNameChanged}
       />
       <MiscFilterPicker
         showIncludeDLC={showIncludeDLC}
         includeDLC={includeDLC}
         effectiveOnly={effectiveOnly}
-        onIncludeDLCChanged={setIncludeDLC}
-        onEffectiveOnlyChanged={setEffectiveOnly}
+        onIncludeDLCChanged={handleIncludeDLCChanged}
+        onEffectiveOnlyChanged={handleEffectiveOnlyChanged}
       />
       <WeaponPicker
         selectedWeapons={selectedWeapons}
-        onSelectedWeaponsChanged={setSelectedWeapons}
+        onSelectedWeaponsChanged={handleSelectedWeaponsChanged}
         weaponOptions={weaponPickerOptions}
       />
       <AffinityPicker
         affinityOptions={regulationVersion.affinityOptions}
         selectedAffinityIds={affinityIds}
-        onAffinityIdsChanged={setAffinityIds}
+        onAffinityIdsChanged={handleAffinityIdsChanged}
       />
       <WeaponTypePicker
         includeDLCWeaponTypes={includeDLCWeaponTypes}
         weaponTypes={weaponTypes}
-        onWeaponTypesChanged={setWeaponTypes}
+        groupWeaponTypes={groupWeaponTypes}
+        onWeaponTypesChanged={handleWeaponTypesChanged}
+        onGroupWeaponTypesChanged={handleGroupWeaponTypesChanged}
       />
     </>
+  );
+
+  const handleStartingClassChanged = useCallback(
+    (startingClass: StartingClass) => {
+      const { arc, dex, str, int, fai, vig, end, min } = INITIAL_CLASS_VALUES[startingClass];
+
+      dispatchAppState({ type: "setStartingClass", payload: startingClass });
+      dispatchSolvedAttributeState({
+        type: "setSolverAttributes",
+        payload: {
+          [`str.Min`]: Math.max(solverAttributes[`str.Min`], str),
+          [`dex.Min`]: Math.max(solverAttributes[`dex.Min`], dex),
+          [`int.Min`]: Math.max(solverAttributes[`int.Min`], int),
+          [`fai.Min`]: Math.max(solverAttributes[`fai.Min`], fai),
+          [`arc.Min`]: Math.max(solverAttributes[`arc.Min`], arc),
+          end: Math.max(solverAttributes.end, end),
+          min: Math.max(solverAttributes.min, min),
+          vig: Math.max(solverAttributes.vig, vig),
+        },
+      });
+      dispatchFixedAttributeState({
+        type: "setAttributes",
+        payload: {
+          str: Math.max(attributes.str, str),
+          dex: Math.max(attributes.dex, dex),
+          int: Math.max(attributes.int, int),
+          fai: Math.max(attributes.fai, fai),
+          arc: Math.max(attributes.arc, arc),
+        },
+      });
+    },
+    [
+      attributes,
+      dispatchAppState,
+      dispatchFixedAttributeState,
+      dispatchSolvedAttributeState,
+      solverAttributes,
+    ],
+  );
+
+  const handleChangeTwoHanding = useCallback(
+    (twoHandingChanged: boolean) => {
+      dispatchAppState({ type: "setTwoHanding", payload: twoHandingChanged });
+    },
+    [dispatchAppState],
+  );
+
+  const handleChangeUpgradeLevel = useCallback(
+    (upgradeLevelChanged: number) => {
+      dispatchAppState({ type: "setUpgradeLevel", payload: upgradeLevelChanged });
+    },
+    [dispatchAppState],
+  );
+
+  const handleChangeSplitDamage = useCallback(
+    (splitDamageChanged: boolean) => {
+      dispatchFixedAttributeState({
+        type: "setSplitDamage",
+        payload: splitDamageChanged,
+      });
+    },
+    [dispatchFixedAttributeState],
+  );
+
+  const handleChangeNumericalScaling = useCallback(
+    (numericalScalingChanged: boolean) => {
+      dispatchFixedAttributeState({
+        type: "setNumericalScaling",
+        payload: numericalScalingChanged,
+      });
+    },
+    [dispatchFixedAttributeState],
+  );
+
+  const handleChangeRollType = useCallback(
+    (rollType: RollType) => {
+      dispatchSolvedAttributeState({ type: "setRollType", payload: rollType });
+      const endurance = getEnduranceForWeight(armorWeight, rollType);
+      dispatchSolvedAttributeState({
+        type: "setSolverAttributes",
+        payload: {
+          end: Math.max(endurance, INITIAL_CLASS_VALUES[startingClass].end),
+        },
+      });
+    },
+    [armorWeight, dispatchSolvedAttributeState, startingClass],
+  );
+
+  const handleChangeArmorWeight = useCallback(
+    (weight: number) => {
+      dispatchSolvedAttributeState({
+        type: "setArmorWeight",
+        payload: weight,
+      });
+      const endurance = getEnduranceForWeight(weight, rollType);
+      dispatchSolvedAttributeState({
+        type: "setSolverAttributes",
+        payload: {
+          end: Math.max(endurance, INITIAL_CLASS_VALUES[startingClass].end),
+        },
+      });
+    },
+    [dispatchSolvedAttributeState, rollType, startingClass],
+  );
+
+  const handleChangeAttributeSolver = useCallback(
+    (attributeChanged: string, attributeValue: number) => {
+      dispatchSolvedAttributeState({
+        type: "setSolverAttributes",
+        payload: {
+          [attributeChanged]: attributeValue,
+        },
+      });
+    },
+    [dispatchSolvedAttributeState],
+  );
+
+  const handleChangeWeaponAdjustedEndurance = useCallback(
+    (weaponAdjustedEnduranceChanged: boolean) => {
+      dispatchSolvedAttributeState({
+        type: "setAdjustEnduranceForWeapon",
+        payload: weaponAdjustedEnduranceChanged,
+      });
+    },
+    [dispatchSolvedAttributeState],
   );
 
   return (
@@ -333,30 +491,78 @@ export default function App() {
             {drawerContent}
           </Box>
         </Drawer>
-
         <Box display="grid" sx={{ gap: 2 }}>
-          <WeaponListSettings
-            breakpoint={menuOpen ? "lg" : "md"}
-            attributes={attributes}
-            twoHanding={twoHanding}
-            upgradeLevel={upgradeLevel}
-            maxUpgradeLevel={regulationVersion.maxUpgradeLevel}
-            splitDamage={splitDamage}
-            groupWeaponTypes={groupWeaponTypes}
-            numericalScaling={numericalScaling}
-            onAttributeChanged={setAttribute}
-            onTwoHandingChanged={setTwoHanding}
-            onUpgradeLevelChanged={setUpgradeLevel}
-            onSplitDamageChanged={setSplitDamage}
-            onGroupWeaponTypesChanged={setGroupWeaponTypes}
-            onNumericalScalingChanged={setNumericalScaling}
-          />
-
           <RegulationVersionAlert key={regulationVersionName}>
             {regulationVersion.info}
           </RegulationVersionAlert>
-
-          {mainContent}
+          {tableView === "fixed" ? (
+            <>
+              <WeaponListSettings
+                breakpoint={menuOpen ? "lg" : "md"}
+                attributes={attributes}
+                twoHanding={twoHanding}
+                upgradeLevel={upgradeLevel}
+                maxUpgradeLevel={regulationVersion.maxUpgradeLevel}
+                splitDamage={splitDamage}
+                numericalScaling={numericalScaling}
+                onStartingClassChanged={handleStartingClassChanged}
+                startingClass={startingClass}
+                onAttributeChanged={handleOnAttributeChanges}
+                onTwoHandingChanged={handleChangeTwoHanding}
+                onUpgradeLevelChanged={handleChangeUpgradeLevel}
+                onSplitDamageChanged={handleChangeSplitDamage}
+                onNumericalScalingChanged={handleChangeNumericalScaling}
+              />
+              <FixedWeaponTable
+                weapons={filteredWeapons}
+                weaponsError={error}
+                isWeaponsLoading={loading}
+                regulationVersion={regulationVersion}
+                splitDamage={splitDamage}
+                numericalScaling={numericalScaling}
+                twoHanding={twoHanding}
+                upgradeLevel={upgradeLevel}
+                groupWeaponTypes={groupWeaponTypes}
+                attributes={attributes}
+              />
+            </>
+          ) : (
+            <>
+              <SolvedTableWeaponListSettings
+                solverAttributes={solverAttributes}
+                twoHanding={twoHanding}
+                upgradeLevel={upgradeLevel}
+                maxUpgradeLevel={regulationVersion.maxUpgradeLevel}
+                adjustEnduranceForWeapon={adjustEnduranceForWeapon}
+                onStartingClassChanged={handleStartingClassChanged}
+                startingClass={startingClass}
+                rollType={rollType}
+                onRollTypeChanged={handleChangeRollType}
+                armorWeight={armorWeight}
+                onArmorWeightChanged={handleChangeArmorWeight}
+                onAttributeSolverChanged={handleChangeAttributeSolver}
+                onTwoHandingChanged={handleChangeTwoHanding}
+                onUpgradeLevelChanged={handleChangeUpgradeLevel}
+                onWeaponAdjustedEnduranceChanged={handleChangeWeaponAdjustedEndurance}
+              />
+              <SolverWeaponTable
+                weapons={filteredWeapons}
+                weaponsError={error}
+                isWeaponsLoading={loading}
+                twoHanding={twoHanding}
+                upgradeLevel={upgradeLevel}
+                groupWeaponTypes={groupWeaponTypes}
+                adjustEnduranceForWeapon={adjustEnduranceForWeapon}
+                armorWeight={armorWeight}
+                solverAttributes={solverAttributes}
+                startingClass={startingClass}
+                rollType={rollType}
+                damageTypeToOptimizeFor={damageTypeToOptimizeFor}
+                optimalAttributes={optimalAttributes}
+                setOptimalAttributes={handleSetOptimalAttributes}
+              />
+            </>
+          )}
 
           <Footer />
         </Box>

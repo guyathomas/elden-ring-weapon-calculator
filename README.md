@@ -29,3 +29,23 @@ Regulation data was extracted from the game using [WitchyBND](https://github.com
 Elden Ring Reforged support uses data from the [Elden Ring Reforged](https://www.nexusmods.com/eldenring/mods/541) mod provided by [ivi](https://github.com/ividyon) from the ERR team.
 
 The Convergence Mod support uses data extracted from [The Convergence Mod](https://www.nexusmods.com/eldenring/mods/3419) public alpha on Nexus Mods.
+
+## TODO
+
+Features
+
+- [ ] Sticky Table Headers
+- [ ] Copy Stats to optimized stats to Main Calculator
+- [ ] Add Armour Solving
+- [ ] Add modifiers ( Armour bonuses, buffs, etc... )
+
+Bugs
+
+- [ ] Effective only toggle is showing and hiding rows in the solver row. It should not hide any unless the minimum attributes can not be met
+- [ ] All status effects are showing in the status column, even when only some have values
+- [ ] "Optimal SP Attributes" is getting calculated for Weapons
+- [ ] Incant scaling does not include base scaling factor of 100 correctly. Need "base" to be a component of the melee or spell aspects respectively.
+
+Cleanup
+
+- [ ] Consolidate calculators & test calculators. Deprecate the old calculator.

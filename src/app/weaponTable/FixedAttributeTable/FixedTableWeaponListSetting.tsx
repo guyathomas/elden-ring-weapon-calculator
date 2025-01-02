@@ -8,20 +8,36 @@ import {
   MenuItem,
   Select,
 } from "@mui/material";
-import { allAttributes, type Attribute, type Attributes } from "../calculator/calculator";
-import NumberTextField from "./NumberTextField";
-import { getAttributeLabel, maxRegularUpgradeLevel, toSpecialUpgradeLevel } from "./uiUtils";
+import {
+  damageAttributes,
+  type DamageAttributeValues,
+  type AllAttribute,
+  type BoundsOptions,
+  type AttributeRangeKey,
+  type AllAttributeAndLevel,
+} from "../../../calculator/calculator";
+import NumberTextField from "../../NumberTextField";
+import { getAttributeLabel, maxRegularUpgradeLevel, toSpecialUpgradeLevel } from "../../uiUtils";
+import ClassPicker, { type StartingClass as StartingClass } from "../../ClassPicker";
 
-interface AttributeInputProps {
-  attribute: Attribute;
+export interface AttributeInputProps {
+  attribute: AllAttribute;
   value: number;
-  onAttributeChanged(attribute: Attribute, value: number): void;
+  onAttributeChanged(attribute: AllAttribute, value: number): void;
+}
+
+export interface AttributeInputRangeProps {
+  attribute: AllAttribute;
+  value: number;
+  onAttributeChanged(attribute: AttributeRangeKey, value: number): void;
+  bounds: BoundsOptions;
+  min?: number;
 }
 
 /**
  * Form control for picking the value of a single attribute (str/dex/int/fai/arc)
  */
-const AttributeInput = memo(function AttributeInput({
+export const AttributeInput = memo(function AttributeInput({
   attribute,
   value,
   onAttributeChanged,
@@ -36,11 +52,12 @@ const AttributeInput = memo(function AttributeInput({
       min={1}
       max={99}
       onChange={(newValue) => onAttributeChanged(attribute, newValue)}
+      fullWidth
     />
   );
 });
 
-interface WeaponLevelInputProps {
+export interface WeaponLevelInputProps {
   upgradeLevel: number;
   maxUpgradeLevel?: number;
   onUpgradeLevelChanged(upgradeLevel: number): void;
@@ -49,7 +66,7 @@ interface WeaponLevelInputProps {
 /**
  * Form control for picking the weapon upgrade level (+1, +2, etc.)
  */
-const WeaponLevelInput = memo(function WeaponLevelInput({
+export const WeaponLevelInput = memo(function WeaponLevelInput({
   upgradeLevel,
   maxUpgradeLevel = maxRegularUpgradeLevel,
   onUpgradeLevelChanged,
@@ -76,7 +93,7 @@ const WeaponLevelInput = memo(function WeaponLevelInput({
   );
 });
 
-interface BooleanInputProps {
+export interface BooleanInputProps {
   label: string;
   checked: boolean;
   onChange(checked: boolean): void;
@@ -85,7 +102,11 @@ interface BooleanInputProps {
 /**
  * Form control for one of the weapon list checkboxes (two handing, show split damage)
  */
-const BooleanInput = memo(function BooleanInput({ label, checked, onChange }: BooleanInputProps) {
+export const BooleanInput = memo(function BooleanInput({
+  label,
+  checked,
+  onChange,
+}: BooleanInputProps) {
   return (
     <FormControlLabel
       label={label}
@@ -104,19 +125,19 @@ const BooleanInput = memo(function BooleanInput({ label, checked, onChange }: Bo
 
 interface Props {
   breakpoint: "md" | "lg";
-  attributes: Attributes;
+  attributes: DamageAttributeValues;
   twoHanding: boolean;
   upgradeLevel: number;
   maxUpgradeLevel?: number;
   splitDamage: boolean;
-  groupWeaponTypes: boolean;
   numericalScaling: boolean;
-  onAttributeChanged(attribute: Attribute, value: number): void;
+  startingClass: StartingClass;
+  onAttributeChanged(attribute: AllAttributeAndLevel, value: number): void;
   onTwoHandingChanged(twoHanding: boolean): void;
   onUpgradeLevelChanged(upgradeLevel: number): void;
   onSplitDamageChanged(splitDamage: boolean): void;
-  onGroupWeaponTypesChanged(groupWeaponTypes: boolean): void;
   onNumericalScalingChanged(numericalScaling: boolean): void;
+  onStartingClassChanged(startingClass: StartingClass): void;
 }
 
 /**
@@ -129,65 +150,70 @@ function WeaponListSettings({
   upgradeLevel,
   maxUpgradeLevel,
   splitDamage,
-  groupWeaponTypes,
   numericalScaling,
+  startingClass,
   onAttributeChanged,
   onTwoHandingChanged,
   onUpgradeLevelChanged,
   onSplitDamageChanged,
-  onGroupWeaponTypesChanged,
   onNumericalScalingChanged,
+  onStartingClassChanged,
 }: Props) {
   return (
     <Box
-      display="grid"
       sx={(theme) => ({
+        display: "grid",
         gap: 2,
-        gridTemplateColumns: "1fr",
-        alignItems: "start",
+        gridTemplateColumns: "repeat(5, minmax(60px, 1fr))",
+        gridRow: "auto",
+        gridTemplateAreas: `"class-picker class-picker weapon-level two-handing two-handing"
+        "str dex int fai arc"
+"column-settings column-settings column-settings column-settings column-settings"
+`,
         [theme.breakpoints.up(breakpoint)]: {
-          gridTemplateColumns: "320px 120px auto",
+          gridTemplateAreas: `"class-picker weapon-level column-settings column-settings two-handing"
+        "str dex int fai arc"
+`,
         },
       })}
     >
-      <Box display="grid" sx={{ gap: 2, gridTemplateColumns: "1fr 1fr 1fr" }}>
-        {allAttributes.map((attribute) => (
+      <Box gridArea="class-picker">
+        <ClassPicker
+          onStartingClassChanged={onStartingClassChanged}
+          startingClass={startingClass}
+        />
+      </Box>
+      <Box gridArea="weapon-level">
+        <WeaponLevelInput
+          upgradeLevel={upgradeLevel}
+          maxUpgradeLevel={maxUpgradeLevel}
+          onUpgradeLevelChanged={onUpgradeLevelChanged}
+        />
+      </Box>
+      <Box gridArea="two-handing">
+        <BooleanInput label="Two handing" checked={twoHanding} onChange={onTwoHandingChanged} />
+      </Box>
+      {damageAttributes.map((attribute) => (
+        <Box gridArea={attribute} key={attribute}>
           <AttributeInput
             key={attribute}
             attribute={attribute}
             value={attributes[attribute]}
             onAttributeChanged={onAttributeChanged}
           />
-        ))}
-      </Box>
-
-      <WeaponLevelInput
-        upgradeLevel={upgradeLevel}
-        maxUpgradeLevel={maxUpgradeLevel}
-        onUpgradeLevelChanged={onUpgradeLevelChanged}
-      />
-
+        </Box>
+      ))}
       <Box
+        gridArea="column-settings"
+        justifyContent="flex-start"
+        gridTemplateColumns="1fr 1fr"
         display="grid"
         sx={(theme) => ({
-          mt: -1,
-          columnGap: 2,
-          gridTemplateColumns: "1fr auto",
-          [theme.breakpoints.up("sm")]: {
-            gridTemplateColumns: "1fr 1fr",
-          },
           [theme.breakpoints.up(breakpoint)]: {
-            gridTemplateColumns: "1fr auto",
-            justifySelf: "start",
+            gridTemplateColumns: "minmax(1fr, 140px) minmax(1fr, 140px)",
           },
         })}
       >
-        <BooleanInput label="Two handing" checked={twoHanding} onChange={onTwoHandingChanged} />
-        <BooleanInput
-          label="Group by type"
-          checked={groupWeaponTypes}
-          onChange={onGroupWeaponTypesChanged}
-        />
         <BooleanInput
           label="Numeric scaling"
           checked={numericalScaling}

@@ -19,7 +19,6 @@ import makeDebug from "debug";
 import dotenv from "dotenv";
 import { XMLParser } from "fast-xml-parser";
 import {
-  type Attribute,
   WeaponType,
   AttackPowerType,
   allDamageTypes,
@@ -808,7 +807,7 @@ function parseStatusSpEffectParams(
   return null;
 }
 
-let additionalWeaponsJson: EncodedWeaponJson[] = [];
+const additionalWeaponsJson: EncodedWeaponJson[] = [];
 
 // The Convergence has a weapon that dynamically updates. Manually add each possible variation as a
 // separate weapon.

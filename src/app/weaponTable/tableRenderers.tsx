@@ -6,10 +6,11 @@
  * power changes.
  */
 import { memo } from "react";
-import { Box, Link, Typography } from "@mui/material";
+import { Box, IconButton, Link, Typography } from "@mui/material";
 import RemoveIcon from "@mui/icons-material/Remove";
-import { type Weapon, type Attribute } from "../../calculator/calculator";
+import { type Weapon, type DamageAttribute } from "../../calculator/calculator";
 import { getAttributeLabel } from "../uiUtils";
+import { SsidChart } from "@mui/icons-material";
 
 export const blankIcon = <RemoveIcon color="disabled" fontSize="small" />;
 
@@ -32,21 +33,22 @@ export const WeaponNameRenderer = memo(function WeaponNameRenderer({
   upgradeLevel: number;
 }) {
   const text = `${weapon.name}${upgradeLevel > 0 ? ` +${upgradeLevel}` : ""}`;
+  const weaponName = weapon.url ? (
+    <Link
+      variant="button"
+      underline="hover"
+      href={weapon.url}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      {text}
+    </Link>
+  ) : (
+    <Typography variant="button">{text}</Typography>
+  );
   return (
     <Box>
-      {weapon.url ? (
-        <Link
-          variant="button"
-          underline="hover"
-          href={weapon.url}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {text}
-        </Link>
-      ) : (
-        <Typography variant="button">{text}</Typography>
-      )}
+      {weaponName}
       {weapon.variant && (
         <Typography component="span" variant="body2">
           {" "}
@@ -68,19 +70,15 @@ export const ScalingRenderer = memo(function ScalingRenderer({
 }: {
   weapon: Weapon;
   upgradeLevel: number;
-  attribute: Attribute;
+  attribute: DamageAttribute;
   numerical?: boolean;
 }) {
   const scalingValue = attributeScaling[upgradeLevel][attribute];
-  return scalingValue ? (
-    <span title={`${Math.round(scalingValue! * 100000) / 1000}%`}>
-      {numerical
-        ? round(scalingValue * 100)
-        : scalingTiers.find(([value]) => scalingValue >= value)?.[1]}
-    </span>
-  ) : (
-    blankIcon
-  );
+  if (!scalingValue) return blankIcon;
+  const value = numerical
+    ? round(scalingValue * 100)
+    : scalingTiers.find(([value]) => scalingValue >= value)?.[1];
+  return <span title={`${Math.round(scalingValue! * 100000) / 1000}%`}>{value}</span>;
 });
 
 /**
@@ -92,13 +90,11 @@ export const AttributeRequirementRenderer = memo(function AttributeRequirementRe
   ineffective,
 }: {
   weapon: Weapon;
-  attribute: Attribute;
+  attribute: DamageAttribute;
   ineffective: boolean;
 }) {
   const requirement = requirements[attribute] ?? 0;
-  if (requirement === 0) {
-    return blankIcon;
-  }
+  if (requirement === 0) return blankIcon;
 
   if (ineffective) {
     return (
@@ -118,6 +114,39 @@ export const AttributeRequirementRenderer = memo(function AttributeRequirementRe
 });
 
 /**
+ * Component that displays the best stats to use given the provided constraints for this weapon
+ */
+export const OptimizedAttributeRenderer = memo(function AttributeRequirementRenderer({
+  value,
+}: {
+  value: number;
+}) {
+  const attributeValue = Math.floor(value);
+
+  return (
+    <Typography
+      sx={{ color: (theme) => (attributeValue < 0 ? theme.palette.error.main : undefined) }}
+      aria-label={`${round(
+        attributeValue,
+      )}. Invalid stat allocation. Please adjust your starting class or level`}
+    >
+      {round(attributeValue)}
+    </Typography>
+  );
+});
+
+/**
+ * Component that displays the endurance required for the given armor weight and weapon weight
+ */
+export const OptimizedEnduranceRenderer = memo(function AttributeRequirementRenderer({
+  endurance,
+}: {
+  endurance: number;
+}) {
+  return <>{endurance}</>;
+});
+
+/**
  * Component that displays one damage type / status effect / spell scaling of a weapon.
  */
 export const AttackPowerRenderer = memo(function AttackPowerRenderer({
@@ -125,9 +154,9 @@ export const AttackPowerRenderer = memo(function AttackPowerRenderer({
   ineffective,
 }: {
   value?: number;
-  ineffective: boolean;
+  ineffective?: boolean;
 }) {
-  if (value == null) {
+  if (value == null || typeof value === "undefined") {
     return blankIcon;
   }
 
@@ -143,4 +172,21 @@ export const AttackPowerRenderer = memo(function AttackPowerRenderer({
   }
 
   return <>{round(value)}</>;
+});
+
+/**
+ * Component that displays one damage type / status effect / spell scaling of a weapon.
+ */
+export const ActionRenderer = memo(function ActionRenderer({
+  isExpanded,
+  toggleIsExpanded,
+}: {
+  toggleIsExpanded: () => void;
+  isExpanded: boolean;
+}) {
+  return (
+    <IconButton onClick={toggleIsExpanded}>
+      <SsidChart style={isExpanded ? { fill: "#ffb452" } : {}} />
+    </IconButton>
+  );
 });
