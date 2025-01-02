@@ -1,4 +1,4 @@
-import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import React, { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import {
   Alert,
   Box,
@@ -110,7 +110,7 @@ function RegulationVersionAlert({ children }: { children: ReactNode }) {
 
 export default function App() {
   const { isMobile, menuOpen, menuOpenMobile, onMenuOpenChanged } = useMenuState();
-  const [tableView, setTableView] = useState<"fixed" | "solver">("fixed"); // TODO: Add different table views
+  const [tableView, setTableView] = useState<"fixed" | "solver">("solver"); // TODO: Add different table views
   const {
     state: {
       regulationVersionName,
@@ -219,6 +219,45 @@ export default function App() {
     </>
   );
 
+  const handleStartingClassChanged = useCallback(
+    (startingClass: StartingClass) => {
+      const { arc, dex, str, int, fai, vig, end, lvl, min } = INITIAL_CLASS_VALUES[startingClass];
+
+      dispatchAppState({ type: "setStartingClass", payload: startingClass });
+      dispatchSolvedAttributeState({
+        type: "setSolverAttributes",
+        payload: {
+          [`str.Min`]: Math.max(solverAttributes[`str.Min`], str),
+          [`dex.Min`]: Math.max(solverAttributes[`dex.Min`], dex),
+          [`int.Min`]: Math.max(solverAttributes[`int.Min`], int),
+          [`fai.Min`]: Math.max(solverAttributes[`fai.Min`], fai),
+          [`arc.Min`]: Math.max(solverAttributes[`arc.Min`], arc),
+          end,
+          min,
+          vig,
+          lvl,
+        },
+      });
+      dispatchFixedAttributeState({
+        type: "setAttributes",
+        payload: {
+          str: Math.max(attributes.str, str),
+          dex: Math.max(attributes.dex, dex),
+          int: Math.max(attributes.int, int),
+          fai: Math.max(attributes.fai, fai),
+          arc: Math.max(attributes.arc, arc),
+        },
+      });
+    },
+    [
+      attributes,
+      dispatchAppState,
+      dispatchFixedAttributeState,
+      dispatchSolvedAttributeState,
+      solverAttributes,
+    ],
+  );
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -300,87 +339,16 @@ export default function App() {
               <WeaponListSettings
                 breakpoint={menuOpen ? "lg" : "md"}
                 attributes={attributes}
-                attributeSolverValues={solverAttributes}
                 twoHanding={twoHanding}
                 upgradeLevel={upgradeLevel}
                 maxUpgradeLevel={regulationVersion.maxUpgradeLevel}
                 splitDamage={splitDamage}
                 numericalScaling={numericalScaling}
-                adjustEnduranceForWeapon={adjustEnduranceForWeapon}
-                onStartingClassChanged={(startingClass: StartingClass) => {
-                  const { arc, dex, str, int, fai, vig, end, lvl, min } =
-                    INITIAL_CLASS_VALUES[startingClass];
-
-                  dispatchAppState({ type: "setStartingClass", payload: startingClass });
-                  dispatchSolvedAttributeState({
-                    type: "setSolverAttributes",
-                    payload: {
-                      [`str.Min`]: Math.max(solverAttributes[`str.Min`], str),
-                      [`dex.Min`]: Math.max(solverAttributes[`dex.Min`], dex),
-                      [`int.Min`]: Math.max(solverAttributes[`int.Min`], int),
-                      [`fai.Min`]: Math.max(solverAttributes[`fai.Min`], fai),
-                      [`arc.Min`]: Math.max(solverAttributes[`arc.Min`], arc),
-                      end,
-                      min,
-                      vig,
-                      lvl,
-                    },
-                  });
-                  dispatchFixedAttributeState({
-                    type: "setAttributes",
-                    payload: {
-                      str: Math.max(attributes.str, str),
-                      dex: Math.max(attributes.dex, dex),
-                      int: Math.max(attributes.int, int),
-                      fai: Math.max(attributes.fai, fai),
-                      arc: Math.max(attributes.arc, arc),
-                    },
-                  });
-                }}
+                onStartingClassChanged={handleStartingClassChanged}
                 startingClass={startingClass}
-                rollType={rollType}
-                onRollTypeChanged={(rollType) => {
-                  dispatchSolvedAttributeState({ type: "setRollType", payload: rollType });
-                  const endurance = getEnduranceForWeight(armorWeight, rollType);
-                  dispatchSolvedAttributeState({
-                    type: "setSolverAttributes",
-                    payload: {
-                      end: Math.max(endurance, INITIAL_CLASS_VALUES[startingClass].end),
-                    },
-                  });
-                }}
-                armorWeight={armorWeight}
-                onArmorWeightChanged={(weight) => {
-                  dispatchSolvedAttributeState({
-                    type: "setArmorWeight",
-                    payload: weight,
-                  });
-                  const endurance = getEnduranceForWeight(weight, rollType);
-                  dispatchSolvedAttributeState({
-                    type: "setSolverAttributes",
-                    payload: {
-                      end: Math.max(endurance, INITIAL_CLASS_VALUES[startingClass].end),
-                    },
-                  });
-                }}
-                damageTypeToOptimizeFor={damageTypeToOptimizeFor}
-                onOptimizedDamageTypeChanged={(damageTypeToOptimizeFor) => {
-                  dispatchSolvedAttributeState({
-                    type: "setDamageTypeToOptimizeFor",
-                    payload: damageTypeToOptimizeFor,
-                  });
-                }}
                 onAttributeChanged={(attributeChanged, attributeValue) => {
                   dispatchFixedAttributeState({
                     type: "setAttributes",
-                    payload: {
-                      [attributeChanged]: attributeValue,
-                    },
-                  });
-                }}
-                onAttributeSolverChanged={(attributeChanged, attributeValue) => {
-                  dispatchSolvedAttributeState({
-                    type: "setSolverAttributes",
                     payload: {
                       [attributeChanged]: attributeValue,
                     },
@@ -402,12 +370,6 @@ export default function App() {
                   dispatchFixedAttributeState({
                     type: "setNumericalScaling",
                     payload: numericalScalingChanged,
-                  });
-                }}
-                onWeaponAdjustedEnduranceChanged={(weaponAdjustedEnduranceChanged) => {
-                  dispatchSolvedAttributeState({
-                    type: "setAdjustEnduranceForWeapon",
-                    payload: weaponAdjustedEnduranceChanged,
                   });
                 }}
               />
@@ -427,46 +389,12 @@ export default function App() {
           ) : (
             <>
               <SolvedTableWeaponListSettings
-                breakpoint={menuOpen ? "lg" : "md"}
-                attributes={attributes}
-                attributeSolverValues={solverAttributes}
+                solverAttributes={solverAttributes}
                 twoHanding={twoHanding}
                 upgradeLevel={upgradeLevel}
                 maxUpgradeLevel={regulationVersion.maxUpgradeLevel}
-                splitDamage={splitDamage}
-                groupWeaponTypes={groupWeaponTypes}
-                numericalScaling={numericalScaling}
                 adjustEnduranceForWeapon={adjustEnduranceForWeapon}
-                onStartingClassChanged={(startingClass: StartingClass) => {
-                  const { arc, dex, str, int, fai, vig, end, lvl, min } =
-                    INITIAL_CLASS_VALUES[startingClass];
-
-                  dispatchAppState({ type: "setStartingClass", payload: startingClass });
-                  dispatchSolvedAttributeState({
-                    type: "setSolverAttributes",
-                    payload: {
-                      [`str.Min`]: Math.max(solverAttributes[`str.Min`], str),
-                      [`dex.Min`]: Math.max(solverAttributes[`dex.Min`], dex),
-                      [`int.Min`]: Math.max(solverAttributes[`int.Min`], int),
-                      [`fai.Min`]: Math.max(solverAttributes[`fai.Min`], fai),
-                      [`arc.Min`]: Math.max(solverAttributes[`arc.Min`], arc),
-                      end,
-                      min,
-                      vig,
-                      lvl,
-                    },
-                  });
-                  dispatchFixedAttributeState({
-                    type: "setAttributes",
-                    payload: {
-                      str: Math.max(attributes.str, str),
-                      dex: Math.max(attributes.dex, dex),
-                      int: Math.max(attributes.int, int),
-                      fai: Math.max(attributes.fai, fai),
-                      arc: Math.max(attributes.arc, arc),
-                    },
-                  });
-                }}
+                onStartingClassChanged={handleStartingClassChanged}
                 startingClass={startingClass}
                 rollType={rollType}
                 onRollTypeChanged={(rollType) => {
@@ -493,21 +421,6 @@ export default function App() {
                     },
                   });
                 }}
-                damageTypeToOptimizeFor={damageTypeToOptimizeFor}
-                onOptimizedDamageTypeChanged={(damageTypeToOptimizeFor) => {
-                  dispatchSolvedAttributeState({
-                    type: "setDamageTypeToOptimizeFor",
-                    payload: damageTypeToOptimizeFor,
-                  });
-                }}
-                onAttributeChanged={(attributeChanged, attributeValue) => {
-                  dispatchFixedAttributeState({
-                    type: "setAttributes",
-                    payload: {
-                      [attributeChanged]: attributeValue,
-                    },
-                  });
-                }}
                 onAttributeSolverChanged={(attributeChanged, attributeValue) => {
                   dispatchSolvedAttributeState({
                     type: "setSolverAttributes",
@@ -521,24 +434,6 @@ export default function App() {
                 }}
                 onUpgradeLevelChanged={(upgradeLevelChanged) => {
                   dispatchAppState({ type: "setUpgradeLevel", payload: upgradeLevelChanged });
-                }}
-                onGroupWeaponTypesChanged={(groupWeaponTypesChanged) => {
-                  dispatchAppState({
-                    type: "setGroupWeaponTypes",
-                    payload: groupWeaponTypesChanged,
-                  });
-                }}
-                onSplitDamageChanged={(splitDamageChanged) => {
-                  dispatchFixedAttributeState({
-                    type: "setSplitDamage",
-                    payload: splitDamageChanged,
-                  });
-                }}
-                onNumericalScalingChanged={(numericalScalingChanged) => {
-                  dispatchFixedAttributeState({
-                    type: "setNumericalScaling",
-                    payload: numericalScalingChanged,
-                  });
                 }}
                 onWeaponAdjustedEnduranceChanged={(weaponAdjustedEnduranceChanged) => {
                   dispatchSolvedAttributeState({

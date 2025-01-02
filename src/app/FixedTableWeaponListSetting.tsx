@@ -24,13 +24,13 @@ import ClassPicker, { type StartingClass as StartingClass } from "./ClassPicker"
 import type { RollType } from "./weaponTable/constants";
 import type { DamageTypeToOptimizeFor } from "./OptimizedDamageTypePicker";
 
-interface AttributeInputProps {
+export interface AttributeInputProps {
   attribute: AllAttribute;
   value: number;
   onAttributeChanged(attribute: AllAttribute, value: number): void;
 }
 
-interface AttributeInputRangeProps {
+export interface AttributeInputRangeProps {
   attribute: AllAttribute;
   value: number;
   onAttributeChanged(attribute: AttributeRangeKey, value: number): void;
@@ -40,7 +40,7 @@ interface AttributeInputRangeProps {
 /**
  * Form control for picking the value of a single attribute (str/dex/int/fai/arc)
  */
-const AttributeInput = memo(function AttributeInput({
+export const AttributeInput = memo(function AttributeInput({
   attribute,
   value,
   onAttributeChanged,
@@ -60,7 +60,7 @@ const AttributeInput = memo(function AttributeInput({
   );
 });
 
-interface WeaponLevelInputProps {
+export interface WeaponLevelInputProps {
   upgradeLevel: number;
   maxUpgradeLevel?: number;
   onUpgradeLevelChanged(upgradeLevel: number): void;
@@ -69,7 +69,7 @@ interface WeaponLevelInputProps {
 /**
  * Form control for picking the weapon upgrade level (+1, +2, etc.)
  */
-const WeaponLevelInput = memo(function WeaponLevelInput({
+export const WeaponLevelInput = memo(function WeaponLevelInput({
   upgradeLevel,
   maxUpgradeLevel = maxRegularUpgradeLevel,
   onUpgradeLevelChanged,
@@ -96,7 +96,7 @@ const WeaponLevelInput = memo(function WeaponLevelInput({
   );
 });
 
-interface BooleanInputProps {
+export interface BooleanInputProps {
   label: string;
   checked: boolean;
   onChange(checked: boolean): void;
@@ -136,7 +136,6 @@ interface Props {
   numericalScaling: boolean;
   startingClass: StartingClass;
   onAttributeChanged(attribute: AllAttributeAndLevel, value: number): void;
-  onAttributeSolverChanged(attribute: AttributeSolverKey, value: number): void;
   onTwoHandingChanged(twoHanding: boolean): void;
   onUpgradeLevelChanged(upgradeLevel: number): void;
   onSplitDamageChanged(splitDamage: boolean): void;
