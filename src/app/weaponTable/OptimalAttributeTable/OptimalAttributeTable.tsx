@@ -16,7 +16,7 @@ import {
   type WeaponTableRowGroup,
 } from "../types";
 import type { AllStartingClassAttributes } from "../../ClassPicker";
-// TODO pagination if there are >200 results
+
 const OFFSET = 0;
 const LIMIT = 200;
 

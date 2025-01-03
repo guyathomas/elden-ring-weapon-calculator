@@ -1,4 +1,4 @@
-import { Typography } from "@mui/material";
+import { Tooltip, Typography } from "@mui/material";
 import {
   AttackPowerType,
   allAttackPowerTypes,
@@ -78,16 +78,9 @@ const optimizedAPColumns: OptimalAttributeTableColumnDef[] = damageAttributes.ma
         {getShortAttributeLabel(attribute)}
       </Typography>
     ),
-    render({ optimalAttributes, startingClassAttributes, weapon }) {
+    render({ optimalAttributes, startingClassAttributes }) {
       const defaultValue = startingClassAttributes[attribute];
       const value = optimalAttributes?.attackPower?.optimalAttributes[attribute];
-      console.log("zzz", {
-        weapon: weapon.name,
-        attribute,
-        isStartingValue: value === defaultValue,
-        value,
-        defaultValue,
-      });
       if (!value || value === defaultValue) return blankIcon;
       return <OptimizedAttributeRenderer key={attribute} value={value} />;
     },
@@ -153,9 +146,11 @@ export function getOptimalAttributeColumns({
               key: `disposableOptimizedPointsSP`,
               sortBy: `disposableOptimizedPointsSP`,
               header: (
-                <Typography component="span" variant="subtitle2" title={`Disposable Points`}>
-                  Disposable Points
-                </Typography>
+                <Tooltip title="Disposable Points. The number of points remaining after maximizing the AR.">
+                  <Typography component="span" variant="subtitle2" title={`Disposable Points`}>
+                    DP
+                  </Typography>
+                </Tooltip>
               ),
               render({ optimalAttributes }) {
                 const value = optimalAttributes?.spellPower?.disposablePoints;
@@ -188,13 +183,17 @@ export function getOptimalAttributeColumns({
                 key: `incrementalOptimizedEnd`,
                 sortBy: `incrementalOptimizedEnd`,
                 header: (
-                  <Typography component="span" variant="subtitle2" title={`Incremental Endurance`}>
-                    End+
-                  </Typography>
+                  <Tooltip title="The incremental endurance points that this weapon will cost you">
+                    <Typography
+                      component="span"
+                      variant="subtitle2"
+                      title={`Incremental Endurance`}
+                    >
+                      End+
+                    </Typography>
+                  </Tooltip>
                 ),
                 render({ optimalAttributes }) {
-                  // TODO: !armorWeight || !rollType
-
                   return (
                     <OptimizedEnduranceRenderer
                       endurance={optimalAttributes?.endurance?.incremental}
@@ -206,9 +205,11 @@ export function getOptimalAttributeColumns({
                 key: `totalOptimizedEnd`,
                 sortBy: `totalOptimizedEnd`,
                 header: (
-                  <Typography component="span" variant="subtitle2" title={`Endurance`}>
-                    End
-                  </Typography>
+                  <Tooltip title="The total endurance points you'll need to wield this weapon">
+                    <Typography component="span" variant="subtitle2" title={`Endurance`}>
+                      End
+                    </Typography>
+                  </Tooltip>
                 ),
                 render({ optimalAttributes, startingClassAttributes }) {
                   const defaultValue = startingClassAttributes.end;
@@ -220,6 +221,8 @@ export function getOptimalAttributeColumns({
             ]
           : []),
         ...optimizedAPColumns,
+
+        ...allDamageTypes.map((damageType) => optimizedAttackTypeColumns[damageType]),
         {
           key: `totalOptimizedAP`,
           sortBy: `totalOptimizedAP`,
@@ -234,14 +237,15 @@ export function getOptimalAttributeColumns({
             return <OptimizedAttributeRenderer value={value} />;
           },
         },
-
         {
           key: `disposableOptimizedPointsAP`,
           sortBy: `disposableOptimizedPointsAP`,
           header: (
-            <Typography component="span" variant="subtitle2" title={`Disposable Points`}>
-              DP
-            </Typography>
+            <Tooltip title="Disposable Points. The number of points remaining after maximizing the AR.">
+              <Typography component="span" variant="subtitle2" title={`Disposable Points`}>
+                DP
+              </Typography>
+            </Tooltip>
           ),
           render({ optimalAttributes }) {
             const value = optimalAttributes?.attackPower?.disposablePoints;
@@ -254,9 +258,11 @@ export function getOptimalAttributeColumns({
           key: `totalOptimizedEfficiency`,
           sortBy: `totalOptimizedEfficiency`,
           header: (
-            <Typography component="span" variant="subtitle2" title={`Disposable Points`}>
-              Eff
-            </Typography>
+            <Tooltip title="Efficiency Score. 100% means no stats can increase the AR.">
+              <Typography component="span" variant="subtitle2" title={`Disposable Points`}>
+                Eff
+              </Typography>
+            </Tooltip>
           ),
           render({ optimalAttributes }) {
             const value = optimalAttributes?.attackPower?.efficiencyScore;
@@ -264,7 +270,6 @@ export function getOptimalAttributeColumns({
             return <OptimizedAttributeRenderer value={value} />;
           },
         },
-        ...allDamageTypes.map((damageType) => optimizedAttackTypeColumns[damageType]),
       ],
     },
     ...optimizedSpellScalingColumns,

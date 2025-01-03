@@ -13,7 +13,7 @@ import {
   type WeaponTableColumnGroupDef,
   type WeaponTableRowGroup,
 } from "../types";
-// TODO pagination if there are >200 results
+
 const OFFSET = 0;
 const LIMIT = 200;
 
