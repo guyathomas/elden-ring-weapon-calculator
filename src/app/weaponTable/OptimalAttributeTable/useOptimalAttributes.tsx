@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import getWeaponAttack, {
   allDamageTypes,
   AttackPowerType,
@@ -53,11 +53,8 @@ export const ENDURANCE_LEVEL_TO_EQUIP_LOAD = [
 function diffArraysByKey<T>(array1: T[], array2: T[], key: keyof T): T[] {
   // Create a set of the keys from the first array
   const keySet = new Set(array1.map((item) => item[key]));
-
   // Filter the second array to find new items
-  const newItems = array2.filter((item) => !keySet.has(item[key]));
-
-  return newItems;
+  return array2.filter((item) => !keySet.has(item[key]));
 }
 
 export function getEnduranceForWeight(weight: number, rollType: RollType) {
@@ -97,7 +94,7 @@ function getIncrementalEndurance({
     incrementalEndurance,
   };
 }
-
+export type OptimalAttributesMap = Partial<Record<Weapon["name"], OptimalAttribute>>;
 export const useOptimalAttributes = ({
   solverAttributes: sa,
   twoHanding,
@@ -107,7 +104,6 @@ export const useOptimalAttributes = ({
   rollType,
   weapons,
   damageTypeToOptimizeFor = "total",
-  setOptimalAttributes,
   armorWeight,
 }: {
   solverAttributes: AttributeSolverValues;
@@ -118,11 +114,9 @@ export const useOptimalAttributes = ({
   rollType: RollType;
   weapons: readonly Weapon[];
   damageTypeToOptimizeFor?: DamageTypeToOptimizeFor;
-  setOptimalAttributes: (
-    attributes: Partial<SolvedAttributeState["optimalAttributes"]> | null,
-  ) => void;
   armorWeight: SolvedAttributeState["armorWeight"];
-}) => {
+}): { optimalAttributes: OptimalAttributesMap } => {
+  const [optimalAttributes, setOptimalAttributes] = useState<OptimalAttributesMap>({});
   const weaponsMemo = useRef(weapons);
   const spendablePoints =
     INITIAL_CLASS_VALUES[startingClass].total -
@@ -260,7 +254,7 @@ export const useOptimalAttributes = ({
 
   const calculateOptimalAttributesForWeapons = useCallback(
     async (weapons: Weapon[], reset?: boolean) => {
-      if (reset) setOptimalAttributes(null);
+      if (reset) setOptimalAttributes({});
       const batchSize = 100;
       const batches: Weapon[][] = [];
       for (let i = 0; i < weapons.length; i += batchSize) {
@@ -274,11 +268,11 @@ export const useOptimalAttributes = ({
             acc[batches[i][j].name] = optimalAttribute;
             return acc;
           }, {} as Record<Weapon["name"], OptimalAttribute>);
-        setOptimalAttributes(update);
+        setOptimalAttributes({ ...optimalAttributes, update });
         await wait(10);
       }
     },
-    [calculateHighestWeaponAttackResult, setOptimalAttributes],
+    [calculateHighestWeaponAttackResult, setOptimalAttributes, optimalAttributes],
   );
 
   useEffect(() => {
@@ -298,4 +292,6 @@ export const useOptimalAttributes = ({
       calculateOptimalAttributesForWeapons(weapons as Weapon[], true);
     }
   }, [weapons, calculateOptimalAttributesForWeapons]);
+
+  return { optimalAttributes };
 };

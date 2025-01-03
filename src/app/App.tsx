@@ -1,4 +1,4 @@
-import React, { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import {
   Alert,
   Box,
@@ -138,7 +138,6 @@ export default function App() {
       rollType,
       armorWeight,
       damageTypeToOptimizeFor,
-      optimalAttributes,
     },
     dispatch: dispatchSolvedAttributeState,
   } = useSolvedAttributeState();
@@ -448,8 +447,6 @@ export default function App() {
                 weaponsError={error}
                 isWeaponsLoading={loading}
                 regulationVersion={regulationVersion}
-                splitDamage={splitDamage}
-                numericalScaling={numericalScaling}
                 twoHanding={twoHanding}
                 upgradeLevel={upgradeLevel}
                 groupWeaponTypes={groupWeaponTypes}
@@ -460,13 +457,6 @@ export default function App() {
                 startingClass={startingClass}
                 rollType={rollType}
                 damageTypeToOptimizeFor={damageTypeToOptimizeFor}
-                optimalAttributes={optimalAttributes}
-                setOptimalAttributes={(attributes) => {
-                  dispatchSolvedAttributeState({
-                    type: "setOptimalAttributes",
-                    payload: attributes,
-                  });
-                }}
               />
             </>
           )}

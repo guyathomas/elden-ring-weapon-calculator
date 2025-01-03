@@ -32,6 +32,9 @@ The Convergence Mod support uses data extracted from [The Convergence Mod](https
 
 ## TODO:
 
+- [ ] Render EmptyIcon when stats are the same as the min stats for the class
+- [ ] Test calculators
+- [ ] Consolidate calculators
 - [ ] Show different views for Solver vs Fixed Attributes
 - [ ] Add expanding rows to show calculated data
 - [ ] Copy Stats to optimized stats to Main Calculator

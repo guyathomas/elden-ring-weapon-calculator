@@ -73,10 +73,6 @@ interface Props {
   rollType: SolvedAttributeState["rollType"];
   armorWeight: SolvedAttributeState["armorWeight"];
   damageTypeToOptimizeFor: SolvedAttributeState["damageTypeToOptimizeFor"];
-  optimalAttributes: SolvedAttributeState["optimalAttributes"];
-  setOptimalAttributes: (
-    attributes: Partial<Record<Weapon["name"], OptimalAttribute>> | null,
-  ) => void;
 }
 
 function WeaponTable({
@@ -93,10 +89,20 @@ function WeaponTable({
   adjustEnduranceForWeapon,
   rollType,
   armorWeight,
-  setOptimalAttributes,
 }: Props) {
   const [sortBy, setSortBy] = useState<SortBy>("name");
   const [reverse, setReverse] = useState<boolean>(false);
+
+  const { optimalAttributes } = useOptimalAttributes({
+    solverAttributes,
+    twoHanding,
+    startingClass,
+    adjustEnduranceForWeapon,
+    upgradeLevel,
+    rollType,
+    weapons,
+    armorWeight,
+  });
 
   const { rows, hasSpellScaling } = useWeaponSolverRows({
     weapons,
@@ -110,18 +116,7 @@ function WeaponTable({
     twoHanding,
     upgradeLevel,
     groupWeaponTypes,
-  });
-
-  useOptimalAttributes({
-    solverAttributes,
-    twoHanding,
-    startingClass,
-    adjustEnduranceForWeapon,
-    upgradeLevel,
-    rollType,
-    weapons,
-    armorWeight,
-    setOptimalAttributes,
+    optimalAttributes,
   });
 
   const columns = useMemo(
@@ -132,7 +127,6 @@ function WeaponTable({
       }),
     [hasSpellScaling],
   );
-
   return (
     <>
       <WeaponTableBase<SortBy>
