@@ -22,6 +22,7 @@ import {
   OptimizedEnduranceRenderer,
   blankIcon,
   AttributeRequirementRenderer,
+  ActionRenderer,
 } from "../tableRenderers";
 
 const nameColumn: OptimalAttributeTableColumnDef = {
@@ -37,6 +38,22 @@ const nameColumn: OptimalAttributeTableColumnDef = {
   },
   render({ weapon, upgradeLevel }) {
     return <WeaponNameRenderer weapon={weapon} upgradeLevel={upgradeLevel} />;
+  },
+};
+
+const actionColumn: OptimalAttributeTableColumnDef = {
+  key: "name",
+  sortBy: "name",
+  header: (
+    <Typography component="span" variant="subtitle2">
+      Actions
+    </Typography>
+  ),
+  sx: {
+    justifyContent: "start",
+  },
+  render() {
+    return <ActionRenderer />;
   },
 };
 
@@ -186,6 +203,11 @@ export function getOptimalAttributeColumns({
     : [];
 
   return [
+    {
+      key: "actions",
+      sx: { flex: 1, maxWidth: 120 },
+      columns: [actionColumn],
+    },
     {
       key: "name",
       sx: { flex: 1, minWidth: 100 },

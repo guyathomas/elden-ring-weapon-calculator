@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import React, { memo, useState } from "react";
 import * as ScrollArea from "@radix-ui/react-scroll-area";
 import { Alert, Box, CircularProgress, Typography } from "@mui/material";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
@@ -127,18 +127,19 @@ const ColumnHeaderRow = memo(function ColumnHeaderRow<S>({
  */
 const DataRow = memo(function DataRow({
   columns,
-  row,
+  rowData,
 }: {
   columns: readonly WeaponTableColumnGroupDef[];
-  row: DefaultWeaponTableRowData;
+  rowData: DefaultWeaponTableRowData;
 }) {
+  const [isExpanded, setIsExpanded] = useState(false);
   return (
     <WeaponTableDataRow role="row">
       {columns.map(({ key, sx, columns }) => (
         <WeaponTableColumnGroup key={key} sx={sx}>
           {columns.map((column) => (
             <WeaponTableColumn key={column.key} role="cell" sx={column.sx}>
-              {column.render(row)}
+              {column.render(rowData, { isExpanded, setIsExpanded })}
             </WeaponTableColumn>
           ))}
         </WeaponTableColumnGroup>
@@ -209,7 +210,7 @@ function WeaponTableBase<S>({
                       row.weapon.variant ?? ""
                     }`}
                     columns={columns}
-                    row={row}
+                    rowData={row}
                   />
                 ))}
               </WeaponTableGroup>

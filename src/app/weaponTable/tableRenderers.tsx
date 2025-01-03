@@ -173,3 +173,12 @@ export const AttackPowerRenderer = memo(function AttackPowerRenderer({
 
   return <>{round(value)}</>;
 });
+
+/**
+ * Component that displays one damage type / status effect / spell scaling of a weapon.
+ */
+export const ActionRenderer = memo(function ActionRenderer() {
+  return (
+    <Typography sx={{ color: (theme) => theme.palette.error.main }}>{"Typography"}</Typography>
+  );
+});

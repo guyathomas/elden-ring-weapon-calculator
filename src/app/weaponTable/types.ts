@@ -7,6 +7,11 @@ export interface DefaultWeaponTableRowData {
   weapon: Weapon;
 }
 
+export type RowExpandedState = {
+  isExpanded: boolean;
+  setIsExpanded: (isExpanded: boolean) => void;
+};
+
 export interface WeaponTableRowGroup<T = DefaultWeaponTableRowData> {
   key: string;
   name?: string;
@@ -17,7 +22,7 @@ export interface WeaponTableColumnDef<T = DefaultWeaponTableRowData> {
   key: string;
   sortBy?: any; // TODO: Fix this.
   header: ReactNode;
-  render(row: T): ReactNode;
+  render(row: T, rowExpandedState: RowExpandedState): ReactNode;
   sx?: SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>);
 }
 
