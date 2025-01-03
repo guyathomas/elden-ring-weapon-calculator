@@ -1,5 +1,5 @@
 import {
-  adjustAttributesForTwoHanding,
+  adjustStrengthForTwoHanding,
   WeaponType,
   type DamageAttribute,
   type DamageAttributeValues,
@@ -113,11 +113,10 @@ export default function filterWeapons(
     }
 
     if (effectiveWithAttributes != null) {
-      const attributes = adjustAttributesForTwoHanding({
-        twoHanding,
-        weapon,
-        attributes: effectiveWithAttributes,
-      });
+      const attributes = {
+        ...effectiveWithAttributes,
+        str: adjustStrengthForTwoHanding({ twoHanding, weapon, str: effectiveWithAttributes.str }),
+      };
 
       if (
         (Object.entries(weapon.requirements) as [DamageAttribute, number][]).some(

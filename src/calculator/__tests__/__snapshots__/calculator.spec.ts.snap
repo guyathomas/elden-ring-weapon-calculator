@@ -1,0 +1,157 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`getWeaponAttack > with a level 0 Black Knife (special weapon) > adjusts strength for two-handing correctly 1`] = `
+{
+  "attackPower": {
+    "0": 73.90562517841897,
+    "4": 39,
+  },
+  "ineffectiveAttackPowerTypes": [
+    4,
+  ],
+  "ineffectiveAttributes": [
+    "fai",
+  ],
+  "spellScaling": {},
+}
+`;
+
+exports[`getWeaponAttack > with a level 0 Black Knife (special weapon) > calculates attack power correctly with sufficient attributes 1`] = `
+{
+  "attackPower": {
+    "0": 73.17067974049567,
+    "4": 39,
+  },
+  "ineffectiveAttackPowerTypes": [
+    4,
+  ],
+  "ineffectiveAttributes": [
+    "fai",
+  ],
+  "spellScaling": {},
+}
+`;
+
+exports[`getWeaponAttack > with a level 0 Dagger (standard weapon) > adjusts strength for two-handing correctly 1`] = `
+{
+  "attackPower": {
+    "0": 89.49397422694892,
+  },
+  "ineffectiveAttackPowerTypes": [],
+  "ineffectiveAttributes": [],
+  "spellScaling": {},
+}
+`;
+
+exports[`getWeaponAttack > with a level 0 Dagger (standard weapon) > calculates attack power correctly with sufficient attributes 1`] = `
+{
+  "attackPower": {
+    "0": 86.60987015994684,
+  },
+  "ineffectiveAttackPowerTypes": [],
+  "ineffectiveAttributes": [],
+  "spellScaling": {},
+}
+`;
+
+exports[`getWeaponAttack > with a level 0 Lightning Dagger (standard weapon) > adjusts strength for two-handing correctly 1`] = `
+{
+  "attackPower": {
+    "0": 63.34309275022913,
+    "3": 65.56752842105263,
+  },
+  "ineffectiveAttackPowerTypes": [],
+  "ineffectiveAttributes": [],
+  "spellScaling": {},
+}
+`;
+
+exports[`getWeaponAttack > with a level 0 Lightning Dagger (standard weapon) > calculates attack power correctly with sufficient attributes 1`] = `
+{
+  "attackPower": {
+    "0": 63.02684350118334,
+    "3": 65.56752842105263,
+  },
+  "ineffectiveAttackPowerTypes": [],
+  "ineffectiveAttributes": [],
+  "spellScaling": {},
+}
+`;
+
+exports[`getWeaponAttack > with a level 10 Black Knife (special weapon) > adjusts strength for two-handing correctly 1`] = `
+{
+  "attackPower": {
+    "0": 196.56380703682768,
+    "4": 95.55,
+  },
+  "ineffectiveAttackPowerTypes": [
+    4,
+  ],
+  "ineffectiveAttributes": [
+    "fai",
+  ],
+  "spellScaling": {},
+}
+`;
+
+exports[`getWeaponAttack > with a level 10 Black Knife (special weapon) > calculates attack power correctly with sufficient attributes 1`] = `
+{
+  "attackPower": {
+    "0": 193.32269765558584,
+    "4": 95.55,
+  },
+  "ineffectiveAttackPowerTypes": [
+    4,
+  ],
+  "ineffectiveAttributes": [
+    "fai",
+  ],
+  "spellScaling": {},
+}
+`;
+
+exports[`getWeaponAttack > with a level 25 Dagger (standard weapon) > adjusts strength for two-handing correctly 1`] = `
+{
+  "attackPower": {
+    "0": 238.2403552840373,
+  },
+  "ineffectiveAttackPowerTypes": [],
+  "ineffectiveAttributes": [],
+  "spellScaling": {},
+}
+`;
+
+exports[`getWeaponAttack > with a level 25 Dagger (standard weapon) > calculates attack power correctly with sufficient attributes 1`] = `
+{
+  "attackPower": {
+    "0": 227.64127283780468,
+  },
+  "ineffectiveAttackPowerTypes": [],
+  "ineffectiveAttributes": [],
+  "spellScaling": {},
+}
+`;
+
+exports[`getWeaponAttack > with a level 25 Lightning Dagger (standard weapon) > adjusts strength for two-handing correctly 1`] = `
+{
+  "attackPower": {
+    "0": 147.94674428816208,
+    "3": 154.34437389473683,
+  },
+  "ineffectiveAttackPowerTypes": [],
+  "ineffectiveAttributes": [],
+  "spellScaling": {},
+}
+`;
+
+exports[`getWeaponAttack > with a level 25 Lightning Dagger (standard weapon) > calculates attack power correctly with sufficient attributes 1`] = `
+{
+  "attackPower": {
+    "0": 146.29592320814305,
+    "3": 154.34437389473683,
+  },
+  "ineffectiveAttackPowerTypes": [],
+  "ineffectiveAttributes": [],
+  "spellScaling": {},
+}
+`;

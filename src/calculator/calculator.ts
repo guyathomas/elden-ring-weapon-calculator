@@ -19,25 +19,6 @@ export interface WeaponAttackResult {
   ineffectiveAttackPowerTypes: AttackPowerType[];
 }
 
-/**
- * Adjust a set of character attributes to take into account the 50% Strength bonus when two
- * handing a weapon
- */
-export function adjustAttributesForTwoHanding({
-  twoHanding = false,
-  weapon,
-  attributes,
-}: {
-  twoHanding?: boolean;
-  weapon: Weapon;
-  attributes: DamageAttributeValues;
-}): DamageAttributeValues {
-  return {
-    ...attributes,
-    str: adjustStrengthForTwoHanding({ twoHanding, weapon, str: attributes.str }),
-  };
-}
-
 export function adjustStrengthForTwoHanding({
   twoHanding = false,
   weapon,
@@ -77,7 +58,10 @@ export default function getWeaponAttack({
   disableTwoHandingAttackPowerBonus,
   ineffectiveAttributePenalty = 0.4,
 }: WeaponAttackOptions): WeaponAttackResult {
-  const adjustedAttributes = adjustAttributesForTwoHanding({ twoHanding, weapon, attributes });
+  const adjustedAttributes: DamageAttributeValues = {
+    ...attributes,
+    str: adjustStrengthForTwoHanding({ twoHanding, weapon, str: attributes.str }),
+  };
 
   const ineffectiveAttributes = (Object.entries(weapon.requirements) as [DamageAttribute, number][])
     .filter(([attribute, requirement]) => adjustedAttributes[attribute] < requirement)

@@ -38,12 +38,14 @@
     "ts-node": "10.8.1",
     "typescript": "5.0.4",
     "vite": "^4.2.0",
-    "vite-plugin-eslint": "^1.8.1"
+    "vite-plugin-eslint": "^1.8.1",
+    "vitest": "^2.1.8"
   },
   "scripts": {
     "start": "vite",
     "build": "vite build",
     "lint": "eslint --ext .ts,.tsx src --fix",
+    "test": "vitest",
     "preview": "vite preview",
     "buildData": "ts-node-esm src/buildData.ts",
     "buildData:latest": "ts-node-esm src/buildData.ts vanilla public/regulation-vanilla-v1.14.js",
