@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useCallback } from "react";
 import { Box, debounce } from "@mui/material";
 import {
   damageAttributes,
@@ -87,6 +87,64 @@ function WeaponListSettings({
   onAttributeSolverChanged,
 }: Props) {
   const debouncedOnAttributeSolverChanged = debounce(onAttributeSolverChanged, 300);
+
+  const handleChangeStartingClass = useCallback(
+    (startingClass: StartingClass) => onStartingClassChanged(startingClass),
+    [onStartingClassChanged],
+  );
+
+  const handleChangeUpgradeLevel = useCallback(
+    (upgradeLevel: number) => onUpgradeLevelChanged(upgradeLevel),
+    [onUpgradeLevelChanged],
+  );
+
+  const handleChangeLevel = useCallback(
+    (newValue: number) => debouncedOnAttributeSolverChanged("lvl", newValue),
+    [debouncedOnAttributeSolverChanged],
+  );
+
+  const handleChangeAttribute = useCallback(
+    (attribute: NonDamageAttribute, newValue: number) =>
+      debouncedOnAttributeSolverChanged(attribute, newValue),
+    [debouncedOnAttributeSolverChanged],
+  );
+
+  const handleChangeAttributeRange = useCallback(
+    (attribute: AttributeSolverKey, newValue: number) =>
+      debouncedOnAttributeSolverChanged(attribute, newValue),
+    [debouncedOnAttributeSolverChanged],
+  );
+
+  const handleChangeEndurance = useCallback(
+    (newValue: number) => {
+      debouncedOnAttributeSolverChanged("end", newValue);
+      const maxWeight = getMaxWeightForEndurance(newValue, rollType);
+      onArmorWeightChanged(maxWeight);
+    },
+    [debouncedOnAttributeSolverChanged, rollType, onArmorWeightChanged],
+  );
+
+  const handleChangeRollType = useCallback(
+    (rollType: SolvedAttributeState["rollType"]) => onRollTypeChanged(rollType),
+    [onRollTypeChanged],
+  );
+
+  const handleChangeArmorWeight = useCallback(
+    (newValue: number) => onArmorWeightChanged(newValue),
+    [onArmorWeightChanged],
+  );
+
+  const handleChangeTwoHanding = useCallback(
+    (twoHanding: boolean) => onTwoHandingChanged(twoHanding),
+    [onTwoHandingChanged],
+  );
+
+  const handleChangeWeaponAdjustedEndurance = useCallback(
+    (adjustEnduranceForWeapon: boolean) =>
+      onWeaponAdjustedEnduranceChanged(adjustEnduranceForWeapon),
+    [onWeaponAdjustedEnduranceChanged],
+  );
+
   return (
     <Box
       sx={() => ({
@@ -96,11 +154,14 @@ function WeaponListSettings({
         gridAutoRows: "auto",
       })}
     >
-      <ClassPicker onStartingClassChanged={onStartingClassChanged} startingClass={startingClass} />
+      <ClassPicker
+        onStartingClassChanged={handleChangeStartingClass}
+        startingClass={startingClass}
+      />
       <WeaponLevelInput
         upgradeLevel={upgradeLevel}
         maxUpgradeLevel={maxUpgradeLevel}
-        onUpgradeLevelChanged={onUpgradeLevelChanged}
+        onUpgradeLevelChanged={handleChangeUpgradeLevel}
       />
       <NumberTextField
         label={"Level"}
@@ -109,7 +170,7 @@ function WeaponListSettings({
         value={solverAttributes.lvl}
         min={1}
         max={713}
-        onChange={(newValue) => debouncedOnAttributeSolverChanged("lvl", newValue)}
+        onChange={handleChangeLevel}
       />
       {(["vig", "min"] as NonDamageAttribute[]).map((attribute) => (
         <NumberTextField
@@ -120,7 +181,7 @@ function WeaponListSettings({
           value={solverAttributes[attribute]}
           min={INITIAL_CLASS_VALUES[startingClass][attribute]}
           max={99}
-          onChange={(newValue) => debouncedOnAttributeSolverChanged(attribute, newValue)}
+          onChange={(newValue) => handleChangeAttribute(attribute, newValue)}
         />
       ))}
 
@@ -132,21 +193,12 @@ function WeaponListSettings({
               key={rangeKey}
               attribute={attribute}
               value={solverAttributes[rangeKey]}
-              onAttributeChanged={debouncedOnAttributeSolverChanged}
+              onAttributeChanged={handleChangeAttributeRange}
               bounds={bounds}
             />
           );
         }),
       )}
-      {/*
-      This isn't super useful, most of the time you are trying to optimize for the highest AP for a weapon.
-      Changing this doesn't give very insightful information - i.e. if lighting type is chosen to optimize, it will give 99 in Dex first.
-      <OptimizedDamageTypePicker
-        onOptimizedDamageTypeChanged={onOptimizedDamageTypeChanged}
-        optimizedDamageType={damageTypeToOptimizeFor}
-      />
-      */}
-
       <NumberTextField
         label={getAttributeLabel("end")}
         size="small"
@@ -154,13 +206,9 @@ function WeaponListSettings({
         value={solverAttributes.end}
         min={INITIAL_CLASS_VALUES[startingClass].end}
         max={99}
-        onChange={(newValue) => {
-          debouncedOnAttributeSolverChanged("end", newValue);
-          const maxWeight = getMaxWeightForEndurance(newValue, rollType);
-          onArmorWeightChanged(maxWeight);
-        }}
+        onChange={handleChangeEndurance}
       />
-      <RollTypePicker onRollTypeChanged={onRollTypeChanged} rollType={rollType} />
+      <RollTypePicker onRollTypeChanged={handleChangeRollType} rollType={rollType} />
       <NumberTextField
         label={"Max Armor Weight"}
         size="small"
@@ -168,13 +216,13 @@ function WeaponListSettings({
         value={armorWeight}
         min={0}
         max={200}
-        onChange={(newValue) => onArmorWeightChanged(newValue)}
+        onChange={handleChangeArmorWeight}
       />
-      <BooleanInput label="Two handing" checked={twoHanding} onChange={onTwoHandingChanged} />
+      <BooleanInput label="Two handing" checked={twoHanding} onChange={handleChangeTwoHanding} />
       <BooleanInput
         label="Subtract weapon weight from endurance"
         checked={adjustEnduranceForWeapon}
-        onChange={onWeaponAdjustedEnduranceChanged}
+        onChange={handleChangeWeaponAdjustedEndurance}
       />
     </Box>
   );

@@ -6,10 +6,8 @@
  * power changes.
  */
 import { memo } from "react";
-import { Box, IconButton, Link, Typography } from "@mui/material";
+import { Box, Link, Typography } from "@mui/material";
 import RemoveIcon from "@mui/icons-material/Remove";
-import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
-import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
 import { type Weapon, type DamageAttribute } from "../../calculator/calculator";
 import { getAttributeLabel } from "../uiUtils";
 
@@ -29,13 +27,9 @@ export function round(value: number) {
 export const WeaponNameRenderer = memo(function WeaponNameRenderer({
   weapon,
   upgradeLevel,
-  isExpanded,
-  toggleIsExpanded,
 }: {
   weapon: Weapon;
   upgradeLevel: number;
-  isExpanded: boolean;
-  toggleIsExpanded: () => void;
 }) {
   const text = `${weapon.name}${upgradeLevel > 0 ? ` +${upgradeLevel}` : ""}`;
   const weaponName = weapon.url ? (
@@ -53,9 +47,6 @@ export const WeaponNameRenderer = memo(function WeaponNameRenderer({
   );
   return (
     <Box>
-      <IconButton aria-label="see scaling data" size="small" onClick={toggleIsExpanded}>
-        {isExpanded ? <ArrowDropUpIcon /> : <ArrowDropDownIcon />}
-      </IconButton>
       {weaponName}
       {weapon.variant && (
         <Typography component="span" variant="body2">

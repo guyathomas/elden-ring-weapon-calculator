@@ -37,14 +37,7 @@ const nameColumn: FixedAttributeTableColumnDef = {
     justifyContent: "start",
   },
   render({ weapon, weaponAttackData: { normalizedUpgradeLevel } }) {
-    return (
-      <WeaponNameRenderer
-        weapon={weapon}
-        upgradeLevel={normalizedUpgradeLevel}
-        isExpanded={false} // TODO: implement this
-        toggleIsExpanded={() => undefined} // TODO: implement this
-      />
-    );
+    return <WeaponNameRenderer weapon={weapon} upgradeLevel={normalizedUpgradeLevel} />;
   },
 };
 

@@ -116,9 +116,8 @@ function WeaponTable({
     twoHanding,
     upgradeLevel,
     groupWeaponTypes,
-    optimalAttributes,
+    optimalAttributes: {},
   });
-
   const columns = useMemo(
     () =>
       getOptimalAttributeColumns({

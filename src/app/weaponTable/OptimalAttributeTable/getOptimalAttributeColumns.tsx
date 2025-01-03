@@ -39,8 +39,6 @@ const nameColumn: OptimalAttributeTableColumnDef = {
       <WeaponNameRenderer
         weapon={weapon}
         upgradeLevel={9} // TODO: Update this
-        isExpanded={false} // TODO: Update this
-        toggleIsExpanded={() => undefined} // TODO: Update this
       />
     );
   },

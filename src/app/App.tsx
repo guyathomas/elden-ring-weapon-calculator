@@ -16,7 +16,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBackRounded";
 import WeaponListSettings from "./FixedTableWeaponListSetting";
 import FixedWeaponTable from "./weaponTable/FixedAttributeTable/FixedAttributeTable";
 import theme from "./theme";
-import regulationVersions from "./regulationVersions";
+import regulationVersions, { type RegulationVersionName } from "./regulationVersions";
 import useWeapons from "./useWeapons";
 import { useAppState } from "./reducers/useAppState";
 import { useFixedAttributeState } from "./reducers/useFixedAttributeState";
@@ -24,7 +24,7 @@ import { useSolvedAttributeState } from "./reducers/useSolvedAttributeState";
 import AppBar from "./AppBar";
 import RegulationVersionPicker from "./RegulationVersionPicker";
 import WeaponTypePicker from "./WeaponTypePicker";
-import WeaponPicker, { makeWeaponOptionsFromWeapon } from "./WeaponPicker";
+import WeaponPicker, { makeWeaponOptionsFromWeapon, type WeaponOption } from "./WeaponPicker";
 import AffinityPicker from "./AffinityPicker";
 import Footer from "./Footer";
 import MiscFilterPicker from "./MiscFilterPicker";
@@ -34,6 +34,9 @@ import { INITIAL_CLASS_VALUES, type StartingClass } from "./ClassPicker";
 import type { Weapon } from "../calculator/weapon";
 import SolvedTableWeaponListSettings from "./SolvedTableWeaponListSettings";
 import SolverWeaponTable from "./weaponTable/OptimalAttributeTable/OptimalAttributeTable";
+import type { WeaponType } from "../calculator/weaponTypes";
+import type { AllAttributeAndLevel } from "../calculator/attributes";
+import type { RollType } from "./RollTypePicker";
 
 const useMenuState = () => {
   const theme = useTheme();
@@ -169,52 +172,99 @@ export default function App() {
     return makeWeaponOptionsFromWeapon(dedupedWeaponsByWeaponName);
   }, [weapons, includeDLC]);
 
+  const handleRegulationVersionNameChanged = useCallback(
+    (regulationVersionName: RegulationVersionName) => {
+      dispatchAppState({ type: "setRegulationVersionName", payload: regulationVersionName });
+    },
+    [dispatchAppState],
+  );
+
+  const handleIncludeDLCChanged = useCallback(
+    (includeDLC: boolean) => {
+      dispatchAppState({ type: "setIncludeDLC", payload: includeDLC });
+    },
+    [dispatchAppState],
+  );
+
+  const handleEffectiveOnlyChanged = useCallback(
+    (effectiveOnly: boolean) => {
+      dispatchAppState({ type: "setEffectiveOnly", payload: effectiveOnly });
+    },
+    [dispatchAppState],
+  );
+
+  const handleSelectedWeaponsChanged = useCallback(
+    (selectedWeapons: WeaponOption[]) => {
+      dispatchAppState({ type: "setSelectedWeapons", payload: selectedWeapons });
+    },
+    [dispatchAppState],
+  );
+
+  const handleAffinityIdsChanged = useCallback(
+    (affinityIds: readonly number[]) => {
+      dispatchAppState({ type: "setAffinityIds", payload: affinityIds });
+    },
+    [dispatchAppState],
+  );
+
+  const handleWeaponTypesChanged = useCallback(
+    (weaponTypes: WeaponType[]) => {
+      dispatchAppState({ type: "setWeaponTypes", payload: weaponTypes });
+    },
+    [dispatchAppState],
+  );
+
+  const handleGroupWeaponTypesChanged = useCallback(
+    (groupWeaponTypesChanged: boolean) => {
+      dispatchAppState({
+        type: "setGroupWeaponTypes",
+        payload: groupWeaponTypesChanged,
+      });
+    },
+    [dispatchAppState],
+  );
+
+  const handleOnAttributeChanges = useCallback(
+    (attribute: AllAttributeAndLevel, value: number) => {
+      dispatchFixedAttributeState({
+        type: "setAttributes",
+        payload: {
+          [attribute]: value,
+        },
+      });
+    },
+    [dispatchFixedAttributeState],
+  );
+
   const drawerContent = (
     <>
       <RegulationVersionPicker
         regulationVersionName={regulationVersionName}
-        onRegulationVersionNameChanged={(regulationVersionName) => {
-          dispatchAppState({ type: "setRegulationVersionName", payload: regulationVersionName });
-        }}
+        onRegulationVersionNameChanged={handleRegulationVersionNameChanged}
       />
       <MiscFilterPicker
         showIncludeDLC={showIncludeDLC}
         includeDLC={includeDLC}
         effectiveOnly={effectiveOnly}
-        onIncludeDLCChanged={(includeDLC) => {
-          dispatchAppState({ type: "setIncludeDLC", payload: includeDLC });
-        }}
-        onEffectiveOnlyChanged={(effectiveOnly) => {
-          dispatchAppState({ type: "setEffectiveOnly", payload: effectiveOnly });
-        }}
+        onIncludeDLCChanged={handleIncludeDLCChanged}
+        onEffectiveOnlyChanged={handleEffectiveOnlyChanged}
       />
       <WeaponPicker
         selectedWeapons={selectedWeapons}
-        onSelectedWeaponsChanged={(selectedWeapons) => {
-          dispatchAppState({ type: "setSelectedWeapons", payload: selectedWeapons });
-        }}
+        onSelectedWeaponsChanged={handleSelectedWeaponsChanged}
         weaponOptions={weaponPickerOptions}
       />
       <AffinityPicker
         affinityOptions={regulationVersion.affinityOptions}
         selectedAffinityIds={affinityIds}
-        onAffinityIdsChanged={(affinityIds) => {
-          dispatchAppState({ type: "setAffinityIds", payload: affinityIds });
-        }}
+        onAffinityIdsChanged={handleAffinityIdsChanged}
       />
       <WeaponTypePicker
         includeDLCWeaponTypes={includeDLCWeaponTypes}
         weaponTypes={weaponTypes}
         groupWeaponTypes={groupWeaponTypes}
-        onWeaponTypesChanged={(weaponTypes) => {
-          dispatchAppState({ type: "setWeaponTypes", payload: weaponTypes });
-        }}
-        onGroupWeaponTypesChanged={(groupWeaponTypesChanged) => {
-          dispatchAppState({
-            type: "setGroupWeaponTypes",
-            payload: groupWeaponTypesChanged,
-          });
-        }}
+        onWeaponTypesChanged={handleWeaponTypesChanged}
+        onGroupWeaponTypesChanged={handleGroupWeaponTypesChanged}
       />
     </>
   );
@@ -256,6 +306,93 @@ export default function App() {
       dispatchSolvedAttributeState,
       solverAttributes,
     ],
+  );
+
+  const handleChangeTwoHanding = useCallback(
+    (twoHandingChanged: boolean) => {
+      dispatchAppState({ type: "setTwoHanding", payload: twoHandingChanged });
+    },
+    [dispatchAppState],
+  );
+
+  const handleChangeUpgradeLevel = useCallback(
+    (upgradeLevelChanged: number) => {
+      dispatchAppState({ type: "setUpgradeLevel", payload: upgradeLevelChanged });
+    },
+    [dispatchAppState],
+  );
+
+  const handleChangeSplitDamage = useCallback(
+    (splitDamageChanged: boolean) => {
+      dispatchFixedAttributeState({
+        type: "setSplitDamage",
+        payload: splitDamageChanged,
+      });
+    },
+    [dispatchFixedAttributeState],
+  );
+
+  const handleChangeNumericalScaling = useCallback(
+    (numericalScalingChanged: boolean) => {
+      dispatchFixedAttributeState({
+        type: "setNumericalScaling",
+        payload: numericalScalingChanged,
+      });
+    },
+    [dispatchFixedAttributeState],
+  );
+
+  const handleChangeRollType = useCallback(
+    (rollType: RollType) => {
+      dispatchSolvedAttributeState({ type: "setRollType", payload: rollType });
+      const endurance = getEnduranceForWeight(armorWeight, rollType);
+      dispatchSolvedAttributeState({
+        type: "setSolverAttributes",
+        payload: {
+          end: Math.max(endurance, INITIAL_CLASS_VALUES[startingClass].end),
+        },
+      });
+    },
+    [armorWeight, dispatchSolvedAttributeState, startingClass],
+  );
+
+  const handleChangeArmorWeight = useCallback(
+    (weight: number) => {
+      dispatchSolvedAttributeState({
+        type: "setArmorWeight",
+        payload: weight,
+      });
+      const endurance = getEnduranceForWeight(weight, rollType);
+      dispatchSolvedAttributeState({
+        type: "setSolverAttributes",
+        payload: {
+          end: Math.max(endurance, INITIAL_CLASS_VALUES[startingClass].end),
+        },
+      });
+    },
+    [dispatchSolvedAttributeState, rollType, startingClass],
+  );
+
+  const handleChangeAttributeSolver = useCallback(
+    (attributeChanged: string, attributeValue: number) => {
+      dispatchSolvedAttributeState({
+        type: "setSolverAttributes",
+        payload: {
+          [attributeChanged]: attributeValue,
+        },
+      });
+    },
+    [dispatchSolvedAttributeState],
+  );
+
+  const handleChangeWeaponAdjustedEndurance = useCallback(
+    (weaponAdjustedEnduranceChanged: boolean) => {
+      dispatchSolvedAttributeState({
+        type: "setAdjustEnduranceForWeapon",
+        payload: weaponAdjustedEnduranceChanged,
+      });
+    },
+    [dispatchSolvedAttributeState],
   );
 
   return (
@@ -346,32 +483,11 @@ export default function App() {
                 numericalScaling={numericalScaling}
                 onStartingClassChanged={handleStartingClassChanged}
                 startingClass={startingClass}
-                onAttributeChanged={(attributeChanged, attributeValue) => {
-                  dispatchFixedAttributeState({
-                    type: "setAttributes",
-                    payload: {
-                      [attributeChanged]: attributeValue,
-                    },
-                  });
-                }}
-                onTwoHandingChanged={(twoHandingChanged) => {
-                  dispatchAppState({ type: "setTwoHanding", payload: twoHandingChanged });
-                }}
-                onUpgradeLevelChanged={(upgradeLevelChanged) => {
-                  dispatchAppState({ type: "setUpgradeLevel", payload: upgradeLevelChanged });
-                }}
-                onSplitDamageChanged={(splitDamageChanged) => {
-                  dispatchFixedAttributeState({
-                    type: "setSplitDamage",
-                    payload: splitDamageChanged,
-                  });
-                }}
-                onNumericalScalingChanged={(numericalScalingChanged) => {
-                  dispatchFixedAttributeState({
-                    type: "setNumericalScaling",
-                    payload: numericalScalingChanged,
-                  });
-                }}
+                onAttributeChanged={handleOnAttributeChanges}
+                onTwoHandingChanged={handleChangeTwoHanding}
+                onUpgradeLevelChanged={handleChangeUpgradeLevel}
+                onSplitDamageChanged={handleChangeSplitDamage}
+                onNumericalScalingChanged={handleChangeNumericalScaling}
               />
               <FixedWeaponTable
                 weapons={filteredWeapons}
@@ -397,50 +513,13 @@ export default function App() {
                 onStartingClassChanged={handleStartingClassChanged}
                 startingClass={startingClass}
                 rollType={rollType}
-                onRollTypeChanged={(rollType) => {
-                  dispatchSolvedAttributeState({ type: "setRollType", payload: rollType });
-                  const endurance = getEnduranceForWeight(armorWeight, rollType);
-                  dispatchSolvedAttributeState({
-                    type: "setSolverAttributes",
-                    payload: {
-                      end: Math.max(endurance, INITIAL_CLASS_VALUES[startingClass].end),
-                    },
-                  });
-                }}
+                onRollTypeChanged={handleChangeRollType}
                 armorWeight={armorWeight}
-                onArmorWeightChanged={(weight) => {
-                  dispatchSolvedAttributeState({
-                    type: "setArmorWeight",
-                    payload: weight,
-                  });
-                  const endurance = getEnduranceForWeight(weight, rollType);
-                  dispatchSolvedAttributeState({
-                    type: "setSolverAttributes",
-                    payload: {
-                      end: Math.max(endurance, INITIAL_CLASS_VALUES[startingClass].end),
-                    },
-                  });
-                }}
-                onAttributeSolverChanged={(attributeChanged, attributeValue) => {
-                  dispatchSolvedAttributeState({
-                    type: "setSolverAttributes",
-                    payload: {
-                      [attributeChanged]: attributeValue,
-                    },
-                  });
-                }}
-                onTwoHandingChanged={(twoHandingChanged) => {
-                  dispatchAppState({ type: "setTwoHanding", payload: twoHandingChanged });
-                }}
-                onUpgradeLevelChanged={(upgradeLevelChanged) => {
-                  dispatchAppState({ type: "setUpgradeLevel", payload: upgradeLevelChanged });
-                }}
-                onWeaponAdjustedEnduranceChanged={(weaponAdjustedEnduranceChanged) => {
-                  dispatchSolvedAttributeState({
-                    type: "setAdjustEnduranceForWeapon",
-                    payload: weaponAdjustedEnduranceChanged,
-                  });
-                }}
+                onArmorWeightChanged={handleChangeArmorWeight}
+                onAttributeSolverChanged={handleChangeAttributeSolver}
+                onTwoHandingChanged={handleChangeTwoHanding}
+                onUpgradeLevelChanged={handleChangeUpgradeLevel}
+                onWeaponAdjustedEnduranceChanged={handleChangeWeaponAdjustedEndurance}
               />
               <SolverWeaponTable
                 weapons={filteredWeapons}
