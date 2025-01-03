@@ -21,8 +21,8 @@ export type FixedAttributeTableRowData = {
   weapon: Weapon;
   weaponAttackData: WeaponAttackResult & {
     efficiencyScore: number;
-    normalizedUpgradeLevel: number;
   };
+  upgradeLevel: number;
 };
 
 export type FixedAttributeTableColumnDef = WeaponTableColumnDef<FixedAttributeTableRowData>;

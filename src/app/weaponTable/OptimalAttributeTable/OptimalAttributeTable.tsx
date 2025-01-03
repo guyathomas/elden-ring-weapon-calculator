@@ -19,7 +19,11 @@ import {
 const OFFSET = 0;
 const LIMIT = 200;
 
-export type OptimalAttributeTableRowData = { weapon: Weapon; optimalAttributes: OptimalAttribute };
+export type OptimalAttributeTableRowData = {
+  weapon: Weapon;
+  optimalAttributes: OptimalAttribute;
+  upgradeLevel: number;
+};
 
 export type OptimalAttributeTableColumnDef = WeaponTableColumnDef<OptimalAttributeTableRowData>;
 export type OptimalAttributeTableColumnGroupDef =

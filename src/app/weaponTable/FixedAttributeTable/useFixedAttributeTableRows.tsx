@@ -94,7 +94,6 @@ const useFixedAttributeTableRows = ({
 
         const fixedWeaponAttackResult: FixedAttributeTableRowData["weaponAttackData"] = {
           ...weaponAttackResult,
-          normalizedUpgradeLevel, // TODO: Uncomment this
           efficiencyScore: Math.round(
             100 *
               (sumObjectValues(weaponAttackResult.attackPower) /
@@ -104,6 +103,7 @@ const useFixedAttributeTableRows = ({
         return {
           weapon,
           weaponAttackData: fixedWeaponAttackResult,
+          upgradeLevel: normalizedUpgradeLevel,
         };
       }),
     [

@@ -10,7 +10,11 @@ import {
   Toolbar,
   useMediaQuery,
   useTheme,
+  Tab,
+  Tabs,
   type Theme,
+  ButtonGroup,
+  Button,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBackRounded";
 import WeaponListSettings from "./FixedTableWeaponListSetting";
@@ -111,10 +115,11 @@ function RegulationVersionAlert({ children }: { children: ReactNode }) {
     </Alert>
   );
 }
+type TableView = "fixed" | "solver";
 
 export default function App() {
   const { isMobile, menuOpen, menuOpenMobile, onMenuOpenChanged } = useMenuState();
-  const [tableView, setTableView] = useState<"fixed" | "solver">("solver"); // TODO: Add different table views
+  const [tableView, setTableView] = useState<TableView>("fixed");
   const {
     state: {
       regulationVersionName,
@@ -236,8 +241,19 @@ export default function App() {
     [dispatchFixedAttributeState],
   );
 
+  const handleSetTableView = useCallback(
+    (event: React.SyntheticEvent, newValue: TableView) => setTableView(newValue),
+    [setTableView],
+  );
+
   const drawerContent = (
     <>
+      <Box mb={2}>
+        <Tabs variant="fullWidth" value={tableView} onChange={handleSetTableView}>
+          <Tab value={"fixed"} label="Fixed Attributes" />
+          <Tab value={"solver"} label="Attribute Solver" />
+        </Tabs>
+      </Box>
       <RegulationVersionPicker
         regulationVersionName={regulationVersionName}
         onRegulationVersionNameChanged={handleRegulationVersionNameChanged}

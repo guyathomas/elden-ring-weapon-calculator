@@ -5,12 +5,16 @@ import {
   type Weapon,
 } from "../../../calculator/calculator";
 import { type RegulationVersion } from "../../regulationVersions";
-import { allWeaponTypes, weaponTypeLabels } from "../../uiUtils";
+import { allWeaponTypes, getNormalizedUpgradeLevel, weaponTypeLabels } from "../../uiUtils";
 import type { OptimalAttribute, OptimalAttributesMap } from "./useOptimalAttributes";
 import { sortSolverWeapons, type SortBy } from "./sortOptimalWeapons";
 import type { OptimalAttributeTableRowGroup } from "./OptimalAttributeTable";
 
-type SolverWeaponTableData = { weapon: Weapon; optimalAttributes: OptimalAttribute };
+type SolverWeaponTableData = {
+  weapon: Weapon;
+  optimalAttributes: OptimalAttribute;
+  upgradeLevel: number;
+};
 
 interface WeaponTableRowsOptions {
   weapons: readonly Weapon[];
@@ -45,6 +49,7 @@ const useWeaponSolverRows = ({
   sortBy,
   reverse,
   optimalAttributes,
+  upgradeLevel,
 }: WeaponTableRowsOptions): WeaponTableRowsResult => {
   const hasSpellScaling = weapons.some((weapon) => weapon.sorceryTool || weapon.incantationTool);
   const rows = useMemo<SolverWeaponTableData[]>(
@@ -52,10 +57,11 @@ const useWeaponSolverRows = ({
       weapons.map(
         (weapon): SolverWeaponTableData => ({
           weapon,
+          upgradeLevel: getNormalizedUpgradeLevel(weapon, upgradeLevel),
           optimalAttributes: optimalAttributes[weapon.name] ?? {},
         }),
       ),
-    [weapons, optimalAttributes],
+    [weapons, optimalAttributes, upgradeLevel],
   );
 
   const rowGroups = useMemo<OptimalAttributeTableRowGroup[]>(() => {

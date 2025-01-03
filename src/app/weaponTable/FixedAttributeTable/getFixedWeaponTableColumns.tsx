@@ -36,8 +36,8 @@ const nameColumn: FixedAttributeTableColumnDef = {
   sx: {
     justifyContent: "start",
   },
-  render({ weapon, weaponAttackData: { normalizedUpgradeLevel } }) {
-    return <WeaponNameRenderer weapon={weapon} upgradeLevel={normalizedUpgradeLevel} />;
+  render({ weapon, upgradeLevel }) {
+    return <WeaponNameRenderer weapon={weapon} upgradeLevel={upgradeLevel} />;
   },
 };
 
@@ -179,14 +179,8 @@ const scalingColumns: FixedAttributeTableColumnDef[] = damageAttributes.map((att
       {getShortAttributeLabel(attribute)}
     </Typography>
   ),
-  render({ weapon, weaponAttackData: { normalizedUpgradeLevel } }) {
-    return (
-      <ScalingRenderer
-        weapon={weapon}
-        upgradeLevel={normalizedUpgradeLevel}
-        attribute={attribute}
-      />
-    );
+  render({ weapon, upgradeLevel }) {
+    return <ScalingRenderer weapon={weapon} upgradeLevel={upgradeLevel} attribute={attribute} />;
   },
 }));
 
@@ -203,11 +197,11 @@ const numericalScalingColumns: FixedAttributeTableColumnDef[] = damageAttributes
         {getShortAttributeLabel(attribute)}
       </Typography>
     ),
-    render({ weapon, weaponAttackData: { normalizedUpgradeLevel } }) {
+    render({ weapon, upgradeLevel }) {
       return (
         <ScalingRenderer
           weapon={weapon}
-          upgradeLevel={normalizedUpgradeLevel}
+          upgradeLevel={upgradeLevel}
           attribute={attribute}
           numerical
         />

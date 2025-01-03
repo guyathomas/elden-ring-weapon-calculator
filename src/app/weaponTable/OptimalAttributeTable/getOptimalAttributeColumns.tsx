@@ -15,7 +15,6 @@ import type {
   OptimalAttributeTableColumnDef,
   OptimalAttributeTableColumnGroupDef,
 } from "./OptimalAttributeTable";
-// import type { OptimalAttributeTableColumnDef, OptimalAttributeTableColumnGroupDef } from "./FixedWeaponTable";
 import {
   WeaponNameRenderer,
   AttackPowerRenderer,
@@ -34,13 +33,8 @@ const nameColumn: OptimalAttributeTableColumnDef = {
   sx: {
     justifyContent: "start",
   },
-  render({ weapon }) {
-    return (
-      <WeaponNameRenderer
-        weapon={weapon}
-        upgradeLevel={9} // TODO: Update this
-      />
-    );
+  render({ weapon, upgradeLevel }) {
+    return <WeaponNameRenderer weapon={weapon} upgradeLevel={upgradeLevel} />;
   },
 };
 

@@ -1,4 +1,4 @@
-import { Box, Checkbox, FormControlLabel, Typography } from "@mui/material";
+import { Box, Checkbox, Divider, FormControlLabel, Typography } from "@mui/material";
 import { memo } from "react";
 import { WeaponType } from "../calculator/calculator";
 import {
@@ -98,13 +98,14 @@ function WeaponTypePicker({
       <Typography component="h2" variant="h6" sx={{ mb: 1 }}>
         Weapon Type
       </Typography>
-      <Box marginTop={-1} borderBottom={1} sx={{ borderColor: "divider" }}>
+      <Box>
         <BooleanInput
           label="Group table by type"
           checked={groupWeaponTypes}
           onChange={onGroupWeaponTypesChanged}
         />
       </Box>
+      <Divider />
       {renderWeaponCategory("Melee Weapons", meleeWeaponTypes)}
       <Box sx={{ ml: 3 }}>{meleeWeaponTypes.map(renderWeaponType)}</Box>
 
