@@ -52,11 +52,6 @@ interface Props {
   weapons: readonly Weapon[];
 
   /**
-   * The regulation version of the game.
-   */
-  regulationVersion: RegulationVersion;
-
-  /**
    * Indicates if the player is two-handing the weapon.
    */
   twoHanding: AppState["twoHanding"];
@@ -70,11 +65,6 @@ interface Props {
    * Indicates if the weapons should be grouped by their types.
    */
   groupWeaponTypes: AppState["groupWeaponTypes"];
-
-  /**
-   * The attributes of the character.
-   */
-  attributes: FixedAttributeState["attributes"];
 
   /**
    * The solver attributes of the character.
@@ -111,11 +101,9 @@ function WeaponTable({
   isWeaponsLoading,
   weaponsError,
   weapons,
-  regulationVersion,
   twoHanding,
   upgradeLevel,
   groupWeaponTypes,
-  attributes,
   solverAttributes,
   startingClass,
   adjustEnduranceForWeapon,
@@ -138,14 +126,10 @@ function WeaponTable({
 
   const { rows, hasSpellScaling } = useWeaponSolverRows({
     weapons,
-    regulationVersion,
     offset: OFFSET,
     limit: LIMIT,
     sortBy,
     reverse,
-    maxUpgradeLevel: regulationVersion.maxUpgradeLevel || maxRegularUpgradeLevel,
-    attributes,
-    twoHanding,
     upgradeLevel,
     groupWeaponTypes,
     optimalAttributes,

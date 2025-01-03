@@ -214,6 +214,12 @@ function WeaponListSettings({
           );
         }),
       )}
+      <BooleanInput label="Two handing" checked={twoHanding} onChange={handleChangeTwoHanding} />
+      <BooleanInput
+        label="Adjust Endurance"
+        checked={adjustEnduranceForWeapon}
+        onChange={handleChangeWeaponAdjustedEndurance}
+      />
       <NumberTextField
         label={getAttributeLabel("end")}
         size="small"
@@ -223,22 +229,20 @@ function WeaponListSettings({
         max={99}
         onChange={handleChangeEndurance}
       />
-      <RollTypePicker onRollTypeChanged={handleChangeRollType} rollType={rollType} />
-      <NumberTextField
-        label={"Max Armor Weight"}
-        size="small"
-        variant="outlined"
-        value={armorWeight}
-        min={0}
-        max={200}
-        onChange={handleChangeArmorWeight}
-      />
-      <BooleanInput label="Two handing" checked={twoHanding} onChange={handleChangeTwoHanding} />
-      <BooleanInput
-        label="Adjust Endurance"
-        checked={adjustEnduranceForWeapon}
-        onChange={handleChangeWeaponAdjustedEndurance}
-      />
+      {adjustEnduranceForWeapon && (
+        <>
+          <RollTypePicker onRollTypeChanged={handleChangeRollType} rollType={rollType} />
+          <NumberTextField
+            label={"Max Armor Weight"}
+            size="small"
+            variant="outlined"
+            value={armorWeight}
+            min={0}
+            max={200}
+            onChange={handleChangeArmorWeight}
+          />
+        </>
+      )}
     </Box>
   );
 }
