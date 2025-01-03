@@ -6,15 +6,11 @@ import {
 } from "../../../calculator/calculator";
 import { type RegulationVersion } from "../../regulationVersions";
 import { allWeaponTypes, getNormalizedUpgradeLevel, weaponTypeLabels } from "../../uiUtils";
-import type { OptimalAttribute, OptimalAttributesMap } from "./useOptimalAttributes";
+import type { OptimalAttributesMap } from "./useOptimalAttributes";
 import { sortSolverWeapons, type SortBy } from "./sortOptimalWeapons";
 import type { OptimalAttributeTableRowGroup } from "./OptimalAttributeTable";
-
-type SolverWeaponTableData = {
-  weapon: Weapon;
-  optimalAttributes: OptimalAttribute;
-  upgradeLevel: number;
-};
+import { INITIAL_CLASS_VALUES, type StartingClass } from "../../ClassPicker";
+import type { OptimalAttributeTableRowData } from "./OptimalAttributeTable";
 
 interface WeaponTableRowsOptions {
   weapons: readonly Weapon[];
@@ -29,6 +25,7 @@ interface WeaponTableRowsOptions {
   groupWeaponTypes: boolean;
   maxUpgradeLevel: number;
   optimalAttributes: OptimalAttributesMap;
+  startingClass: StartingClass;
 }
 
 interface WeaponTableRowsResult {
@@ -50,26 +47,31 @@ const useWeaponSolverRows = ({
   reverse,
   optimalAttributes,
   upgradeLevel,
+  startingClass,
 }: WeaponTableRowsOptions): WeaponTableRowsResult => {
   const hasSpellScaling = weapons.some((weapon) => weapon.sorceryTool || weapon.incantationTool);
-  const rows = useMemo<SolverWeaponTableData[]>(
+  const rows = useMemo<OptimalAttributeTableRowData[]>(
     () =>
       weapons.map(
-        (weapon): SolverWeaponTableData => ({
+        (weapon): OptimalAttributeTableRowData => ({
           weapon,
           upgradeLevel: getNormalizedUpgradeLevel(weapon, upgradeLevel),
           optimalAttributes: optimalAttributes[weapon.name] ?? {},
+          startingClassAttributes: INITIAL_CLASS_VALUES[startingClass],
         }),
       ),
-    [weapons, optimalAttributes, upgradeLevel],
+    [weapons, optimalAttributes, upgradeLevel, startingClass],
   );
 
   const rowGroups = useMemo<OptimalAttributeTableRowGroup[]>(() => {
     if (groupWeaponTypes) {
-      const rowsByWeaponType: Map<WeaponType, SolverWeaponTableData[]> = rows.reduce((acc, row) => {
-        const rowsForWeaponType = acc.get(row.weapon.weaponType) ?? [];
-        return acc.set(row.weapon.weaponType, [...rowsForWeaponType, row]);
-      }, new Map());
+      const rowsByWeaponType: Map<WeaponType, OptimalAttributeTableRowData[]> = rows.reduce(
+        (acc, row) => {
+          const rowsForWeaponType = acc.get(row.weapon.weaponType) ?? [];
+          return acc.set(row.weapon.weaponType, [...rowsForWeaponType, row]);
+        },
+        new Map(),
+      );
 
       return allWeaponTypes.reduce((acc, weaponType) => {
         const weaponsForType = rowsByWeaponType.get(weaponType);

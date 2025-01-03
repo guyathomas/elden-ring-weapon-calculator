@@ -14,7 +14,7 @@ export type StartingClass =
   | "Prophet"
   | "Samurai";
 
-type AllStartingClassAttributes = DamageAttribute | NonDamageAttribute | "lvl" | "total";
+export type AllStartingClassAttributes = DamageAttribute | NonDamageAttribute | "lvl" | "total";
 
 export const INITIAL_CLASS_VALUES: Record<
   StartingClass,

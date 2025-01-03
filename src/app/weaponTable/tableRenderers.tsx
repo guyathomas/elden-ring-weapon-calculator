@@ -118,15 +118,8 @@ export const AttributeRequirementRenderer = memo(function AttributeRequirementRe
 export const OptimizedAttributeRenderer = memo(function AttributeRequirementRenderer({
   value,
 }: {
-  value?: number;
+  value: number;
 }) {
-  // TODO: Include this logic in the caller of this renderer so that value is undefined and will render the blankIcon
-  // const startingClassStats = INITIAL_CLASS_VALUES[startingClass];
-  // if (value === 0 || (attribute && value <= startingClassStats[attribute])) {
-  //   // Don't show any values when they are just the minimum class values
-  //   return blankIcon;
-  // }
-  if (typeof value === "undefined") return blankIcon; // Loading or spell power for non spell weapon
   const attributeValue = Math.floor(value);
 
   return (

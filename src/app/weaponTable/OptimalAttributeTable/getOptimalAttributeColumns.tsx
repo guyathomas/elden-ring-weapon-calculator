@@ -20,6 +20,7 @@ import {
   AttackPowerRenderer,
   OptimizedAttributeRenderer,
   OptimizedEnduranceRenderer,
+  blankIcon,
 } from "../tableRenderers";
 
 const nameColumn: OptimalAttributeTableColumnDef = {
@@ -77,13 +78,18 @@ const optimizedAPColumns: OptimalAttributeTableColumnDef[] = damageAttributes.ma
         {getShortAttributeLabel(attribute)}
       </Typography>
     ),
-    render({ optimalAttributes }) {
-      return (
-        <OptimizedAttributeRenderer
-          key={attribute}
-          value={optimalAttributes?.attackPower?.optimalAttributes[attribute]}
-        />
-      );
+    render({ optimalAttributes, startingClassAttributes, weapon }) {
+      const defaultValue = startingClassAttributes[attribute];
+      const value = optimalAttributes?.attackPower?.optimalAttributes[attribute];
+      console.log("zzz", {
+        weapon: weapon.name,
+        attribute,
+        isStartingValue: value === defaultValue,
+        value,
+        defaultValue,
+      });
+      if (!value || value === defaultValue) return blankIcon;
+      return <OptimizedAttributeRenderer key={attribute} value={value} />;
     },
   }),
 );
@@ -101,13 +107,11 @@ const optimizedSPColumns: OptimalAttributeTableColumnDef[] = damageAttributes.ma
         {getShortAttributeLabel(attribute)}
       </Typography>
     ),
-    render({ optimalAttributes }) {
-      return (
-        <OptimizedAttributeRenderer
-          key={attribute}
-          value={optimalAttributes?.spellPower?.optimalAttributes[attribute]}
-        />
-      );
+    render({ optimalAttributes, startingClassAttributes }) {
+      const defaultValue = startingClassAttributes[attribute];
+      const value = optimalAttributes?.attackPower?.optimalAttributes[attribute];
+      if (!value || value === defaultValue) return blankIcon;
+      return <OptimizedAttributeRenderer key={attribute} value={value} />;
     },
   }),
 );
@@ -140,11 +144,9 @@ export function getOptimalAttributeColumns({
                 </Typography>
               ),
               render({ optimalAttributes }) {
-                return (
-                  <OptimizedAttributeRenderer
-                    value={optimalAttributes?.spellPower?.optimalDamage}
-                  />
-                );
+                const value = optimalAttributes?.spellPower?.optimalDamage;
+                if (!value) return blankIcon;
+                return <OptimizedAttributeRenderer value={value} />;
               },
             } as OptimalAttributeTableColumnDef,
             {
@@ -152,15 +154,13 @@ export function getOptimalAttributeColumns({
               sortBy: `disposableOptimizedPointsSP`,
               header: (
                 <Typography component="span" variant="subtitle2" title={`Disposable Points`}>
-                  DP
+                  Disposable Points
                 </Typography>
               ),
               render({ optimalAttributes }) {
-                return (
-                  <OptimizedAttributeRenderer
-                    value={optimalAttributes?.spellPower?.disposablePoints}
-                  />
-                );
+                const value = optimalAttributes?.spellPower?.disposablePoints;
+                if (!value) return blankIcon;
+                return <OptimizedAttributeRenderer value={value} />;
               },
             },
           ],
@@ -194,6 +194,7 @@ export function getOptimalAttributeColumns({
                 ),
                 render({ optimalAttributes }) {
                   // TODO: !armorWeight || !rollType
+
                   return (
                     <OptimizedEnduranceRenderer
                       endurance={optimalAttributes?.endurance?.incremental}
@@ -209,8 +210,11 @@ export function getOptimalAttributeColumns({
                     End
                   </Typography>
                 ),
-                render({ optimalAttributes }) {
-                  return <OptimizedAttributeRenderer value={optimalAttributes?.endurance?.total} />;
+                render({ optimalAttributes, startingClassAttributes }) {
+                  const defaultValue = startingClassAttributes.end;
+                  const value = optimalAttributes?.endurance?.total;
+                  if (!value || value === defaultValue) return blankIcon;
+                  return <OptimizedAttributeRenderer value={value} />;
                 },
               } as OptimalAttributeTableColumnDef,
             ]
@@ -225,9 +229,9 @@ export function getOptimalAttributeColumns({
             </Typography>
           ),
           render({ optimalAttributes }) {
-            return (
-              <OptimizedAttributeRenderer value={optimalAttributes?.attackPower?.optimalDamage} />
-            );
+            const value = optimalAttributes?.attackPower?.optimalDamage;
+            if (!value) return blankIcon;
+            return <OptimizedAttributeRenderer value={value} />;
           },
         },
 
@@ -240,11 +244,9 @@ export function getOptimalAttributeColumns({
             </Typography>
           ),
           render({ optimalAttributes }) {
-            return (
-              <OptimizedAttributeRenderer
-                value={optimalAttributes?.attackPower?.disposablePoints}
-              />
-            );
+            const value = optimalAttributes?.attackPower?.disposablePoints;
+            if (!value) return blankIcon;
+            return <OptimizedAttributeRenderer value={value} />;
           },
         },
 
@@ -257,9 +259,9 @@ export function getOptimalAttributeColumns({
             </Typography>
           ),
           render({ optimalAttributes }) {
-            return (
-              <OptimizedAttributeRenderer value={optimalAttributes?.attackPower?.efficiencyScore} />
-            );
+            const value = optimalAttributes?.attackPower?.efficiencyScore;
+            if (!value) return blankIcon;
+            return <OptimizedAttributeRenderer value={value} />;
           },
         },
         ...allDamageTypes.map((damageType) => optimizedAttackTypeColumns[damageType]),

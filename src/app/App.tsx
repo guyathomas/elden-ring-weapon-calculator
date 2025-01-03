@@ -119,7 +119,7 @@ type TableView = "fixed" | "solver";
 
 export default function App() {
   const { isMobile, menuOpen, menuOpenMobile, onMenuOpenChanged } = useMenuState();
-  const [tableView, setTableView] = useState<TableView>("fixed");
+  const [tableView, setTableView] = useState<TableView>("solver");
   const {
     state: {
       regulationVersionName,
@@ -287,7 +287,7 @@ export default function App() {
 
   const handleStartingClassChanged = useCallback(
     (startingClass: StartingClass) => {
-      const { arc, dex, str, int, fai, vig, end, lvl, min } = INITIAL_CLASS_VALUES[startingClass];
+      const { arc, dex, str, int, fai, vig, end, min } = INITIAL_CLASS_VALUES[startingClass];
 
       dispatchAppState({ type: "setStartingClass", payload: startingClass });
       dispatchSolvedAttributeState({
@@ -298,10 +298,9 @@ export default function App() {
           [`int.Min`]: Math.max(solverAttributes[`int.Min`], int),
           [`fai.Min`]: Math.max(solverAttributes[`fai.Min`], fai),
           [`arc.Min`]: Math.max(solverAttributes[`arc.Min`], arc),
-          end,
-          min,
-          vig,
-          lvl,
+          end: Math.max(solverAttributes.end, end),
+          min: Math.max(solverAttributes.min, min),
+          vig: Math.max(solverAttributes.vig, vig),
         },
       });
       dispatchFixedAttributeState({

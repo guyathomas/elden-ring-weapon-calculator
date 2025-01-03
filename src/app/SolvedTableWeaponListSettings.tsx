@@ -30,6 +30,7 @@ const AttributeRangeInput = memo(function AttributeInput({
   value,
   onAttributeChanged,
   bounds,
+  min,
 }: AttributeInputRangeProps) {
   const fieldName = `${attribute}.${bounds}` as AttributeRangeKey;
   return (
@@ -39,7 +40,7 @@ const AttributeRangeInput = memo(function AttributeInput({
       size="small"
       variant="outlined"
       value={value}
-      min={1}
+      min={min}
       max={99}
       onChange={(newValue) => onAttributeChanged(fieldName, newValue)}
     />
@@ -188,6 +189,7 @@ function WeaponListSettings({
       {(["Min", "Max"] as BoundsOptions[]).map((bounds) =>
         damageAttributes.map((attribute) => {
           const rangeKey: AttributeRangeKey = `${attribute}.${bounds}`;
+          const min = INITIAL_CLASS_VALUES[startingClass][attribute];
           return (
             <AttributeRangeInput
               key={rangeKey}
@@ -195,6 +197,7 @@ function WeaponListSettings({
               value={solverAttributes[rangeKey]}
               onAttributeChanged={handleChangeAttributeRange}
               bounds={bounds}
+              min={min}
             />
           );
         }),
@@ -220,7 +223,7 @@ function WeaponListSettings({
       />
       <BooleanInput label="Two handing" checked={twoHanding} onChange={handleChangeTwoHanding} />
       <BooleanInput
-        label="Subtract weapon weight from endurance"
+        label="Adjust Endurance"
         checked={adjustEnduranceForWeapon}
         onChange={handleChangeWeaponAdjustedEndurance}
       />

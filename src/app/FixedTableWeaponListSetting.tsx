@@ -33,6 +33,7 @@ export interface AttributeInputRangeProps {
   value: number;
   onAttributeChanged(attribute: AttributeRangeKey, value: number): void;
   bounds: BoundsOptions;
+  min?: number;
 }
 
 /**

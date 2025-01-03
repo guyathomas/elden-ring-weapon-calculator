@@ -15,6 +15,7 @@ import {
   type WeaponTableColumnGroupDef,
   type WeaponTableRowGroup,
 } from "../types";
+import type { AllStartingClassAttributes } from "../../ClassPicker";
 // TODO pagination if there are >200 results
 const OFFSET = 0;
 const LIMIT = 200;
@@ -23,6 +24,7 @@ export type OptimalAttributeTableRowData = {
   weapon: Weapon;
   optimalAttributes: OptimalAttribute;
   upgradeLevel: number;
+  startingClassAttributes: Record<AllStartingClassAttributes, number>;
 };
 
 export type OptimalAttributeTableColumnDef = WeaponTableColumnDef<OptimalAttributeTableRowData>;
@@ -147,6 +149,7 @@ function WeaponTable({
     upgradeLevel,
     groupWeaponTypes,
     optimalAttributes,
+    startingClass,
   });
   const columns = useMemo(
     () =>
