@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBackRounded";
 import WeaponListSettings from "./FixedTableWeaponListSetting";
-import WeaponTable from "./weaponTable/FixedWeaponTable";
+import FixedWeaponTable from "./weaponTable/FixedAttributeTable/FixedAttributeTable";
 import theme from "./theme";
 import regulationVersions from "./regulationVersions";
 import useWeapons from "./useWeapons";
@@ -28,11 +28,12 @@ import WeaponPicker, { makeWeaponOptionsFromWeapon } from "./WeaponPicker";
 import AffinityPicker from "./AffinityPicker";
 import Footer from "./Footer";
 import MiscFilterPicker from "./MiscFilterPicker";
-import { getEnduranceForWeight } from "./weaponTable/useOptimalAttributes";
+import { getEnduranceForWeight } from "./weaponTable/OptimalAttributeTable/useOptimalAttributes";
 import useFilteredWeapons from "./weaponTable/useFilteredWeapons";
 import { INITIAL_CLASS_VALUES, type StartingClass } from "./ClassPicker";
 import type { Weapon } from "../calculator/weapon";
 import SolvedTableWeaponListSettings from "./SolvedTableWeaponListSettings";
+import SolverWeaponTable from "./weaponTable/OptimalAttributeTable/OptimalAttributeTable";
 
 const useMenuState = () => {
   const theme = useTheme();
@@ -373,7 +374,7 @@ export default function App() {
                   });
                 }}
               />
-              <WeaponTable
+              <FixedWeaponTable
                 weapons={filteredWeapons}
                 weaponsError={error}
                 isWeaponsLoading={loading}
@@ -439,6 +440,31 @@ export default function App() {
                   dispatchSolvedAttributeState({
                     type: "setAdjustEnduranceForWeapon",
                     payload: weaponAdjustedEnduranceChanged,
+                  });
+                }}
+              />
+              <SolverWeaponTable
+                weapons={filteredWeapons}
+                weaponsError={error}
+                isWeaponsLoading={loading}
+                regulationVersion={regulationVersion}
+                splitDamage={splitDamage}
+                numericalScaling={numericalScaling}
+                twoHanding={twoHanding}
+                upgradeLevel={upgradeLevel}
+                groupWeaponTypes={groupWeaponTypes}
+                attributes={attributes}
+                adjustEnduranceForWeapon={adjustEnduranceForWeapon}
+                armorWeight={armorWeight}
+                solverAttributes={solverAttributes}
+                startingClass={startingClass}
+                rollType={rollType}
+                damageTypeToOptimizeFor={damageTypeToOptimizeFor}
+                optimalAttributes={optimalAttributes}
+                setOptimalAttributes={(attributes) => {
+                  dispatchSolvedAttributeState({
+                    type: "setOptimalAttributes",
+                    payload: attributes,
                   });
                 }}
               />

@@ -1,41 +1,34 @@
-import { memo, type ReactNode, useMemo, useState } from "react";
-import { type SystemStyleObject, type Theme } from "@mui/system";
-import { type Weapon, type WeaponAttackResult } from "../../calculator/calculator";
-import type { SortBy } from "../../search/sortWeapons";
-import useWeaponTableRows from "./useWeaponTableRows";
-import WeaponTableBase from "./WeaponTableBase";
-import type { RegulationVersion } from "../regulationVersions";
-import { maxRegularUpgradeLevel } from "../uiUtils";
-import type { AppState } from "../reducers/useAppState";
-import type { FixedAttributeState } from "../reducers/useFixedAttributeState";
+import { memo, useMemo, useState } from "react";
+import { type Weapon, type WeaponAttackResult } from "../../../calculator/calculator";
+import type { SortBy } from "./sortFixedWeapons";
+import useFixedAttributeTableRows from "./useFixedAttributeTableRows";
+import WeaponTableBase from "../WeaponTableBase";
+import type { RegulationVersion } from "../../regulationVersions";
+import { maxRegularUpgradeLevel } from "../../uiUtils";
+import type { AppState } from "../../reducers/useAppState";
+import type { FixedAttributeState } from "../../reducers/useFixedAttributeState";
 import { getFixedWeaponTableColumns } from "./getFixedWeaponTableColumns";
-
+import {
+  type WeaponTableColumnDef,
+  type WeaponTableColumnGroupDef,
+  type WeaponTableRowGroup,
+} from "../types";
 // TODO pagination if there are >200 results
 const OFFSET = 0;
 const LIMIT = 200;
 
-export type WeaponTableRowData = { weapon: Weapon; weaponAttackData: WeaponAttackResult };
+export type FixedAttributeTableRowData = {
+  weapon: Weapon;
+  weaponAttackData: WeaponAttackResult & {
+    efficiencyScore: number;
+    normalizedUpgradeLevel: number;
+  };
+};
 
-export interface WeaponTableRowGroup {
-  key: string;
-  name?: string;
-  rows: readonly WeaponTableRowData[];
-}
-
-export interface WeaponTableColumnDef {
-  key: string;
-  sortBy?: SortBy;
-  header: ReactNode;
-  render(row: WeaponTableRowData): ReactNode;
-  sx?: SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>);
-}
-
-export interface WeaponTableColumnGroupDef {
-  key: string;
-  header?: string;
-  columns: readonly WeaponTableColumnDef[];
-  sx?: SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>);
-}
+export type FixedAttributeTableColumnDef = WeaponTableColumnDef<FixedAttributeTableRowData>;
+export type FixedAttributeTableColumnGroupDef =
+  WeaponTableColumnGroupDef<FixedAttributeTableRowData>;
+export type FixedAttributeTableRowGroup = WeaponTableRowGroup<FixedAttributeTableRowData>;
 
 interface Props {
   /**
@@ -89,7 +82,7 @@ interface Props {
   attributes: FixedAttributeState["attributes"];
 }
 
-function WeaponTable({
+function FixedAttributeTable({
   splitDamage,
   numericalScaling,
   isWeaponsLoading,
@@ -105,7 +98,7 @@ function WeaponTable({
   const [reverse, setReverse] = useState<boolean>(false);
   const splitSpellScaling = Boolean(regulationVersion.splitSpellScaling);
 
-  const { rows, attackPowerTypes, hasSpellScaling } = useWeaponTableRows({
+  const { rows, attackPowerTypes, hasSpellScaling } = useFixedAttributeTableRows({
     weapons,
     regulationVersion,
     offset: OFFSET,
@@ -132,7 +125,7 @@ function WeaponTable({
   );
 
   return (
-    <WeaponTableBase
+    <WeaponTableBase<SortBy>
       columns={columns}
       rows={rows}
       isWeaponsLoading={isWeaponsLoading}
@@ -147,4 +140,4 @@ function WeaponTable({
   );
 }
 
-export default memo(WeaponTable);
+export default memo(FixedAttributeTable);

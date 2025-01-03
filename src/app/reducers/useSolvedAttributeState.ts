@@ -4,9 +4,9 @@ import type { Weapon } from "../../calculator/weapon";
 import type { SortBy } from "../../search/sortWeapons";
 import { INITIAL_CLASS_VALUES } from "../ClassPicker";
 import type { DamageTypeToOptimizeFor } from "../OptimizedDamageTypePicker";
-import type { RollType } from "../weaponTable/constants";
-import type { OptimalAttribute } from "../weaponTable/useOptimalAttributes";
+import type { OptimalAttribute } from "../weaponTable/OptimalAttributeTable/useOptimalAttributes";
 import { defaultStartingClass, type ActionMap } from "./useAppState";
+import { type RollType } from "../RollTypePicker";
 
 /* Custom actions - Start */
 // It's not convenient to have all actions that are expressed automatically by replacing the state with the same type
@@ -14,11 +14,16 @@ type AttributePatchUpdate = {
   type: "setSolverAttributes";
   payload: Partial<AttributeSolverValues>;
 };
+type OptimalAttributeReset = {
+  type: "setOptimalAttributes";
+  payload: null;
+};
 /* Custom actions - End */
 
 export type SolvedAttributeAction =
   | ActionMap<SolvedAttributeState>[keyof ActionMap<SolvedAttributeState>]
-  | AttributePatchUpdate;
+  | AttributePatchUpdate
+  | OptimalAttributeReset;
 
 // SolvedAttributeState - Values that only impact the solver view
 export interface SolvedAttributeState {
@@ -45,6 +50,9 @@ export function solvedAttributeStateReducer(
       return { ...state, adjustEnduranceForWeapon: action.payload };
     case "setRollType":
       return { ...state, rollType: action.payload };
+    case "setOptimalAttributes":
+      if (action.payload === null) return { ...state, optimalAttributes: {} }; // Reset Action
+      return { ...state, optimalAttributes: { ...state.optimalAttributes, ...action.payload } };
     case "setSolverAttributes":
       return { ...state, solverAttributes: { ...state.solverAttributes, ...action.payload } };
     default:

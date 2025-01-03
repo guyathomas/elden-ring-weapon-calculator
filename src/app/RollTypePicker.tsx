@@ -1,6 +1,13 @@
 import { memo } from "react";
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
-import { rollTypeToMultiplier, type RollType } from "./weaponTable/constants";
+
+export type RollType = "fast" | "medium" | "fat";
+
+export const rollTypeToMultiplier: Record<RollType, number> = {
+  fast: 0.3,
+  medium: 0.7,
+  fat: 1.0,
+};
 
 interface Props {
   rollType: RollType;

@@ -5,24 +5,27 @@ import {
   allDamageTypes,
   allStatusTypes,
   damageAttributes,
-} from "../../calculator/calculator";
+} from "../../../calculator/calculator";
 import {
   damageTypeIcons,
   damageTypeLabels,
   getAttributeLabel,
   getShortAttributeLabel,
   getTotalDamageAttackPower,
-} from "../uiUtils";
-import type { WeaponTableColumnDef, WeaponTableColumnGroupDef } from "./FixedWeaponTable";
+} from "../../uiUtils";
+import type {
+  FixedAttributeTableColumnDef,
+  FixedAttributeTableColumnGroupDef,
+} from "./FixedAttributeTable";
 import {
   WeaponNameRenderer,
   ScalingRenderer,
   AttributeRequirementRenderer,
   AttackPowerRenderer,
   OptimizedAttributeRenderer,
-} from "./tableRenderers";
+} from "../tableRenderers";
 
-const nameColumn: WeaponTableColumnDef = {
+const nameColumn: FixedAttributeTableColumnDef = {
   key: "name",
   sortBy: "name",
   header: (
@@ -33,11 +36,11 @@ const nameColumn: WeaponTableColumnDef = {
   sx: {
     justifyContent: "start",
   },
-  render({ weapon, weaponAttackData: { upgradeLevel } }) {
+  render({ weapon, weaponAttackData: { normalizedUpgradeLevel } }) {
     return (
       <WeaponNameRenderer
         weapon={weapon}
-        upgradeLevel={upgradeLevel}
+        upgradeLevel={normalizedUpgradeLevel}
         isExpanded={false} // TODO: implement this
         toggleIsExpanded={() => undefined} // TODO: implement this
       />
@@ -46,7 +49,7 @@ const nameColumn: WeaponTableColumnDef = {
 };
 
 const attackColumns = Object.fromEntries(
-  allAttackPowerTypes.map((attackPowerType): [AttackPowerType, WeaponTableColumnDef] => [
+  allAttackPowerTypes.map((attackPowerType): [AttackPowerType, FixedAttributeTableColumnDef] => [
     attackPowerType,
     {
       key: `${attackPowerType}Attack`,
@@ -74,35 +77,37 @@ const attackColumns = Object.fromEntries(
       },
     },
   ]),
-) as Record<AttackPowerType, WeaponTableColumnDef>;
+) as Record<AttackPowerType, FixedAttributeTableColumnDef>;
 
-const splitSpellScalingColumns: WeaponTableColumnDef[] = allDamageTypes.map((damageType) => ({
-  key: `${damageType}SpellScaling`,
-  sortBy: `${damageType}SpellScaling`,
-  header: damageTypeIcons.has(damageType) ? (
-    <img
-      src={damageTypeIcons.get(damageType)!}
-      alt={damageTypeLabels.get(damageType)!}
-      title={damageTypeLabels.get(damageType)!}
-      width={24}
-      height={24}
-    />
-  ) : (
-    <Typography component="span" variant="subtitle2">
-      {damageTypeLabels.get(damageType)}
-    </Typography>
-  ),
-  render({ weaponAttackData: { spellScaling, ineffectiveAttackPowerTypes } }) {
-    return (
-      <AttackPowerRenderer
-        value={spellScaling?.[damageType]}
-        ineffective={ineffectiveAttackPowerTypes.includes(damageType)}
+const splitSpellScalingColumns: FixedAttributeTableColumnDef[] = allDamageTypes.map(
+  (damageType) => ({
+    key: `${damageType}SpellScaling`,
+    sortBy: `${damageType}SpellScaling`,
+    header: damageTypeIcons.has(damageType) ? (
+      <img
+        src={damageTypeIcons.get(damageType)!}
+        alt={damageTypeLabels.get(damageType)!}
+        title={damageTypeLabels.get(damageType)!}
+        width={24}
+        height={24}
       />
-    );
-  },
-}));
+    ) : (
+      <Typography component="span" variant="subtitle2">
+        {damageTypeLabels.get(damageType)}
+      </Typography>
+    ),
+    render({ weaponAttackData: { spellScaling, ineffectiveAttackPowerTypes } }) {
+      return (
+        <AttackPowerRenderer
+          value={spellScaling?.[damageType]}
+          ineffective={ineffectiveAttackPowerTypes.includes(damageType)}
+        />
+      );
+    },
+  }),
+);
 
-const spellScalingColumn: WeaponTableColumnDef = {
+const spellScalingColumn: FixedAttributeTableColumnDef = {
   key: "spellScaling",
   sortBy: `${AttackPowerType.MAGIC}SpellScaling`,
   header: (
@@ -129,7 +134,7 @@ const spellScalingColumn: WeaponTableColumnDef = {
   },
 };
 
-const totalSplitAttackPowerColumn: WeaponTableColumnDef = {
+const totalSplitAttackPowerColumn: FixedAttributeTableColumnDef = {
   key: "totalAttack",
   sortBy: "totalAttack",
   header: (
@@ -149,7 +154,7 @@ const totalSplitAttackPowerColumn: WeaponTableColumnDef = {
   },
 };
 
-const totalAttackPowerColumn: WeaponTableColumnDef = {
+const totalAttackPowerColumn: FixedAttributeTableColumnDef = {
   key: "totalAttack",
   sortBy: "totalAttack",
   header: (
@@ -169,7 +174,7 @@ const totalAttackPowerColumn: WeaponTableColumnDef = {
   },
 };
 
-const scalingColumns: WeaponTableColumnDef[] = damageAttributes.map((attribute) => ({
+const scalingColumns: FixedAttributeTableColumnDef[] = damageAttributes.map((attribute) => ({
   key: `${attribute}Scaling`,
   sortBy: `${attribute}Scaling`,
   header: (
@@ -181,37 +186,45 @@ const scalingColumns: WeaponTableColumnDef[] = damageAttributes.map((attribute) 
       {getShortAttributeLabel(attribute)}
     </Typography>
   ),
-  render({ weapon, weaponAttackData: { upgradeLevel } }) {
-    return <ScalingRenderer weapon={weapon} upgradeLevel={upgradeLevel} attribute={attribute} />;
-  },
-}));
-
-const numericalScalingColumns: WeaponTableColumnDef[] = damageAttributes.map((attribute) => ({
-  key: `${attribute}Scaling`,
-  sortBy: `${attribute}Scaling`,
-  header: (
-    <Typography
-      component="span"
-      variant="subtitle2"
-      title={`${getAttributeLabel(attribute)} Scaling`}
-    >
-      {getShortAttributeLabel(attribute)}
-    </Typography>
-  ),
-  render({ weapon, weaponAttackData: { upgradeLevel } }) {
+  render({ weapon, weaponAttackData: { normalizedUpgradeLevel } }) {
     return (
       <ScalingRenderer
         weapon={weapon}
-        upgradeLevel={upgradeLevel}
+        upgradeLevel={normalizedUpgradeLevel}
         attribute={attribute}
-        numerical
       />
     );
   },
 }));
 
-const requirementColumns: WeaponTableColumnDef[] = damageAttributes.map(
-  (attribute): WeaponTableColumnDef => ({
+const numericalScalingColumns: FixedAttributeTableColumnDef[] = damageAttributes.map(
+  (attribute) => ({
+    key: `${attribute}Scaling`,
+    sortBy: `${attribute}Scaling`,
+    header: (
+      <Typography
+        component="span"
+        variant="subtitle2"
+        title={`${getAttributeLabel(attribute)} Scaling`}
+      >
+        {getShortAttributeLabel(attribute)}
+      </Typography>
+    ),
+    render({ weapon, weaponAttackData: { normalizedUpgradeLevel } }) {
+      return (
+        <ScalingRenderer
+          weapon={weapon}
+          upgradeLevel={normalizedUpgradeLevel}
+          attribute={attribute}
+          numerical
+        />
+      );
+    },
+  }),
+);
+
+const requirementColumns: FixedAttributeTableColumnDef[] = damageAttributes.map(
+  (attribute): FixedAttributeTableColumnDef => ({
     key: `${attribute}Requirement`,
     sortBy: `${attribute}Requirement`,
     header: (
@@ -242,7 +255,7 @@ function getSpellScalingColumns({
   splitSpellScaling: boolean;
   spellScaling: boolean;
 }) {
-  let spellScalingColumnGroup: WeaponTableColumnGroupDef[] = [];
+  let spellScalingColumnGroup: FixedAttributeTableColumnGroupDef[] = [];
 
   if (spellScaling) {
     if (splitSpellScaling) {
@@ -273,7 +286,7 @@ function getSpellScalingColumns({
   return spellScalingColumnGroup;
 }
 
-const attackPowerEfficiencyColumn: WeaponTableColumnDef = {
+const attackPowerEfficiencyColumn: FixedAttributeTableColumnDef = {
   key: `attackPowerEfficiency`,
   sortBy: `attackPowerEfficiency`,
   header: (
@@ -298,7 +311,7 @@ export function getFixedWeaponTableColumns({
   numericalScaling: boolean;
   attackPowerTypes: ReadonlySet<AttackPowerType>;
   spellScaling: boolean;
-}): readonly WeaponTableColumnGroupDef[] {
+}): readonly FixedAttributeTableColumnGroupDef[] {
   const includedStatusTypes = allStatusTypes.filter((statusType) =>
     attackPowerTypes.has(statusType),
   );

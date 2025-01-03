@@ -6,17 +6,18 @@ import getWeaponAttack, {
   type AttributeSolverValues,
   type DamageAttribute,
   type DamageAttributeValues,
-} from "../../calculator/calculator";
-import type { Weapon } from "../../calculator/weapon";
-import { INITIAL_CLASS_VALUES, type StartingClass } from "../ClassPicker";
-import { ENDURANCE_LEVEL_TO_EQUIP_LOAD, rollTypeToMultiplier, type RollType } from "./constants";
+} from "../../../calculator/calculator";
+import type { Weapon } from "../../../calculator/weapon";
+import { INITIAL_CLASS_VALUES, type StartingClass } from "../../ClassPicker";
+import { type RollType, rollTypeToMultiplier } from "../../RollTypePicker";
 import {
   getIncrementalDamagePerAttribute,
   type IncrementalDamagePerAttribute,
-} from "../../calculator/newCalculator";
-import { getNormalizedUpgradeLevel } from "../uiUtils";
-import { getMaxAttackPower } from "./getMaxAttackPower";
-import type { DamageTypeToOptimizeFor } from "../OptimizedDamageTypePicker";
+} from "../../../calculator/newCalculator";
+import { getNormalizedUpgradeLevel } from "../../uiUtils";
+import { getMaxAttackPower } from "../getMaxAttackPower";
+import type { DamageTypeToOptimizeFor } from "../../OptimizedDamageTypePicker";
+import type { SolvedAttributeState } from "../../reducers/useSolvedAttributeState";
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -38,6 +39,16 @@ export interface OptimalAttribute {
   };
   incrementalDamagePerAttribute?: IncrementalDamagePerAttribute;
 }
+
+export const ENDURANCE_LEVEL_TO_EQUIP_LOAD = [
+  45.0, 45.0, 45.0, 45.0, 45.0, 45.0, 45.0, 45.0, 46.6, 48.2, 49.8, 51.4, 52.9, 54.5, 56.1, 57.7,
+  59.3, 60.9, 62.5, 64.1, 65.6, 67.2, 68.8, 70.4, 72.0, 73.0, 74.1, 75.2, 76.4, 77.6, 78.9, 80.2,
+  81.5, 82.8, 84.1, 85.4, 86.8, 88.1, 89.5, 90.9, 92.3, 93.7, 95.1, 96.5, 97.9, 99.4, 100.8, 102.2,
+  103.7, 105.2, 106.6, 108.1, 109.6, 111.0, 112.5, 114.0, 115.5, 117.0, 118.5, 120.0, 121.0, 122.1,
+  123.1, 124.1, 125.1, 126.2, 127.2, 128.2, 129.2, 130.3, 131.3, 132.3, 133.3, 134.4, 135.4, 136.4,
+  137.4, 138.5, 139.5, 140.5, 141.5, 142.6, 143.6, 144.6, 145.6, 146.7, 147.7, 148.7, 149.7, 150.8,
+  151.8, 152.8, 153.8, 154.9, 155.9, 156.9, 157.9, 159.0, 160.0,
+];
 
 function diffArraysByKey<T>(array1: T[], array2: T[], key: keyof T): T[] {
   // Create a set of the keys from the first array
@@ -95,8 +106,8 @@ export const useOptimalAttributes = ({
   adjustEnduranceForWeapon,
   rollType,
   weapons,
-  damageTypeToOptimizeFor,
-  setOptimalAttributesForWeapon,
+  damageTypeToOptimizeFor = "total",
+  setOptimalAttributes,
   armorWeight,
 }: {
   solverAttributes: AttributeSolverValues;
@@ -106,9 +117,11 @@ export const useOptimalAttributes = ({
   adjustEnduranceForWeapon: boolean;
   rollType: RollType;
   weapons: readonly Weapon[];
-  damageTypeToOptimizeFor: DamageTypeToOptimizeFor;
-  setOptimalAttributesForWeapon: UpdateAppState["setOptimalAttributesForWeapon"];
-  armorWeight: UpdateAppState["armorWeight"];
+  damageTypeToOptimizeFor?: DamageTypeToOptimizeFor;
+  setOptimalAttributes: (
+    attributes: Partial<SolvedAttributeState["optimalAttributes"]> | null,
+  ) => void;
+  armorWeight: SolvedAttributeState["armorWeight"];
 }) => {
   const weaponsMemo = useRef(weapons);
   const spendablePoints =
@@ -247,7 +260,7 @@ export const useOptimalAttributes = ({
 
   const calculateOptimalAttributesForWeapons = useCallback(
     async (weapons: Weapon[], reset?: boolean) => {
-      if (reset) setOptimalAttributesForWeapon();
+      if (reset) setOptimalAttributes(null);
       const batchSize = 100;
       const batches: Weapon[][] = [];
       for (let i = 0; i < weapons.length; i += batchSize) {
@@ -261,11 +274,11 @@ export const useOptimalAttributes = ({
             acc[batches[i][j].name] = optimalAttribute;
             return acc;
           }, {} as Record<Weapon["name"], OptimalAttribute>);
-        setOptimalAttributesForWeapon(update);
+        setOptimalAttributes(update);
         await wait(10);
       }
     },
-    [calculateHighestWeaponAttackResult, setOptimalAttributesForWeapon],
+    [calculateHighestWeaponAttackResult, setOptimalAttributes],
   );
 
   useEffect(() => {

@@ -1,28 +1,26 @@
-import { getTotalDamageAttackPower } from "../app/uiUtils";
-import { type WeaponTableRowData } from "../app/weaponTable/FixedWeaponTable";
-import { type DamageAttribute, AttackPowerType } from "../calculator/calculator";
+import { getTotalDamageAttackPower } from "../../uiUtils";
+import { type FixedAttributeTableRowData } from "./FixedAttributeTable";
+import { type DamageAttribute, AttackPowerType } from "../../../calculator/calculator";
 
 export type SortBy =
   | "name"
   | "totalAttack"
   | `${AttackPowerType}Attack`
   | "sortBy"
+  | "attackPowerEfficiency"
   | `${AttackPowerType}SpellScaling`
   | `${DamageAttribute}Scaling`
-  | `${DamageAttribute}Requirement`
-  | `${DamageAttribute}OptimizedAP`
-  | `${DamageAttribute}OptimizedSP`
-  | `${AttackPowerType}OptimizedAttackByDamageType`;
+  | `${DamageAttribute}Requirement`;
 
 /**
  * Sort and paginate a filtered list of weapons for display in the weapon table
  */
 export function sortWeapons(
-  rows: readonly WeaponTableRowData[],
+  rows: readonly FixedAttributeTableRowData[],
   sortBy: SortBy,
   reverse: boolean,
-): WeaponTableRowData[] {
-  const getSortValue = ((): ((row: WeaponTableRowData) => number | string) => {
+): FixedAttributeTableRowData[] {
+  const getSortValue = ((): ((row: FixedAttributeTableRowData) => number | string) => {
     if (sortBy === "name") {
       return ({ weapon }) =>
         `${weapon.weaponName},${weapon.affinityId.toString().padStart(4, "0")}`;
@@ -30,6 +28,10 @@ export function sortWeapons(
 
     if (sortBy === "totalAttack") {
       return ({ weaponAttackData: { attackPower } }) => -getTotalDamageAttackPower(attackPower);
+    }
+
+    if (sortBy === "attackPowerEfficiency") {
+      return ({ weaponAttackData: { efficiencyScore } }) => -(efficiencyScore ?? 0);
     }
 
     if (sortBy.endsWith("Attack")) {
@@ -44,8 +46,8 @@ export function sortWeapons(
 
     if (sortBy.endsWith("Scaling")) {
       const attribute = sortBy.slice(0, -1 * "Scaling".length) as DamageAttribute;
-      return ({ weapon, weaponAttackData: { upgradeLevel } }) =>
-        -(weapon.attributeScaling[upgradeLevel][attribute] ?? 0);
+      return ({ weapon, weaponAttackData: { normalizedUpgradeLevel } }) =>
+        -(weapon.attributeScaling[normalizedUpgradeLevel][attribute] ?? 0);
     }
 
     if (sortBy.endsWith("Requirement")) {

@@ -10,7 +10,7 @@ import { Box, IconButton, Link, Typography } from "@mui/material";
 import RemoveIcon from "@mui/icons-material/Remove";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
-import { type Weapon, type DamageAttribute, type AllAttribute } from "../../calculator/calculator";
+import { type Weapon, type DamageAttribute } from "../../calculator/calculator";
 import { getAttributeLabel } from "../uiUtils";
 
 export const blankIcon = <RemoveIcon color="disabled" fontSize="small" />;
@@ -82,15 +82,11 @@ export const ScalingRenderer = memo(function ScalingRenderer({
   numerical?: boolean;
 }) {
   const scalingValue = attributeScaling[upgradeLevel][attribute];
-  return scalingValue ? (
-    <span title={`${Math.round(scalingValue! * 100000) / 1000}%`}>
-      {numerical
-        ? round(scalingValue * 100)
-        : scalingTiers.find(([value]) => scalingValue >= value)?.[1]}
-    </span>
-  ) : (
-    blankIcon
-  );
+  if (!scalingValue) return blankIcon;
+  const value = numerical
+    ? round(scalingValue * 100)
+    : scalingTiers.find(([value]) => scalingValue >= value)?.[1];
+  return <span title={`${Math.round(scalingValue! * 100000) / 1000}%`}>{value}</span>;
 });
 
 /**
@@ -106,9 +102,7 @@ export const AttributeRequirementRenderer = memo(function AttributeRequirementRe
   ineffective: boolean;
 }) {
   const requirement = requirements[attribute] ?? 0;
-  if (requirement === 0) {
-    return blankIcon;
-  }
+  if (requirement === 0) return blankIcon;
 
   if (ineffective) {
     return (
@@ -162,7 +156,7 @@ export const OptimizedAttributeRenderer = memo(function AttributeRequirementRend
 export const OptimizedEnduranceRenderer = memo(function AttributeRequirementRenderer({
   endurance,
 }: {
-  endurance: number;
+  endurance?: number;
 }) {
   if (!endurance) return blankIcon;
   return <>{endurance}</>;
@@ -178,7 +172,7 @@ export const AttackPowerRenderer = memo(function AttackPowerRenderer({
   value?: number;
   ineffective?: boolean;
 }) {
-  if (value == null) {
+  if (value == null || typeof value === "undefined") {
     return blankIcon;
   }
 

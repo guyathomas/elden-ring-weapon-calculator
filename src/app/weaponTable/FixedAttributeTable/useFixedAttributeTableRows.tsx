@@ -4,13 +4,16 @@ import getWeaponAttack, {
   WeaponType,
   type DamageAttributeValues,
   type Weapon,
-} from "../../calculator/calculator";
-import { getNormalizedUpgradeLevel } from "../uiUtils";
+} from "../../../calculator/calculator";
+import { getNormalizedUpgradeLevel } from "../../uiUtils";
 
-import { type WeaponTableRowData, type WeaponTableRowGroup } from "./FixedWeaponTable";
-import { type SortBy, sortWeapons } from "../../search/sortWeapons";
-import { type RegulationVersion } from "../regulationVersions";
-import { allWeaponTypes, weaponTypeLabels } from "../uiUtils";
+import {
+  type FixedAttributeTableRowData,
+  type FixedAttributeTableRowGroup,
+} from "./FixedAttributeTable";
+import { type SortBy, sortWeapons } from "./sortFixedWeapons";
+import { type RegulationVersion } from "../../regulationVersions";
+import { allWeaponTypes, weaponTypeLabels } from "../../uiUtils";
 
 interface WeaponTableRowsOptions {
   weapons: readonly Weapon[];
@@ -27,7 +30,7 @@ interface WeaponTableRowsOptions {
 }
 
 interface WeaponTableRowsResult {
-  rows: readonly WeaponTableRowGroup[];
+  rows: readonly FixedAttributeTableRowGroup[];
 
   /** Attack power types included in at least one weapon in the filtered results */
   attackPowerTypes: ReadonlySet<AttackPowerType>;
@@ -42,7 +45,7 @@ const sumObjectValues = (obj: Record<string, number>) =>
 /**
  * Filter, sort, and paginate the weapon list based on the current selections
  */
-const useWeaponTableRows = ({
+const useFixedAttributeTableRows = ({
   weapons,
   regulationVersion,
   offset,
@@ -59,10 +62,10 @@ const useWeaponTableRows = ({
   const twoHanding = useDeferredValue(options.twoHanding);
 
   const hasSpellScaling = weapons.some((weapon) => weapon.sorceryTool || weapon.incantationTool);
-
-  const rows = useMemo<WeaponTableRowData[]>(
+  const { disableTwoHandingAttackPowerBonus, ineffectiveAttributePenalty } = regulationVersion;
+  const rows = useMemo<FixedAttributeTableRowData[]>(
     () =>
-      weapons.map((weapon): WeaponTableRowData => {
+      weapons.map((weapon): FixedAttributeTableRowData => {
         const normalizedUpgradeLevel = getNormalizedUpgradeLevel(weapon, upgradeLevel);
 
         const weaponAttackResult = getWeaponAttack({
@@ -70,8 +73,8 @@ const useWeaponTableRows = ({
           attributes,
           twoHanding,
           upgradeLevel: normalizedUpgradeLevel,
-          disableTwoHandingAttackPowerBonus: regulationVersion.disableTwoHandingAttackPowerBonus,
-          ineffectiveAttributePenalty: regulationVersion.ineffectiveAttributePenalty,
+          disableTwoHandingAttackPowerBonus,
+          ineffectiveAttributePenalty,
         });
 
         const maxWeaponAttackResult = getWeaponAttack({
@@ -85,13 +88,13 @@ const useWeaponTableRows = ({
           },
           twoHanding,
           upgradeLevel: normalizedUpgradeLevel,
-          disableTwoHandingAttackPowerBonus: regulationVersion.disableTwoHandingAttackPowerBonus,
-          ineffectiveAttributePenalty: regulationVersion.ineffectiveAttributePenalty,
+          disableTwoHandingAttackPowerBonus,
+          ineffectiveAttributePenalty,
         });
 
-        const fixedWeaponAttackResult = {
+        const fixedWeaponAttackResult: FixedAttributeTableRowData["weaponAttackData"] = {
           ...weaponAttackResult,
-          // upgradeLevel: normalizedUpgradeLevel, // TODO: Uncomment this
+          normalizedUpgradeLevel, // TODO: Uncomment this
           efficiencyScore: Math.round(
             100 *
               (sumObjectValues(weaponAttackResult.attackPower) /
@@ -103,7 +106,14 @@ const useWeaponTableRows = ({
           weaponAttackData: fixedWeaponAttackResult,
         };
       }),
-    [weapons, attributes, twoHanding, upgradeLevel, regulationVersion],
+    [
+      weapons,
+      attributes,
+      twoHanding,
+      upgradeLevel,
+      disableTwoHandingAttackPowerBonus,
+      ineffectiveAttributePenalty,
+    ],
   );
 
   const attackPowerTypes = rows.reduce((acc, { weaponAttackData }) => {
@@ -113,12 +123,15 @@ const useWeaponTableRows = ({
     return acc;
   }, new Set<AttackPowerType>());
 
-  const rowGroups = useMemo<WeaponTableRowGroup[]>(() => {
+  const rowGroups = useMemo<FixedAttributeTableRowGroup[]>(() => {
     if (groupWeaponTypes) {
-      const rowsByWeaponType: Map<WeaponType, WeaponTableRowData[]> = rows.reduce((acc, row) => {
-        const rowsForWeaponType = acc.get(row.weapon.weaponType) ?? [];
-        return acc.set(row.weapon.weaponType, [...rowsForWeaponType, row]);
-      }, new Map());
+      const rowsByWeaponType: Map<WeaponType, FixedAttributeTableRowData[]> = rows.reduce(
+        (acc, row) => {
+          const rowsForWeaponType = acc.get(row.weapon.weaponType) ?? [];
+          return acc.set(row.weapon.weaponType, [...rowsForWeaponType, row]);
+        },
+        new Map(),
+      );
 
       return allWeaponTypes.reduce((acc, weaponType) => {
         const weaponsForType = rowsByWeaponType.get(weaponType);
@@ -130,7 +143,7 @@ const useWeaponTableRows = ({
           });
         }
         return acc;
-      }, [] as WeaponTableRowGroup[]);
+      }, [] as FixedAttributeTableRowGroup[]);
     }
 
     return rows.length
@@ -150,4 +163,4 @@ const useWeaponTableRows = ({
   };
 };
 
-export default useWeaponTableRows;
+export default useFixedAttributeTableRows;

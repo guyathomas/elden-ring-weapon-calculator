@@ -21,8 +21,6 @@ import {
 import NumberTextField from "./NumberTextField";
 import { getAttributeLabel, maxRegularUpgradeLevel, toSpecialUpgradeLevel } from "./uiUtils";
 import ClassPicker, { type StartingClass as StartingClass } from "./ClassPicker";
-import type { RollType } from "./weaponTable/constants";
-import type { DamageTypeToOptimizeFor } from "./OptimizedDamageTypePicker";
 
 export interface AttributeInputProps {
   attribute: AllAttribute;

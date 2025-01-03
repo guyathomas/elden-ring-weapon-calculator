@@ -15,7 +15,7 @@ import ClassPicker, {
 } from "./ClassPicker";
 import RollTypePicker from "./RollTypePicker";
 import type { SolvedAttributeState } from "./reducers/useSolvedAttributeState";
-import { getMaxWeightForEndurance } from "./weaponTable/useOptimalAttributes";
+import { getMaxWeightForEndurance } from "./weaponTable/OptimalAttributeTable/useOptimalAttributes";
 import {
   BooleanInput,
   WeaponLevelInput,

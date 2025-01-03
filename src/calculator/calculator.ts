@@ -13,12 +13,10 @@ interface WeaponAttackOptions {
 }
 
 export interface WeaponAttackResult {
-  upgradeLevel: number;
   attackPower: Partial<Record<AttackPowerType, number>>;
   spellScaling: Partial<Record<AttackPowerType, number>>;
   ineffectiveAttributes: DamageAttribute[];
   ineffectiveAttackPowerTypes: AttackPowerType[];
-  efficiencyScore: number;
 }
 
 /**
@@ -144,7 +142,6 @@ export default function getWeaponAttack({
   }
 
   return {
-    upgradeLevel,
     attackPower,
     spellScaling,
     ineffectiveAttributes,

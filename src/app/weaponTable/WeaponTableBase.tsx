@@ -1,11 +1,8 @@
-import { memo, type ReactNode } from "react";
+import React, { memo } from "react";
 import * as ScrollArea from "@radix-ui/react-scroll-area";
 import { Alert, Box, CircularProgress, Typography } from "@mui/material";
-import { type SystemStyleObject, type Theme } from "@mui/system";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
-import { type Weapon } from "../../calculator/calculator";
-import type { SortBy } from "../../search/sortWeapons";
 import {
   Scrollbar,
   ScrollbarThumb,
@@ -18,36 +15,19 @@ import {
   WeaponTableGroup,
   WeaponTableGroupHeaderRow,
 } from "./tableStyledComponents";
+import type {
+  WeaponTableRowGroup,
+  DefaultWeaponTableRowData,
+  WeaponTableColumnDef,
+  WeaponTableColumnGroupDef,
+} from "./types";
 
-export type WeaponTableRowData = { weapon: Weapon };
-
-export interface WeaponTableRow {
-  key: string;
-  name?: string;
-  rows: readonly WeaponTableRowData[];
-}
-
-export interface WeaponTableColumnDef {
-  key: string;
-  sortBy?: SortBy;
-  header: ReactNode;
-  render(row: WeaponTableRowData): ReactNode;
-  sx?: SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>);
-}
-
-export interface WeaponTableColumnGroupDef {
-  key: string;
-  header?: string;
-  columns: readonly WeaponTableColumnDef[];
-  sx?: SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>);
-}
-
-interface Props {
-  rows: readonly WeaponTableRow[];
+interface Props<S> {
+  rows: readonly WeaponTableRowGroup[];
   columns: readonly WeaponTableColumnGroupDef[];
-  sortBy: SortBy;
+  sortBy: S;
   reverse: boolean;
-  onSortByChanged(sortBy: SortBy): void;
+  onSortByChanged(sortBy: S): void;
   onReverseChanged(reverse: boolean): void;
   isWeaponsLoading: boolean;
   errorWeapons?: Error;
@@ -58,18 +38,18 @@ interface Props {
 /**
  * The row in the weapon table containing headers for each column
  */
-const ColumnHeaderRow = memo(function ColumnHeaderRow({
+const ColumnHeaderRow = memo(function ColumnHeaderRow<S>({
   columns,
   sortBy,
   reverse,
   onSortByChanged,
   onReverseChanged,
 }: {
-  columns: Props["columns"];
-  sortBy: Props["sortBy"];
-  reverse: Props["reverse"];
-  onSortByChanged: Props["onSortByChanged"];
-  onReverseChanged: Props["onReverseChanged"];
+  columns: readonly WeaponTableColumnGroupDef[];
+  sortBy: S;
+  reverse: boolean;
+  onSortByChanged(sortBy: S): void;
+  onReverseChanged(reverse: boolean): void;
 }) {
   type TableColumn = WeaponTableColumnDef;
   const onColumnClicked = (column: TableColumn) => {
@@ -150,7 +130,7 @@ const DataRow = memo(function DataRow({
   row,
 }: {
   columns: readonly WeaponTableColumnGroupDef[];
-  row: WeaponTableRowData;
+  row: DefaultWeaponTableRowData;
 }) {
   return (
     <WeaponTableDataRow role="row">
@@ -167,7 +147,7 @@ const DataRow = memo(function DataRow({
   );
 });
 
-function WeaponTable({
+function WeaponTableBase<S>({
   rows,
   columns,
   sortBy,
@@ -178,7 +158,7 @@ function WeaponTable({
   errorWeapons,
   total,
   limit,
-}: Props) {
+}: Props<S>): React.ReactElement {
   if (errorWeapons) {
     return (
       <Alert severity="error" sx={{ my: 3 }}>
@@ -272,4 +252,4 @@ function WeaponTable({
   );
 }
 
-export default memo(WeaponTable);
+export default WeaponTableBase;
