@@ -9,7 +9,7 @@ import {
   weaponTypeLabels,
   dlcWeaponTypes,
 } from "./uiUtils";
-import { BooleanInput } from "./FixedTableWeaponListSetting";
+import { BooleanInput } from "./weaponTable/FixedAttributeTable/FixedTableWeaponListSetting";
 
 interface Props {
   includeDLCWeaponTypes?: boolean;

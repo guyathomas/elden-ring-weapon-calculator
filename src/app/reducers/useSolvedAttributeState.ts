@@ -1,4 +1,4 @@
-import { useReducer } from "react";
+import { useEffect, useReducer } from "react";
 import type { AttributeSolverValues } from "../../calculator/attributes";
 import { INITIAL_CLASS_VALUES } from "../ClassPicker";
 import type { DamageTypeToOptimizeFor } from "../OptimizedDamageTypePicker";

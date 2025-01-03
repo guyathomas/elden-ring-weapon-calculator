@@ -17,7 +17,7 @@ import {
   Button,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBackRounded";
-import WeaponListSettings from "./FixedTableWeaponListSetting";
+import WeaponListSettings from "./weaponTable/FixedAttributeTable/FixedTableWeaponListSetting";
 import FixedWeaponTable from "./weaponTable/FixedAttributeTable/FixedAttributeTable";
 import theme from "./theme";
 import regulationVersions, { type RegulationVersionName } from "./regulationVersions";
@@ -36,7 +36,7 @@ import { getEnduranceForWeight } from "./weaponTable/OptimalAttributeTable/useOp
 import useFilteredWeapons from "./weaponTable/useFilteredWeapons";
 import { INITIAL_CLASS_VALUES, type StartingClass } from "./ClassPicker";
 import type { Weapon } from "../calculator/weapon";
-import SolvedTableWeaponListSettings from "./SolvedTableWeaponListSettings";
+import SolvedTableWeaponListSettings from "./weaponTable/OptimalAttributeTable/SolvedTableWeaponListSettings";
 import SolverWeaponTable from "./weaponTable/OptimalAttributeTable/OptimalAttributeTable";
 import type { WeaponType } from "../calculator/weaponTypes";
 import type { AllAttributeAndLevel } from "../calculator/attributes";

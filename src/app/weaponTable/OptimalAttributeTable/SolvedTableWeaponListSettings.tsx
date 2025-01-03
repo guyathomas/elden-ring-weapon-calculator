@@ -6,21 +6,21 @@ import {
   type AttributeRangeKey,
   type AttributeSolverKey,
   type NonDamageAttribute,
-} from "../calculator/calculator";
-import NumberTextField from "./NumberTextField";
-import { getAttributeLabel } from "./uiUtils";
+} from "../../../calculator/calculator";
+import NumberTextField from "../../NumberTextField";
+import { getAttributeLabel } from "../../uiUtils";
 import ClassPicker, {
   INITIAL_CLASS_VALUES,
   type StartingClass as StartingClass,
-} from "./ClassPicker";
-import RollTypePicker from "./RollTypePicker";
-import type { SolvedAttributeState } from "./reducers/useSolvedAttributeState";
-import { getMaxWeightForEndurance } from "./weaponTable/OptimalAttributeTable/useOptimalAttributes";
+} from "../../ClassPicker";
+import RollTypePicker from "../../RollTypePicker";
+import type { SolvedAttributeState } from "../../reducers/useSolvedAttributeState";
+import { getMaxWeightForEndurance } from "./useOptimalAttributes";
 import {
   BooleanInput,
   WeaponLevelInput,
   type AttributeInputRangeProps,
-} from "./FixedTableWeaponListSetting";
+} from "../FixedAttributeTable/FixedTableWeaponListSetting";
 
 /**
  * Form control for picking the value of a single attribute (str/dex/int/fai/arc)
@@ -146,6 +146,18 @@ function WeaponListSettings({
     [onWeaponAdjustedEnduranceChanged],
   );
 
+  const initialValues = INITIAL_CLASS_VALUES[startingClass].total;
+  const minValues =
+    solverAttributes["arc.Min"] +
+    solverAttributes["fai.Min"] +
+    solverAttributes["str.Min"] +
+    solverAttributes["dex.Min"] +
+    solverAttributes["int.Min"] +
+    solverAttributes.end +
+    solverAttributes.min +
+    solverAttributes.vig;
+
+  const minLevel = minValues - initialValues + INITIAL_CLASS_VALUES[startingClass].lvl;
   return (
     <Box
       sx={() => ({
@@ -169,7 +181,7 @@ function WeaponListSettings({
         size="small"
         variant="outlined"
         value={solverAttributes.lvl}
-        min={1}
+        min={Math.max(minLevel, INITIAL_CLASS_VALUES[startingClass].lvl)}
         max={713}
         onChange={handleChangeLevel}
       />

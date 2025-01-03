@@ -1,6 +1,8 @@
 import { useMemo } from "react";
 import {
+  adjustAttributesForTwoHanding,
   WeaponType,
+  type DamageAttribute,
   type DamageAttributeValues,
   type Weapon,
 } from "../../../calculator/calculator";
@@ -48,19 +50,34 @@ const useWeaponSolverRows = ({
   optimalAttributes,
   upgradeLevel,
   startingClass,
+  twoHanding,
+  attributes,
 }: WeaponTableRowsOptions): WeaponTableRowsResult => {
   const hasSpellScaling = weapons.some((weapon) => weapon.sorceryTool || weapon.incantationTool);
+
   const rows = useMemo<OptimalAttributeTableRowData[]>(
     () =>
-      weapons.map(
-        (weapon): OptimalAttributeTableRowData => ({
+      weapons.map((weapon): OptimalAttributeTableRowData => {
+        const adjustedAttributes = adjustAttributesForTwoHanding({
+          twoHanding,
+          weapon,
+          attributes,
+        });
+
+        const ineffectiveAttributes = (
+          Object.entries(weapon.requirements) as [DamageAttribute, number][]
+        )
+          .filter(([attribute, requirement]) => adjustedAttributes[attribute] < requirement)
+          .map(([attribute]) => attribute);
+        return {
           weapon,
           upgradeLevel: getNormalizedUpgradeLevel(weapon, upgradeLevel),
           optimalAttributes: optimalAttributes[weapon.name] ?? {},
+          ineffectiveAttributes,
           startingClassAttributes: INITIAL_CLASS_VALUES[startingClass],
-        }),
-      ),
-    [weapons, optimalAttributes, upgradeLevel, startingClass],
+        };
+      }),
+    [weapons, optimalAttributes, upgradeLevel, startingClass, twoHanding, attributes],
   );
 
   const rowGroups = useMemo<OptimalAttributeTableRowGroup[]>(() => {

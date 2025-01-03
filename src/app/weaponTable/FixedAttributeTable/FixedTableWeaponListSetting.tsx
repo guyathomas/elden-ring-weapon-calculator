@@ -17,10 +17,10 @@ import {
   type AllAttributeAndLevel,
   type AttributeSolverKey,
   type AttributeSolverValues,
-} from "../calculator/calculator";
-import NumberTextField from "./NumberTextField";
-import { getAttributeLabel, maxRegularUpgradeLevel, toSpecialUpgradeLevel } from "./uiUtils";
-import ClassPicker, { type StartingClass as StartingClass } from "./ClassPicker";
+} from "../../../calculator/calculator";
+import NumberTextField from "../../NumberTextField";
+import { getAttributeLabel, maxRegularUpgradeLevel, toSpecialUpgradeLevel } from "../../uiUtils";
+import ClassPicker, { type StartingClass as StartingClass } from "../../ClassPicker";
 
 export interface AttributeInputProps {
   attribute: AllAttribute;
