@@ -44,18 +44,18 @@ const useWeaponSolverRows = ({
   groupWeaponTypes,
   sortBy,
   reverse,
+  optimalAttributes,
 }: WeaponTableRowsOptions): WeaponTableRowsResult => {
   const hasSpellScaling = weapons.some((weapon) => weapon.sorceryTool || weapon.incantationTool);
   const rows = useMemo<SolverWeaponTableData[]>(
     () =>
-      weapons.map((weapon): SolverWeaponTableData => {
-        return {
+      weapons.map(
+        (weapon): SolverWeaponTableData => ({
           weapon,
-          optimalAttributes: {},
-          // optimalAttributes: optimalAttributes[weapon.name] ?? {},
-        };
-      }),
-    [weapons],
+          optimalAttributes: optimalAttributes[weapon.name] ?? {},
+        }),
+      ),
+    [weapons, optimalAttributes],
   );
 
   const rowGroups = useMemo<OptimalAttributeTableRowGroup[]>(() => {

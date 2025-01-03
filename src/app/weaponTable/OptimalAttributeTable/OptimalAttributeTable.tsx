@@ -26,6 +26,9 @@ export type OptimalAttributeTableColumnGroupDef =
   WeaponTableColumnGroupDef<OptimalAttributeTableRowData>;
 export type OptimalAttributeTableRowGroup = WeaponTableRowGroup<OptimalAttributeTableRowData>;
 
+/**
+ * Props for the OptimalAttributeTable component.
+ */
 interface Props {
   /**
    * Indicates if the weapon data is currently being loaded.
@@ -67,11 +70,34 @@ interface Props {
    */
   attributes: FixedAttributeState["attributes"];
 
+  /**
+   * The solver attributes of the character.
+   */
   solverAttributes: SolvedAttributeState["solverAttributes"];
+
+  /**
+   * The starting class of the character.
+   */
   startingClass: AppState["startingClass"];
+
+  /**
+   * Indicates if endurance should be adjusted for the weapon.
+   */
   adjustEnduranceForWeapon: SolvedAttributeState["adjustEnduranceForWeapon"];
+
+  /**
+   * The type of roll the character performs.
+   */
   rollType: SolvedAttributeState["rollType"];
+
+  /**
+   * The weight of the character's armor.
+   */
   armorWeight: SolvedAttributeState["armorWeight"];
+
+  /**
+   * The type of damage to optimize for.
+   */
   damageTypeToOptimizeFor: SolvedAttributeState["damageTypeToOptimizeFor"];
 }
 
@@ -116,16 +142,17 @@ function WeaponTable({
     twoHanding,
     upgradeLevel,
     groupWeaponTypes,
-    optimalAttributes: {},
+    optimalAttributes,
   });
   const columns = useMemo(
     () =>
       getOptimalAttributeColumns({
-        spellScaling: hasSpellScaling, // TODO: Add this
-        showEndurance: true, // TODO: Add this
+        spellScaling: hasSpellScaling,
+        showEndurance: adjustEnduranceForWeapon,
       }),
-    [hasSpellScaling],
+    [hasSpellScaling, adjustEnduranceForWeapon],
   );
+
   return (
     <>
       <WeaponTableBase<SortBy>

@@ -268,11 +268,11 @@ export const useOptimalAttributes = ({
             acc[batches[i][j].name] = optimalAttribute;
             return acc;
           }, {} as Record<Weapon["name"], OptimalAttribute>);
-        setOptimalAttributes({ ...optimalAttributes, ...update });
+        setOptimalAttributes((prev) => ({ ...prev, ...update }));
         await wait(10);
       }
     },
-    [calculateHighestWeaponAttackResult, setOptimalAttributes, optimalAttributes],
+    [calculateHighestWeaponAttackResult, setOptimalAttributes],
   );
 
   useEffect(() => {
