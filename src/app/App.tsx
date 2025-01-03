@@ -13,8 +13,6 @@ import {
   Tab,
   Tabs,
   type Theme,
-  ButtonGroup,
-  Button,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBackRounded";
 import WeaponListSettings from "./weaponTable/FixedAttributeTable/FixedTableWeaponListSetting";

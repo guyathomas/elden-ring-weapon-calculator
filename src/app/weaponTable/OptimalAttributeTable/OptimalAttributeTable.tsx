@@ -1,5 +1,5 @@
 import { memo, useMemo, useState } from "react";
-import { type DamageAttribute, type Weapon } from "../../../calculator/calculator";
+import { type Weapon } from "../../../calculator/calculator";
 import type { SortBy } from "./sortOptimalWeapons";
 import WeaponTableBase from "../WeaponTableBase";
 import type { RegulationVersion } from "../../regulationVersions";
@@ -25,7 +25,6 @@ export type OptimalAttributeTableRowData = {
   optimalAttributes: OptimalAttribute;
   upgradeLevel: number;
   startingClassAttributes: Record<AllStartingClassAttributes, number>;
-  ineffectiveAttributes: DamageAttribute[];
 };
 
 export type OptimalAttributeTableColumnDef = WeaponTableColumnDef<OptimalAttributeTableRowData>;

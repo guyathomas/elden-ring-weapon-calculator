@@ -21,6 +21,7 @@ import {
   OptimizedAttributeRenderer,
   OptimizedEnduranceRenderer,
   blankIcon,
+  AttributeRequirementRenderer,
 } from "../tableRenderers";
 
 const nameColumn: OptimalAttributeTableColumnDef = {
@@ -109,6 +110,27 @@ const optimizedSPColumns: OptimalAttributeTableColumnDef[] = damageAttributes.ma
   }),
 );
 
+const requirementColumns: OptimalAttributeTableColumnDef[] = damageAttributes.map(
+  (attribute): OptimalAttributeTableColumnDef => ({
+    key: `${attribute}Requirement`,
+    sortBy: `${attribute}Requirement`,
+    header: (
+      <Typography
+        component="span"
+        variant="subtitle2"
+        title={`${getAttributeLabel(attribute)} Requirement`}
+      >
+        {getShortAttributeLabel(attribute)}
+      </Typography>
+    ),
+    render({ weapon }) {
+      return (
+        <AttributeRequirementRenderer weapon={weapon} attribute={attribute} ineffective={false} />
+      );
+    },
+  }),
+);
+
 interface WeaponTableColumnsOptions {
   spellScaling: boolean;
   showEndurance: boolean;
@@ -166,13 +188,22 @@ export function getOptimalAttributeColumns({
   return [
     {
       key: "name",
-      sx: { flex: 2, minWidth: 160 },
+      sx: { flex: 1, minWidth: 100 },
       columns: [nameColumn],
+    },
+    {
+      key: "requirements",
+      sx: {
+        width: 20 * requirementColumns.length,
+        flex: 1,
+      },
+      header: "Attributes Required",
+      columns: requirementColumns,
     },
     {
       key: "attributesOptimizedAP",
       sx: {
-        width: 45 * (allDamageTypes.length + damageAttributes.length + 4) + 27,
+        width: 50 * (allDamageTypes.length + damageAttributes.length + 3),
         flex: 2,
       },
       header: `Optimal AP Attributes`,

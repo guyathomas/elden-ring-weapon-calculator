@@ -1,12 +1,5 @@
 import { useMemo } from "react";
-import {
-  adjustAttributesForTwoHanding,
-  WeaponType,
-  type DamageAttribute,
-  type DamageAttributeValues,
-  type Weapon,
-} from "../../../calculator/calculator";
-import { type RegulationVersion } from "../../regulationVersions";
+import { WeaponType, type Weapon } from "../../../calculator/calculator";
 import { allWeaponTypes, getNormalizedUpgradeLevel, weaponTypeLabels } from "../../uiUtils";
 import type { OptimalAttributesMap } from "./useOptimalAttributes";
 import { sortSolverWeapons, type SortBy } from "./sortOptimalWeapons";
@@ -16,16 +9,12 @@ import type { OptimalAttributeTableRowData } from "./OptimalAttributeTable";
 
 interface WeaponTableRowsOptions {
   weapons: readonly Weapon[];
-  regulationVersion: RegulationVersion;
   offset: number;
   limit: number;
   sortBy: SortBy;
   reverse: boolean;
-  attributes: DamageAttributeValues;
-  twoHanding: boolean;
   upgradeLevel: number;
   groupWeaponTypes: boolean;
-  maxUpgradeLevel: number;
   optimalAttributes: OptimalAttributesMap;
   startingClass: StartingClass;
 }
@@ -50,34 +39,20 @@ const useWeaponSolverRows = ({
   optimalAttributes,
   upgradeLevel,
   startingClass,
-  twoHanding,
-  attributes,
 }: WeaponTableRowsOptions): WeaponTableRowsResult => {
   const hasSpellScaling = weapons.some((weapon) => weapon.sorceryTool || weapon.incantationTool);
 
   const rows = useMemo<OptimalAttributeTableRowData[]>(
     () =>
       weapons.map((weapon): OptimalAttributeTableRowData => {
-        const adjustedAttributes = adjustAttributesForTwoHanding({
-          twoHanding,
-          weapon,
-          attributes,
-        });
-
-        const ineffectiveAttributes = (
-          Object.entries(weapon.requirements) as [DamageAttribute, number][]
-        )
-          .filter(([attribute, requirement]) => adjustedAttributes[attribute] < requirement)
-          .map(([attribute]) => attribute);
         return {
           weapon,
           upgradeLevel: getNormalizedUpgradeLevel(weapon, upgradeLevel),
           optimalAttributes: optimalAttributes[weapon.name] ?? {},
-          ineffectiveAttributes,
           startingClassAttributes: INITIAL_CLASS_VALUES[startingClass],
         };
       }),
-    [weapons, optimalAttributes, upgradeLevel, startingClass, twoHanding, attributes],
+    [weapons, optimalAttributes, upgradeLevel, startingClass],
   );
 
   const rowGroups = useMemo<OptimalAttributeTableRowGroup[]>(() => {
