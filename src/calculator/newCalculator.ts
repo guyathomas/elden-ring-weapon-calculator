@@ -54,6 +54,13 @@ export function calculateFinalScaling({
 const sumObjectValues = (obj: Record<string, number>) =>
   Object.values(obj).reduce((acc, v) => acc + v, 0);
 
+/*
+  @returns for attackPower or spellScaling the scaling factor to be applied for each damage type at each attribute level
+    {
+      str: [{ '0': 0.02 }, { '0': 0.03 }, { '0': 0.04 }, ... }],
+      ...
+    }
+*/
 export function createDamageScalingPerAttribute(
   weapon: Weapon,
   weaponUpgradeLevel: number,
@@ -102,6 +109,13 @@ export type IncrementalDamagePerAttribute = {
   spellPower: Record<DamageAttribute, IncrementalTotalAndSourceDamage[]>;
 };
 
+/*
+  @returns for attackPower or spellScaling the amount of damage for each DamageType that a given attribute level provides
+    {
+      str: [{ '0': 4.3 '4': 2.5 }, { '0': 6.3 '4': 3.5 }, { '0': 7.3 '4': 4.5 }, ...],
+      ...
+    }
+*/
 export function getIncrementalDamagePerAttribute(
   weapon: Weapon,
   weaponUpgradeLevel: number,

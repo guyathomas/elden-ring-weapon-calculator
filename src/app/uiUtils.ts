@@ -344,7 +344,7 @@ export const maxSpecialUpgradeLevel = 10;
 
 /**
  * @param regularUpgradeLevel the upgrade level of a regular weapon
- * @returns the corresponding upgrade level for a somber weapon
+ * @returns the corresponding upgrade level for a somber weapon. i.e. 25 > 10, 13 > 5
  */
 export function toSpecialUpgradeLevel(regularUpgradeLevel: number) {
   // For in between levels with no exact equivalent, round down. I think this is what you would
