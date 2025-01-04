@@ -65,6 +65,8 @@ interface Props {
   rollType: SolvedAttributeState["rollType"];
   armorWeight: SolvedAttributeState["armorWeight"];
   adjustEnduranceForWeapon: SolvedAttributeState["adjustEnduranceForWeapon"];
+  splitDamage: boolean;
+  onSplitDamageChanged(splitDamage: boolean): void;
 }
 
 /**
@@ -86,6 +88,8 @@ function WeaponListSettings({
   adjustEnduranceForWeapon,
   onWeaponAdjustedEnduranceChanged,
   onAttributeSolverChanged,
+  splitDamage,
+  onSplitDamageChanged,
 }: Props) {
   const debouncedOnAttributeSolverChanged = debounce(onAttributeSolverChanged, 300);
 
@@ -243,6 +247,11 @@ function WeaponListSettings({
           />
         </>
       )}
+      <BooleanInput
+        label="Show damage split"
+        checked={splitDamage}
+        onChange={onSplitDamageChanged}
+      />
     </Box>
   );
 }

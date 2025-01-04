@@ -146,10 +146,12 @@ const requirementColumns: OptimalAttributeTableColumnDef[] = damageAttributes.ma
 interface WeaponTableColumnsOptions {
   spellScaling: boolean;
   showEndurance: boolean;
+  splitDamage: boolean;
 }
 export function getOptimalAttributeColumns({
   spellScaling,
   showEndurance,
+  splitDamage,
 }: WeaponTableColumnsOptions): OptimalAttributeTableColumnGroupDef[] {
   const optimizedSpellScalingColumns: OptimalAttributeTableColumnGroupDef[] = spellScaling
     ? [
@@ -226,7 +228,9 @@ export function getOptimalAttributeColumns({
       header: `Optimal AP Attributes`,
       columns: [
         ...optimizedAPColumns,
-        ...allDamageTypes.map((damageType) => optimizedAttackTypeColumns[damageType]),
+        ...(splitDamage
+          ? allDamageTypes.map((damageType) => optimizedAttackTypeColumns[damageType])
+          : []),
         {
           key: `totalOptimizedAP`,
           sortBy: `totalOptimizedAP`,

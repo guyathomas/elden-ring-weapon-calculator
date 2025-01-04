@@ -101,6 +101,11 @@ interface Props {
   setOptimalAttributes: (
     attributes: Partial<Record<Weapon["name"], OptimalAttribute>> | null,
   ) => void;
+
+  /**
+   * If true, include columns for each individual damage type as well as total attack power.
+   */
+  splitDamage: boolean;
 }
 
 function OptimalAttributeTable({
@@ -118,6 +123,7 @@ function OptimalAttributeTable({
   damageTypeToOptimizeFor,
   optimalAttributes,
   setOptimalAttributes,
+  splitDamage,
 }: Props) {
   const [sortBy, setSortBy] = useState<SortBy>("name");
   const [reverse, setReverse] = useState<boolean>(false);
@@ -152,8 +158,9 @@ function OptimalAttributeTable({
       getOptimalAttributeColumns({
         spellScaling: hasSpellScaling,
         showEndurance: adjustEnduranceForWeapon,
+        splitDamage,
       }),
-    [hasSpellScaling, adjustEnduranceForWeapon],
+    [hasSpellScaling, adjustEnduranceForWeapon, splitDamage],
   );
 
   return (

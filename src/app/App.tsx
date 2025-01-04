@@ -137,7 +137,7 @@ export default function App() {
     dispatch: dispatchAppState,
   } = useAppState();
   const {
-    state: { attributes, splitDamage, numericalScaling },
+    state: { attributes, splitDamage: fixedSplitDamage, numericalScaling },
     dispatch: dispatchFixedAttributeState,
   } = useFixedAttributeState();
   const {
@@ -148,6 +148,7 @@ export default function App() {
       armorWeight,
       damageTypeToOptimizeFor,
       optimalAttributes,
+      splitDamage: solverSplitDamage,
     },
     dispatch: dispatchSolvedAttributeState,
   } = useSolvedAttributeState();
@@ -419,6 +420,16 @@ export default function App() {
     [dispatchSolvedAttributeState],
   );
 
+  const handleChangedSolverSplitDamageChanged = useCallback(
+    (splitDamageChanged: boolean) => {
+      dispatchSolvedAttributeState({
+        type: "setSplitDamage",
+        payload: splitDamageChanged,
+      });
+    },
+    [dispatchSolvedAttributeState],
+  );
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -503,7 +514,7 @@ export default function App() {
                 twoHanding={twoHanding}
                 upgradeLevel={upgradeLevel}
                 maxUpgradeLevel={regulationVersion.maxUpgradeLevel}
-                splitDamage={splitDamage}
+                splitDamage={fixedSplitDamage}
                 numericalScaling={numericalScaling}
                 onStartingClassChanged={handleStartingClassChanged}
                 startingClass={startingClass}
@@ -518,7 +529,7 @@ export default function App() {
                 weaponsError={error}
                 isWeaponsLoading={loading}
                 regulationVersion={regulationVersion}
-                splitDamage={splitDamage}
+                splitDamage={fixedSplitDamage}
                 numericalScaling={numericalScaling}
                 twoHanding={twoHanding}
                 upgradeLevel={upgradeLevel}
@@ -544,6 +555,8 @@ export default function App() {
                 onTwoHandingChanged={handleChangeTwoHanding}
                 onUpgradeLevelChanged={handleChangeUpgradeLevel}
                 onWeaponAdjustedEnduranceChanged={handleChangeWeaponAdjustedEndurance}
+                splitDamage={solverSplitDamage}
+                onSplitDamageChanged={handleChangedSolverSplitDamageChanged}
               />
               <SolverWeaponTable
                 weapons={filteredWeapons}
@@ -560,6 +573,7 @@ export default function App() {
                 damageTypeToOptimizeFor={damageTypeToOptimizeFor}
                 optimalAttributes={optimalAttributes}
                 setOptimalAttributes={handleSetOptimalAttributes}
+                splitDamage={solverSplitDamage}
               />
             </>
           )}

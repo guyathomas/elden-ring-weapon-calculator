@@ -32,6 +32,7 @@ export interface SolvedAttributeState {
   readonly armorWeight: number;
   readonly damageTypeToOptimizeFor: DamageTypeToOptimizeFor;
   readonly optimalAttributes: Partial<Record<Weapon["name"], OptimalAttribute>>;
+  readonly splitDamage: boolean;
 }
 
 export function solvedAttributeStateReducer(
@@ -52,6 +53,8 @@ export function solvedAttributeStateReducer(
     case "setOptimalAttributes":
       if (action.payload === null) return { ...state, optimalAttributes: {} };
       return { ...state, optimalAttributes: { ...state.optimalAttributes, ...action.payload } };
+    case "setSplitDamage":
+      return { ...state, splitDamage: action.payload };
     default:
       return state;
   }
@@ -79,6 +82,7 @@ const initialState: SolvedAttributeState = {
   armorWeight: 34,
   damageTypeToOptimizeFor: "total",
   optimalAttributes: {},
+  splitDamage: false,
 };
 
 export function useSolvedAttributeState() {
