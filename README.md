@@ -41,6 +41,7 @@ Features
 
 Bugs
 
+- [ ] newCalculator doesn't accomodate ineffectiveAttribute penalities
 - [ ] Effective only toggle is showing and hiding rows in the solver row. It should not hide any unless the minimum attributes can not be met
 - [ ] All status effects are showing in the status column, even when only some have values
 - [ ] "Optimal SP Attributes" is getting calculated for Weapons

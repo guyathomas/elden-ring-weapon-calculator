@@ -2,8 +2,10 @@ import type { DamageAttribute } from "./attributes";
 import type { AttackPowerType } from "./attackPowerTypes";
 import type { WeaponType } from "./weaponTypes";
 
+export type AttackCorrect = number | true;
+
 export type AttackElementCorrect = Partial<
-  Record<AttackPowerType, Partial<Record<DamageAttribute, number | true>>>
+  Record<AttackPowerType, Partial<Record<DamageAttribute, AttackCorrect>>>
 >;
 
 export interface Weapon {

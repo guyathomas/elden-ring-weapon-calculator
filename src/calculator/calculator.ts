@@ -2,6 +2,7 @@ import { damageAttributes, type DamageAttribute, type DamageAttributeValues } fr
 import { AttackPowerType, allAttackPowerTypes, allDamageTypes } from "./attackPowerTypes";
 import type { Weapon } from "./weapon";
 import { WeaponType } from "./weaponTypes";
+import { calculateFinalScaling } from "./newCalculator";
 
 interface WeaponAttackOptions {
   weapon: Weapon;
@@ -44,7 +45,8 @@ export function adjustStrengthForTwoHanding({
   ) {
     applyTwoHandingBonus = true;
   }
-  return applyTwoHandingBonus ? Math.floor(str * 1.5) : str;
+  // 148 is the max allowed attribute value
+  return applyTwoHandingBonus ? Math.min(Math.floor(str * 1.5), 148) : str;
 }
 
 /**
@@ -96,19 +98,13 @@ export default function getWeaponAttack({
         for (const attribute of damageAttributes) {
           const attributeCorrect = scalingAttributes[attribute];
           if (attributeCorrect) {
-            let scaling: number;
-            if (attributeCorrect === true) {
-              scaling = weapon.attributeScaling[upgradeLevel][attribute] ?? 0;
-            } else {
-              scaling =
-                (attributeCorrect * (weapon.attributeScaling[upgradeLevel][attribute] ?? 0)) /
-                (weapon.attributeScaling[0][attribute] ?? 0);
-            }
-
-            if (scaling) {
-              totalScaling +=
-                weapon.calcCorrectGraphs[attackPowerType][effectiveAttributes[attribute]] * scaling;
-            }
+            totalScaling += calculateFinalScaling({
+              attributeCorrect,
+              attributeScaling: weapon.attributeScaling[upgradeLevel][attribute] || 0,
+              baseAttributeScaling: weapon.attributeScaling[0][attribute] || 0,
+              calcCorrectGraphValue:
+                weapon.calcCorrectGraphs[attackPowerType][effectiveAttributes[attribute]],
+            });
           }
         }
       }
