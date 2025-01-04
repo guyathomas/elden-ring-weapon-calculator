@@ -19,7 +19,7 @@ export interface RegulationVersion {
   /**
    * Hack: in Elden Ring Reforged there is no attack power bonus for two handing
    */
-  disableTwoHandingAttackPowerBonus?: boolean;
+  disableTwoHandingAttackPowerBonus: boolean;
 
   /**
    * The Convergence mod makes all weapons only go up to +10
@@ -34,7 +34,7 @@ export interface RegulationVersion {
   /**
    * Elden Ring Reforged changes the penalty for not having the required attributes for a weapon
    */
-  ineffectiveAttributePenalty?: number;
+  ineffectiveAttributePenalty: number;
 
   fetch(): Promise<Response>;
 }
@@ -65,6 +65,8 @@ const regulationVersions: Record<RegulationVersionName, RegulationVersion> = {
         from the new expansion.
       </>
     ),
+    disableTwoHandingAttackPowerBonus: false,
+    ineffectiveAttributePenalty: 0.4,
     affinityOptions,
     fetch: () => fetch(`/regulation-vanilla-v1.14.js?${import.meta.env.VITE_DATA_FORMAT}`),
   },
@@ -106,6 +108,8 @@ const regulationVersions: Record<RegulationVersionName, RegulationVersion> = {
     affinityOptions: convergenceAffinityOptions,
     maxUpgradeLevel: 15,
     splitSpellScaling: true,
+    disableTwoHandingAttackPowerBonus: false,
+    ineffectiveAttributePenalty: 0.4,
     fetch: () => fetch(`/regulation-convergence-v2.1.2.js?${import.meta.env.VITE_DATA_FORMAT}`),
   },
 };

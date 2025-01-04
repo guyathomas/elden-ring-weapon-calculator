@@ -106,6 +106,8 @@ export const useOptimalAttributes = ({
   damageTypeToOptimizeFor,
   armorWeight,
   setOptimalAttributes,
+  disableTwoHandingAttackPowerBonus,
+  ineffectiveAttributePenalty,
 }: {
   solverAttributes: AttributeSolverValues;
   twoHanding: boolean;
@@ -119,6 +121,8 @@ export const useOptimalAttributes = ({
   setOptimalAttributes: (
     attributes: Partial<Record<Weapon["name"], OptimalAttribute>> | null,
   ) => void;
+  disableTwoHandingAttackPowerBonus: boolean;
+  ineffectiveAttributePenalty: number;
 }) => {
   const weaponsMemo = useRef(weapons);
   const spendablePoints =
@@ -227,6 +231,8 @@ export const useOptimalAttributes = ({
           },
           upgradeLevel: normalizedUpgradeLevel,
           twoHanding,
+          disableTwoHandingAttackPowerBonus,
+          ineffectiveAttributePenalty,
         }).attackPower,
       );
       return {

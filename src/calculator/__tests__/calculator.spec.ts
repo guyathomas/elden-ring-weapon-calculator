@@ -10,6 +10,8 @@ describe("getWeaponAttack", () => {
           weapon,
           attributes: INITIAL_CLASS_VALUES.Vagabond,
           upgradeLevel,
+          disableTwoHandingAttackPowerBonus: false,
+          ineffectiveAttributePenalty: 0.4,
         });
         expect(result).toMatchSnapshot();
       });
@@ -19,6 +21,8 @@ describe("getWeaponAttack", () => {
           attributes: INITIAL_CLASS_VALUES.Vagabond,
           upgradeLevel,
           twoHanding: true,
+          disableTwoHandingAttackPowerBonus: false,
+          ineffectiveAttributePenalty: 0.4,
         });
         expect(result).toMatchSnapshot();
       });

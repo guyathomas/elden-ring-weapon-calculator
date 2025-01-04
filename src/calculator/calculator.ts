@@ -9,8 +9,8 @@ interface WeaponAttackOptions {
   attributes: DamageAttributeValues;
   twoHanding?: boolean;
   upgradeLevel: number;
-  disableTwoHandingAttackPowerBonus?: boolean;
-  ineffectiveAttributePenalty?: number;
+  disableTwoHandingAttackPowerBonus: boolean;
+  ineffectiveAttributePenalty: number;
 }
 
 export interface WeaponAttackResult {
@@ -58,7 +58,7 @@ export default function getWeaponAttack({
   twoHanding,
   upgradeLevel,
   disableTwoHandingAttackPowerBonus,
-  ineffectiveAttributePenalty = 0.4,
+  ineffectiveAttributePenalty,
 }: WeaponAttackOptions): WeaponAttackResult {
   const adjustedAttributes: DamageAttributeValues = {
     ...attributes,
