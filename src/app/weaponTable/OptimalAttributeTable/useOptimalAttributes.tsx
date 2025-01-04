@@ -192,20 +192,23 @@ export const useOptimalAttributes = ({
         } as OptimalAttributeForAttackType;
       }
 
-      const optimalDamageSplit = allDamageTypes.reduce((damageTypeAcc, damageType) => {
-        const baseDamageForType = dmg.base[damageType] || 0;
-        const scaledDamageForType = Object.entries(dmg.attackPower).reduce(
-          (damageOfTypeForAllAttrs, [attr, values]) => {
-            const optimalAttributeLevel =
-              optimalAttackScores.highestAttributes[attr as DamageAttribute];
-            const damageForAttribute = values[optimalAttributeLevel][damageType] || 0;
-            return damageOfTypeForAllAttrs + damageForAttribute;
-          },
-          0,
-        );
-        damageTypeAcc[damageType] = baseDamageForType + scaledDamageForType;
-        return damageTypeAcc;
-      }, {} as Record<AttackPowerType, number>);
+      const optimalDamageSplit = allDamageTypes.reduce(
+        (damageTypeAcc, damageType) => {
+          const baseDamageForType = dmg.base[damageType] || 0;
+          const scaledDamageForType = Object.entries(dmg.attackPower).reduce(
+            (damageOfTypeForAllAttrs, [attr, values]) => {
+              const optimalAttributeLevel =
+                optimalAttackScores.highestAttributes[attr as DamageAttribute];
+              const damageForAttribute = values[optimalAttributeLevel][damageType] || 0;
+              return damageOfTypeForAllAttrs + damageForAttribute;
+            },
+            0,
+          );
+          damageTypeAcc[damageType] = baseDamageForType + scaledDamageForType;
+          return damageTypeAcc;
+        },
+        {} as Record<AttackPowerType, number>,
+      );
 
       const optimalDamage =
         damageTypeToOptimizeFor === "total"
@@ -265,12 +268,13 @@ export const useOptimalAttributes = ({
       }
       // Process each batch in series
       for (let i = 0; i < batches.length; i++) {
-        const update = batches[i]
-          .map(calculateHighestWeaponAttackResult)
-          .reduce((acc, optimalAttribute, j) => {
+        const update = batches[i].map(calculateHighestWeaponAttackResult).reduce(
+          (acc, optimalAttribute, j) => {
             acc[batches[i][j].name] = optimalAttribute;
             return acc;
-          }, {} as Record<Weapon["name"], OptimalAttribute>);
+          },
+          {} as Record<Weapon["name"], OptimalAttribute>,
+        );
         setOptimalAttributes(update);
         await wait(10);
       }
