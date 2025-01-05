@@ -25,7 +25,7 @@ import type { SliceTooltip } from "@nivo/line";
 import type { DamageTypeToOptimizeFor } from "../OptimizedDamageTypePicker";
 import OptimizedDamageTypePicker from "../OptimizedDamageTypePicker";
 import { getIncrementalDamagePerAttribute } from "../../calculator/newCalculator";
-import type { DamageAttributeValues } from "../../calculator/attributes";
+import { type DamageAttribute, type DamageAttributeValues } from "../../calculator/attributes";
 
 const ResponsiveLine = React.lazy(() =>
   import("@nivo/line").then((module) => ({ default: module.ResponsiveLine })),
@@ -155,6 +155,31 @@ const DataRow = memo(function DataRow({
     rowData.twoHanding,
   );
   const baseDamage = incrementalDamagePerAttribute?.base[damageTypeToOptimizeFor] || 0;
+
+  const markers = useMemo(
+    () =>
+      chartType === "cumulative"
+        ? Object.entries(rowData.attributeMarkers || {}).map(([attribute, attributeValue]) => ({
+            label: attribute,
+            x: attributeValue,
+            y:
+              incrementalDamagePerAttribute.attackPower[attribute as DamageAttribute][
+                attributeValue - 1
+              ].total + incrementalDamagePerAttribute.base.total,
+          }))
+        : Object.entries(rowData.attributeMarkers || {}).map(([attribute, attributeValue]) => ({
+            label: attribute,
+            x: attributeValue,
+            y:
+              incrementalDamagePerAttribute.attackPower[attribute as DamageAttribute][
+                attributeValue
+              ].total -
+              incrementalDamagePerAttribute.attackPower[attribute as DamageAttribute][
+                attributeValue - 1
+              ].total,
+          })),
+    [chartType, rowData.attributeMarkers, incrementalDamagePerAttribute],
+  );
 
   const lineData = useMemo(() => {
     if (!isExpanded) return [];
@@ -320,6 +345,31 @@ const DataRow = memo(function DataRow({
               enableTouchCrosshair={true}
               animate={false}
               sliceTooltip={CustomTooltip}
+              layers={[
+                "grid",
+                "markers",
+                "axes",
+                "areas",
+                "crosshair",
+                "lines",
+                "slices",
+                "points",
+                "mesh",
+                "legends",
+                ({ xScale, yScale }) =>
+                  markers.map(({ x, y, label }) => (
+                    <circle
+                      key={label}
+                      cx={xScale(x)}
+                      cy={yScale(y)}
+                      r={4}
+                      fill="white"
+                      fillOpacity={0.5}
+                      stroke="white"
+                      strokeWidth={1}
+                    />
+                  )),
+              ]}
             />
           </Box>
         </Suspense>

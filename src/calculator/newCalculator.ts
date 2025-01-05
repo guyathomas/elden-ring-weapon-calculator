@@ -1,5 +1,5 @@
 import { allDamageTypes, AttackPowerType } from "./attackPowerTypes";
-import type { DamageAttribute } from "./attributes";
+import type { DamageAttribute, DamageAttributeValues } from "./attributes";
 import { adjustStrengthForTwoHanding } from "./calculator";
 import type { AttackCorrect, AttackElementCorrect, Weapon } from "./weapon";
 
@@ -89,7 +89,6 @@ export function createDamageScalingPerAttribute(
             baseAttributeScaling: weapon.attributeScaling[0][attribute] || 0,
             calcCorrectGraphValue: calcCorrectGraphForDamageType[attrLvl],
           });
-
           acc.attackPower[attribute][attrLvl][attackPowerType] = baseDamage * (finalScaling || 0);
           if (weapon.sorceryTool || weapon.incantationTool) {
             acc.spellScaling[attribute][attrLvl][attackPowerType] = 100 * finalScaling;
@@ -144,7 +143,7 @@ export function getIncrementalDamagePerAttribute(
     (acc, [attribute, damageScaling]) => {
       acc[attribute as DamageAttribute] = damageScaling.map((v) => ({
         total: v["0"] || 0,
-      })); // Only applies scaling off this attackType
+      }));
       return acc;
     },
     {} as IncrementalDamagePerAttribute["spellPower"],

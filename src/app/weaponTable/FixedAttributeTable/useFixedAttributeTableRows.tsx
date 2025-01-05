@@ -105,6 +105,7 @@ const useFixedAttributeTableRows = ({
           weaponAttackData: fixedWeaponAttackResult,
           upgradeLevel: normalizedUpgradeLevel,
           twoHanding,
+          attributeMarkers: attributes,
         };
       }),
     [

@@ -1,5 +1,5 @@
 import { useDeferredValue, useMemo } from "react";
-import { WeaponType, type Weapon } from "../../../calculator/calculator";
+import { WeaponType, type DamageAttribute, type Weapon } from "../../../calculator/calculator";
 import { allWeaponTypes, getNormalizedUpgradeLevel, weaponTypeLabels } from "../../uiUtils";
 import type { OptimalAttributesMap } from "./useOptimalAttributes";
 import { sortSolverWeapons, type SortBy } from "./sortOptimalWeapons";
@@ -51,6 +51,7 @@ const useWeaponSolverRows = ({
         (weapon): OptimalAttributeTableRowData => ({
           weapon,
           upgradeLevel: getNormalizedUpgradeLevel(weapon, upgradeLevel),
+          attributeMarkers: optimalAttributes[weapon.name]?.attackPower?.optimalAttributes,
           optimalAttributes: optimalAttributes[weapon.name] ?? {},
           startingClassAttributes: INITIAL_CLASS_VALUES[startingClass],
           twoHanding,

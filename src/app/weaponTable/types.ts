@@ -8,6 +8,7 @@ export interface DefaultWeaponTableRowData {
   weapon: Weapon;
   upgradeLevel: number;
   twoHanding: boolean;
+  attributeMarkers?: DamageAttributeValues;
 }
 
 export type RowActions = {

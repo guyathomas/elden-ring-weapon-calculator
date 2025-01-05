@@ -8,6 +8,7 @@ import { useOptimalAttributes, type OptimalAttribute } from "./useOptimalAttribu
 import type { SolvedAttributeState } from "../../reducers/useSolvedAttributeState";
 import useWeaponSolverRows from "./useOptimalAttributeTableRows";
 import {
+  type DefaultWeaponTableRowData,
   type WeaponTableColumnDef,
   type WeaponTableColumnGroupDef,
   type WeaponTableRowGroup,
@@ -17,13 +18,10 @@ import type { AllStartingClassAttributes } from "../../ClassPicker";
 const OFFSET = 0;
 const LIMIT = 200;
 
-export type OptimalAttributeTableRowData = {
-  weapon: Weapon;
+export interface OptimalAttributeTableRowData extends DefaultWeaponTableRowData {
   optimalAttributes: OptimalAttribute;
-  upgradeLevel: number;
   startingClassAttributes: Record<AllStartingClassAttributes, number>;
-  twoHanding: boolean;
-};
+}
 
 export type OptimalAttributeTableColumnDef = WeaponTableColumnDef<OptimalAttributeTableRowData>;
 export type OptimalAttributeTableColumnGroupDef =

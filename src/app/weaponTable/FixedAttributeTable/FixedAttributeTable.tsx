@@ -9,6 +9,7 @@ import type { AppState } from "../../reducers/useAppState";
 import type { FixedAttributeState } from "../../reducers/useFixedAttributeState";
 import { getFixedWeaponTableColumns } from "./getFixedWeaponTableColumns";
 import {
+  type DefaultWeaponTableRowData,
   type WeaponTableColumnDef,
   type WeaponTableColumnGroupDef,
   type WeaponTableRowGroup,
@@ -17,14 +18,11 @@ import {
 const OFFSET = 0;
 const LIMIT = 200;
 
-export type FixedAttributeTableRowData = {
-  weapon: Weapon;
+export interface FixedAttributeTableRowData extends DefaultWeaponTableRowData {
   weaponAttackData: WeaponAttackResult & {
     efficiencyScore: number;
   };
-  upgradeLevel: number;
-  twoHanding: boolean;
-};
+}
 
 export type FixedAttributeTableColumnDef = WeaponTableColumnDef<FixedAttributeTableRowData>;
 export type FixedAttributeTableColumnGroupDef =
