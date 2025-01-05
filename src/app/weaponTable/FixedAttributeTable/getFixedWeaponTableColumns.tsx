@@ -26,14 +26,14 @@ import {
   ActionRenderer,
 } from "../tableRenderers";
 
-export const actionColumn: FixedAttributeTableColumnDef = {
+const actionColumn: FixedAttributeTableColumnDef = {
   key: "actions",
   header: null,
   sx: {
     justifyContent: "start",
   },
-  render(rowData, expandedState) {
-    return <ActionRenderer {...expandedState} />;
+  render(rowData, actions) {
+    return <ActionRenderer {...actions} />;
   },
 };
 

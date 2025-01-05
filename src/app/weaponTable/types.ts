@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import type { SystemStyleObject } from "@mui/system";
 import type { Theme } from "@mui/material";
 import type { Weapon } from "../../calculator/weapon";
+import type { DamageAttributeValues } from "../../calculator/attributes";
 
 export interface DefaultWeaponTableRowData {
   weapon: Weapon;
@@ -9,9 +10,10 @@ export interface DefaultWeaponTableRowData {
   twoHanding: boolean;
 }
 
-export type RowExpandedState = {
+export type RowActions = {
   isExpanded: boolean;
   toggleIsExpanded: () => void;
+  onCopyAttributes?: (attributes: DamageAttributeValues) => void;
 };
 
 export interface WeaponTableRowGroup<T = DefaultWeaponTableRowData> {
@@ -24,7 +26,7 @@ export interface WeaponTableColumnDef<T = DefaultWeaponTableRowData> {
   key: string;
   sortBy?: any; // TODO: Fix this.
   header: ReactNode;
-  render(row: T, rowExpandedState: RowExpandedState): ReactNode;
+  render(row: T, actions: RowActions): ReactNode;
   sx?: SystemStyleObject<Theme> | ((theme: Theme) => SystemStyleObject<Theme>);
 }
 

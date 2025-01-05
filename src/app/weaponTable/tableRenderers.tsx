@@ -6,11 +6,11 @@
  * power changes.
  */
 import { memo } from "react";
-import { Box, IconButton, Link, Typography } from "@mui/material";
+import { Box, IconButton, Link, Tooltip, Typography } from "@mui/material";
 import RemoveIcon from "@mui/icons-material/Remove";
 import { type Weapon, type DamageAttribute } from "../../calculator/calculator";
 import { getAttributeLabel } from "../uiUtils";
-import { SsidChart } from "@mui/icons-material";
+import { ImportExport, SsidChart } from "@mui/icons-material";
 
 export const blankIcon = <RemoveIcon color="disabled" fontSize="small" />;
 
@@ -180,13 +180,26 @@ export const AttackPowerRenderer = memo(function AttackPowerRenderer({
 export const ActionRenderer = memo(function ActionRenderer({
   isExpanded,
   toggleIsExpanded,
+  onCopyAttributes,
 }: {
   toggleIsExpanded: () => void;
+  onCopyAttributes?: () => void;
   isExpanded: boolean;
 }) {
   return (
-    <IconButton onClick={toggleIsExpanded}>
-      <SsidChart style={isExpanded ? { fill: "#ffb452" } : {}} />
-    </IconButton>
+    <Box display="flex">
+      <Tooltip title="Expand scaling details">
+        <IconButton onClick={toggleIsExpanded}>
+          <SsidChart style={isExpanded ? { fill: "#ffb452" } : {}} />
+        </IconButton>
+      </Tooltip>
+      {onCopyAttributes && (
+        <Tooltip title="Copy values to Fixed Attribute tab">
+          <IconButton onClick={onCopyAttributes}>
+            <ImportExport />
+          </IconButton>
+        </Tooltip>
+      )}
+    </Box>
   );
 });

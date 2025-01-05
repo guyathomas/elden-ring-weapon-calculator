@@ -25,6 +25,7 @@ import type { SliceTooltip } from "@nivo/line";
 import type { DamageTypeToOptimizeFor } from "../OptimizedDamageTypePicker";
 import OptimizedDamageTypePicker from "../OptimizedDamageTypePicker";
 import { getIncrementalDamagePerAttribute } from "../../calculator/newCalculator";
+import type { DamageAttributeValues } from "../../calculator/attributes";
 
 const ResponsiveLine = React.lazy(() =>
   import("@nivo/line").then((module) => ({ default: module.ResponsiveLine })),
@@ -41,6 +42,7 @@ interface Props<S> {
   errorWeapons?: Error;
   total: number;
   limit: number;
+  onCopyAttributes?: (attributes: DamageAttributeValues) => void;
 }
 
 /**
@@ -136,9 +138,11 @@ const ColumnHeaderRow = memo(function ColumnHeaderRow<S>({
 const DataRow = memo(function DataRow({
   columns,
   rowData,
+  onCopyAttributes,
 }: {
   columns: readonly WeaponTableColumnGroupDef[];
   rowData: DefaultWeaponTableRowData;
+  onCopyAttributes?: (attributes: DamageAttributeValues) => void;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [damageTypeToOptimizeFor, setDamageTypeToOptimizeFor] =
@@ -204,7 +208,7 @@ const DataRow = memo(function DataRow({
           <WeaponTableColumnGroup key={key} sx={sx}>
             {columns.map((column) => (
               <WeaponTableColumn key={column.key} role="cell" sx={column.sx}>
-                {column.render(rowData, { isExpanded, toggleIsExpanded })}
+                {column.render(rowData, { isExpanded, toggleIsExpanded, onCopyAttributes })}
               </WeaponTableColumn>
             ))}
           </WeaponTableColumnGroup>
@@ -390,6 +394,7 @@ function WeaponTableBase<S>({
   errorWeapons,
   total,
   limit,
+  onCopyAttributes,
 }: Props<S>): React.ReactElement {
   if (errorWeapons) {
     return (
@@ -442,6 +447,7 @@ function WeaponTableBase<S>({
                     }`}
                     columns={columns}
                     rowData={row}
+                    onCopyAttributes={onCopyAttributes}
                   />
                 ))}
               </WeaponTableGroup>

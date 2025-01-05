@@ -1,5 +1,5 @@
 import { memo, useMemo, useState } from "react";
-import { type Weapon } from "../../../calculator/calculator";
+import { type DamageAttributeValues, type Weapon } from "../../../calculator/calculator";
 import type { SortBy } from "./sortOptimalWeapons";
 import WeaponTableBase from "../WeaponTableBase";
 import type { AppState } from "../../reducers/useAppState";
@@ -106,6 +106,10 @@ interface Props {
    * If true, include columns for each individual damage type as well as total attack power.
    */
   splitDamage: boolean;
+
+  disableTwoHandingAttackPowerBonus: boolean;
+  ineffectiveAttributePenalty: number;
+  onCopyAttributes: (attributes: DamageAttributeValues) => void;
 }
 
 function OptimalAttributeTable({
@@ -124,6 +128,9 @@ function OptimalAttributeTable({
   optimalAttributes,
   setOptimalAttributes,
   splitDamage,
+  disableTwoHandingAttackPowerBonus,
+  ineffectiveAttributePenalty,
+  onCopyAttributes,
 }: Props) {
   const [sortBy, setSortBy] = useState<SortBy>("name");
   const [reverse, setReverse] = useState<boolean>(false);
@@ -139,6 +146,8 @@ function OptimalAttributeTable({
     armorWeight,
     damageTypeToOptimizeFor,
     setOptimalAttributes,
+    disableTwoHandingAttackPowerBonus,
+    ineffectiveAttributePenalty,
   });
 
   const { rows, hasSpellScaling } = useWeaponSolverRows({
@@ -176,6 +185,7 @@ function OptimalAttributeTable({
         reverse={reverse}
         limit={LIMIT}
         total={weapons.length}
+        onCopyAttributes={onCopyAttributes}
       />
     </>
   );

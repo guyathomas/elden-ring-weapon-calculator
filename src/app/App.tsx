@@ -40,7 +40,7 @@ import type { Weapon } from "../calculator/weapon";
 import SolvedTableWeaponListSettings from "./weaponTable/OptimalAttributeTable/SolvedTableWeaponListSettings";
 import SolverWeaponTable from "./weaponTable/OptimalAttributeTable/OptimalAttributeTable";
 import type { WeaponType } from "../calculator/weaponTypes";
-import type { AllAttributeAndLevel } from "../calculator/attributes";
+import type { AllAttributeAndLevel, DamageAttributeValues } from "../calculator/attributes";
 import type { RollType } from "./RollTypePicker";
 
 const useMenuState = () => {
@@ -430,6 +430,17 @@ export default function App() {
     [dispatchSolvedAttributeState],
   );
 
+  const handleOnCopyAttributes = useCallback(
+    (attributes: DamageAttributeValues) => {
+      dispatchFixedAttributeState({
+        type: "setAttributes",
+        payload: attributes,
+      });
+      setTableView("fixed");
+    },
+    [dispatchFixedAttributeState],
+  );
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -574,6 +585,11 @@ export default function App() {
                 optimalAttributes={optimalAttributes}
                 setOptimalAttributes={handleSetOptimalAttributes}
                 splitDamage={solverSplitDamage}
+                disableTwoHandingAttackPowerBonus={
+                  regulationVersion.disableTwoHandingAttackPowerBonus
+                }
+                ineffectiveAttributePenalty={regulationVersion.ineffectiveAttributePenalty}
+                onCopyAttributes={handleOnCopyAttributes}
               />
             </>
           )}

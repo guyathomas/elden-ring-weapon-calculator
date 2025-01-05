@@ -41,14 +41,22 @@ const nameColumn: OptimalAttributeTableColumnDef = {
   },
 };
 
-export const actionColumn: OptimalAttributeTableColumnDef = {
+const actionColumn: OptimalAttributeTableColumnDef = {
   key: "actions",
   header: null,
   sx: {
     justifyContent: "start",
   },
-  render(rowData, expandedState) {
-    return <ActionRenderer {...expandedState} />;
+  render(rowData, { onCopyAttributes, ...actions }) {
+    return (
+      <ActionRenderer
+        {...actions}
+        onCopyAttributes={() => {
+          const oA = rowData.optimalAttributes.attackPower?.optimalAttributes;
+          if (onCopyAttributes && oA) onCopyAttributes(oA);
+        }}
+      />
+    );
   },
 };
 
@@ -202,7 +210,7 @@ export function getOptimalAttributeColumns({
   return [
     {
       key: "actions",
-      sx: { flex: 1, maxWidth: 70 },
+      sx: { flex: 1, maxWidth: 100 },
       columns: [actionColumn],
     },
     {
