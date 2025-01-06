@@ -1,4 +1,4 @@
-import { Typography } from "@mui/material";
+import { Tooltip, Typography } from "@mui/material";
 import {
   AttackPowerType,
   allAttackPowerTypes,
@@ -289,9 +289,11 @@ const attackPowerEfficiencyColumn: FixedAttributeTableColumnDef = {
   key: `attackPowerEfficiency`,
   sortBy: `attackPowerEfficiency`,
   header: (
-    <Typography component="span" variant="subtitle2" title={`Disposable Points`}>
-      Eff
-    </Typography>
+    <Tooltip title="Efficiency Score. 100% means no stats can increase the AR.">
+      <Typography component="span" variant="subtitle2">
+        Eff
+      </Typography>
+    </Tooltip>
   ),
   render({ weaponAttackData: { efficiencyScore } }) {
     return <OptimizedAttributeRenderer value={efficiencyScore} />;

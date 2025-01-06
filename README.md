@@ -38,14 +38,22 @@ Features
 - [ ] Copy Stats to optimized stats to Main Calculator
 - [ ] Add Armour Solving
 - [ ] Add modifiers ( Armour bonuses, buffs, etc... )
+- [ ] Add attribute scaling column to solver
+- [ ] Add ash of war scaling
+
+Improvements
+
+- [ ] Exclude the lines from the graph that don’t scale the damage.
+- [ ] ( Performance ) Only check the attributes that appear in the scaling factor objects.
 
 Bugs
 
 - [ ] newCalculator doesn't accomodate ineffectiveAttribute penalities
-- [ ] Effective only toggle is showing and hiding rows in the solver row. It should not hide any unless the minimum attributes can not be met
+- [ ] Fix the rendering of the damage type to optimize for sropdown
 - [ ] All status effects are showing in the status column, even when only some have values
 - [ ] "Optimal SP Attributes" is getting calculated for Weapons
 - [ ] Incant scaling does not include base scaling factor of 100 correctly. Need "base" to be a component of the melee or spell aspects respectively.
+- [ ] Effective only toggle is showing and hiding rows in the solver row. It should not hide any unless the minimum attributes can not be met
 
 Cleanup
 
