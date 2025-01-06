@@ -82,14 +82,24 @@ export function createDamageScalingPerAttribute(
     Object.entries(attributeScalingFactors || {}).forEach(
       ([untypedAttribute, attributeCorrect]) => {
         const attribute = untypedAttribute as DamageAttribute;
-        for (let attrLvl = 0; attrLvl < ATTRIBUTE_SCALING_LENGTH; attrLvl++) {
-          const finalScaling = calculateFinalScaling({
-            attributeCorrect, // true or 0.18
-            attributeScaling: scalingForUpgradeLevel[attribute] || 0,
-            baseAttributeScaling: weapon.attributeScaling[0][attribute] || 0,
-            calcCorrectGraphValue: calcCorrectGraphForDamageType[attrLvl],
-          });
-          acc.attackPower[attribute][attrLvl][attackPowerType] = baseDamage * (finalScaling || 0);
+        for (let attrLvl = 1; attrLvl < ATTRIBUTE_SCALING_LENGTH; attrLvl++) {
+          const ineffectiveAttribute = attrLvl < (weapon.requirements?.[attribute] || 0);
+          const scalingPenalty = 0.4;
+          // TODO: Update to scalingPenalty take from RegulationVersion
+          // Also, this but it breaks 1. The graphs, because the negative scaling will be below on the incremental charts, and then the first valid value will be REALLY high
+          // and 2. The solver doesn't work at the threshold for the minimum requirements being met. Test with the black knife at < 18 faith.
+          const APPLY_SCALING_PENALTY = false;
+          const finalScaling =
+            ineffectiveAttribute && APPLY_SCALING_PENALTY
+              ? -scalingPenalty
+              : calculateFinalScaling({
+                  attributeCorrect, // true or 0.18
+                  attributeScaling: scalingForUpgradeLevel[attribute] || 0,
+                  baseAttributeScaling: weapon.attributeScaling[0][attribute] || 0,
+                  calcCorrectGraphValue: calcCorrectGraphForDamageType[attrLvl],
+                });
+
+          acc.attackPower[attribute][attrLvl][attackPowerType] = baseDamage * finalScaling;
           if (weapon.sorceryTool || weapon.incantationTool) {
             acc.spellScaling[attribute][attrLvl][attackPowerType] = 100 * finalScaling;
           }

@@ -40,7 +40,7 @@ describe("getIncrementalDamagePerAttribute", () => {
             str: 14,
             dex: 13,
             int: 9,
-            fai: 18,
+            fai: 9,
             arc: 7,
           },
         ];
