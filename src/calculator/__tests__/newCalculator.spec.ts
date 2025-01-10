@@ -46,6 +46,7 @@ describe("getIncrementalDamagePerAttribute", () => {
         ];
 
         const dmg = getIncrementalDamagePerAttribute(weapon, upgradeLevel, TWO_HANDING);
+
         ATTRIBUTE_COMBINATIONS.forEach((attributes) => {
           it(`should return the same value for both calculators for attributes: ${JSON.stringify(attributes)}`, () => {
             const newDamage = damageAttributes.reduce(

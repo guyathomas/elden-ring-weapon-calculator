@@ -13,9 +13,10 @@ import { type RollType, rollTypeToMultiplier } from "../../RollTypePicker";
 import {
   getIncrementalDamagePerAttribute,
   type IncrementalDamagePerAttribute,
+  type IncrementalTotalAndSourceDamage,
 } from "../../../calculator/newCalculator";
 import { getNormalizedUpgradeLevel } from "../../uiUtils";
-import { getMaxAttackPower } from "../getMaxAttackPower";
+import { getMaxAttackPower, type AttributeRange } from "../getMaxAttackPower";
 import type { DamageTypeToOptimizeFor } from "../../OptimizedDamageTypePicker";
 import type { SolvedAttributeState } from "../../reducers/useSolvedAttributeState";
 
@@ -94,6 +95,8 @@ function getIncrementalEndurance({
     incrementalEndurance,
   };
 }
+const DEFAULT_DAMAGE_ARRAY = new Array(150).fill(0);
+
 export type OptimalAttributesMap = Partial<Record<Weapon["name"], OptimalAttribute>>;
 export const useOptimalAttributes = ({
   solverAttributes: sa,
@@ -148,15 +151,16 @@ export const useOptimalAttributes = ({
 
       const dmg = getIncrementalDamagePerAttribute(weapon, normalizedUpgradeLevel, twoHanding);
 
-      // Calculate Attack Power
-      const attributeRanges = damageAttributes.map((attr) => [
-        Math.max(sa[`${attr}.Min`], weapon.requirements[attr] ?? 0),
-        sa[`${attr}.Max`],
-      ]);
+      // const attributeScaling = Object.entries(dmg.attackPower) as [DamageAttribute , IncrementalTotalAndSourceDamage[]][];
+
+      const attributeRanges = damageAttributes.reduce((acc, attribute) => acc.set(attribute, [
+        Math.max(sa[`${attribute}.Min`], weapon.requirements[attribute] ?? 0),
+        sa[`${attribute}.Max`],
+      ]), new Map<DamageAttribute, AttributeRange>())
+
+      
       let optimalAttackScores = getMaxAttackPower(
-        damageAttributes.map((attr) =>
-          dmg.attackPower[attr].map((d) => d[damageTypeToOptimizeFor] || 0),
-        ),
+        damageAttributes.reduce((acc, attribute) => acc.set(attribute, dmg.attackPower[attribute]?.map((d) => d[damageTypeToOptimizeFor] || 0) || DEFAULT_DAMAGE_ARRAY), new Map<DamageAttribute, number[]>()),
         attributeRanges,
         Math.max(endAdjustedSpendable, 0),
       );
@@ -165,15 +169,15 @@ export const useOptimalAttributes = ({
       // i.e. optimizing for fire damage will not spend points on str after faith is capped.
       if (damageTypeToOptimizeFor !== "total") {
         optimalAttackScores = getMaxAttackPower(
-          damageAttributes.map((attr) => dmg.attackPower[attr].map((d) => d.total || 0)),
-          damageAttributes.map((attr) => [
+          damageAttributes.reduce((acc, attribute) => acc.set(attribute, dmg.attackPower[attribute]?.map((d) => d.total || 0) || DEFAULT_DAMAGE_ARRAY), new Map<DamageAttribute, number[]>()),
+          damageAttributes.reduce((acc, attribute) => acc.set(attribute, [
             Math.max(
-              sa[`${attr}.Min`],
-              weapon.requirements[attr] ?? 0,
-              optimalAttackScores.highestAttributes[attr], // Starting from at least the amount available
+              sa[`${attribute}.Min`],
+              weapon.requirements[attribute] ?? 0,
+              optimalAttackScores.highestAttributes[attribute], // Starting from at least the amount available
             ),
-            sa[`${attr}.Max`],
-          ]),
+            sa[`${attribute}.Max`],
+          ]), new Map<DamageAttribute, AttributeRange>()),
           Math.max(endAdjustedSpendable, 0),
         );
       }
@@ -182,9 +186,7 @@ export const useOptimalAttributes = ({
       let spellPower: OptimalAttributeForAttackType | undefined;
       if (weapon.sorceryTool || weapon.incantationTool) {
         const optimalSpellScores = getMaxAttackPower(
-          damageAttributes.map((attr) =>
-            dmg.spellPower[attr].map((d) => d[damageTypeToOptimizeFor] || 0),
-          ),
+          damageAttributes.reduce((acc, attribute) => acc.set(attribute, dmg.spellPower[attribute]?.map((d) => d[damageTypeToOptimizeFor] || 0)|| DEFAULT_DAMAGE_ARRAY), new Map<DamageAttribute, number[]>()),
           attributeRanges,
           Math.max(endAdjustedSpendable, 0),
         );

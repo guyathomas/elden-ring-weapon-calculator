@@ -4,32 +4,20 @@ import { adjustStrengthForTwoHanding } from "./calculator";
 import type { AttackCorrect, AttackElementCorrect, Weapon } from "./weapon";
 
 type DamageTypeScaling = Partial<Record<AttackPowerType, number>>;
-const damageTypeScaling: DamageTypeScaling = {};
 
 const ATTRIBUTE_SCALING_LENGTH = 150;
 const createReturnValue = ({ base }: { base: DamageTypeScaling }): DamageScalingReturnValue => ({
   base,
-  attackPower: {
-    str: Array.from({ length: ATTRIBUTE_SCALING_LENGTH }, () => ({ ...damageTypeScaling })),
-    dex: Array.from({ length: ATTRIBUTE_SCALING_LENGTH }, () => ({ ...damageTypeScaling })),
-    int: Array.from({ length: ATTRIBUTE_SCALING_LENGTH }, () => ({ ...damageTypeScaling })),
-    fai: Array.from({ length: ATTRIBUTE_SCALING_LENGTH }, () => ({ ...damageTypeScaling })),
-    arc: Array.from({ length: ATTRIBUTE_SCALING_LENGTH }, () => ({ ...damageTypeScaling })),
-  },
-  spellScaling: {
-    str: Array.from({ length: ATTRIBUTE_SCALING_LENGTH }, () => ({ ...damageTypeScaling })),
-    dex: Array.from({ length: ATTRIBUTE_SCALING_LENGTH }, () => ({ ...damageTypeScaling })),
-    int: Array.from({ length: ATTRIBUTE_SCALING_LENGTH }, () => ({ ...damageTypeScaling })),
-    fai: Array.from({ length: ATTRIBUTE_SCALING_LENGTH }, () => ({ ...damageTypeScaling })),
-    arc: Array.from({ length: ATTRIBUTE_SCALING_LENGTH }, () => ({ ...damageTypeScaling })),
-  },
+  attackPower: {},
+  spellScaling: {},
 });
+const createDefaultScalingArray = () => Array.from({ length: ATTRIBUTE_SCALING_LENGTH }, () => ({} as DamageTypeScaling))
 
 type DamageScalingPerAttribute = Record<DamageAttribute, DamageTypeScaling[]>;
 type DamageScalingReturnValue = {
-  base: DamageTypeScaling;
-  attackPower: DamageScalingPerAttribute;
-  spellScaling: DamageScalingPerAttribute;
+  base: DamageTypeScaling
+  attackPower: Partial<DamageScalingPerAttribute>;
+  spellScaling: Partial<DamageScalingPerAttribute>;
 };
 
 export function calculateFinalScaling({
@@ -58,7 +46,7 @@ const sumObjectValues = (obj: Record<string, number>) =>
   @returns for attackPower or spellScaling the scaling factor to be applied for each damage type at each attribute level
     {
       str: [{ '0': 0.02 }, { '0': 0.03 }, { '0': 0.04 }, ... }],
-      ...
+      ... // TODO: Are there any stats that increase two damage types?
     }
 */
 export function createDamageScalingPerAttribute(
@@ -66,8 +54,8 @@ export function createDamageScalingPerAttribute(
   weaponUpgradeLevel: number,
 ): {
   base: DamageTypeScaling;
-  attackPower: DamageScalingPerAttribute;
-  spellScaling: DamageScalingPerAttribute;
+  attackPower: Partial<DamageScalingPerAttribute>;
+  spellScaling: Partial<DamageScalingPerAttribute>;
 } {
   const base = weapon.attack[weaponUpgradeLevel]; // {0: 73.84, 1: 62.400000000000006, 8: 73}
   return Object.entries(base).reduce((acc, [attackPowerTypeString, baseDamage]) => {
@@ -79,6 +67,7 @@ export function createDamageScalingPerAttribute(
     // Scaling for the weapon upgrade level
     const scalingForUpgradeLevel = weapon.attributeScaling[weaponUpgradeLevel]; // {str: 0.12, dex: 0.987}
 
+    const hasSpellScaling = weapon.sorceryTool || weapon.incantationTool;
     Object.entries(attributeScalingFactors || {}).forEach(
       ([untypedAttribute, attributeCorrect]) => {
         const attribute = untypedAttribute as DamageAttribute;
@@ -99,8 +88,11 @@ export function createDamageScalingPerAttribute(
                   calcCorrectGraphValue: calcCorrectGraphForDamageType[attrLvl],
                 });
 
+          if (!acc.attackPower[attribute]) acc.attackPower[attribute] = createDefaultScalingArray()
           acc.attackPower[attribute][attrLvl][attackPowerType] = baseDamage * finalScaling;
-          if (weapon.sorceryTool || weapon.incantationTool) {
+
+          if (hasSpellScaling) {
+            if (!acc.spellScaling[attribute]) acc.spellScaling[attribute] = createDefaultScalingArray();
             acc.spellScaling[attribute][attrLvl][attackPowerType] = 100 * finalScaling;
           }
         }
@@ -110,20 +102,27 @@ export function createDamageScalingPerAttribute(
   }, createReturnValue({ base }));
 }
 
-type IncrementalTotalAndSourceDamage = { total: number } & Partial<DamageTypeScaling>;
+export type IncrementalTotalAndSourceDamage = { total: number } & Partial<DamageTypeScaling>;
 
 export type IncrementalDamagePerAttribute = {
   base: IncrementalTotalAndSourceDamage;
-  attackPower: Record<DamageAttribute, IncrementalTotalAndSourceDamage[]>;
-  spellPower: Record<DamageAttribute, IncrementalTotalAndSourceDamage[]>;
+  attackPower: Partial<Record<DamageAttribute, IncrementalTotalAndSourceDamage[]>>;
+  spellPower: Partial<Record<DamageAttribute, IncrementalTotalAndSourceDamage[]>>;
 };
 
 /*
   @returns for attackPower or spellScaling the amount of damage for each DamageType that a given attribute level provides
-    {
-      str: [{ '0': 4.3 '4': 2.5 }, { '0': 6.3 '4': 3.5 }, { '0': 7.3 '4': 4.5 }, ...],
-      ...
+  {
+    base : { 0: 161.70000000000002, 4: 159.25 }, 
+    attackPower: {
+      str: [{ '0': 4.3, total: 4.3 }, { '0': 6.3, total: 6.3 }, { '0': 7.3, total: 7.3 }, ...],
+      dex: [{},{},{}],
     }
+    spellPower: {
+      int: [{ '0': 4.3, total: 4.3 }, { '0': 6.3, total: 6.3 }, { '0': 7.3, total: 7.3 }, ...],
+      str: [{},{},{}],
+    }
+  }
 */
 export function getIncrementalDamagePerAttribute(
   weapon: Weapon,
@@ -131,7 +130,7 @@ export function getIncrementalDamagePerAttribute(
   twoHanding: boolean,
 ): IncrementalDamagePerAttribute {
   const damageScalingPerAttribute = createDamageScalingPerAttribute(weapon, weaponUpgradeLevel);
-
+  
   const attackPower = Object.entries(damageScalingPerAttribute.attackPower).reduce(
     (acc, [attribute, damageScaling]) => {
       acc[attribute as DamageAttribute] = damageScaling.map((v, i) => {
