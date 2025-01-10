@@ -1,21 +1,20 @@
-import { damageAttributes, type DamageAttributeValues } from "../../calculator/calculator";
+import { type DamageAttribute, type DamageAttributeValues } from "../../calculator/calculator";
 
 type MaxAttackPower = { maxValue: number; highestAttributes: DamageAttributeValues };
-// TODO: I could optimize this to be less opinionated about the attrName = damageAttributes
-// and just use indicies so it's a more generalized solution
+export type AttributeRange = [number, number];
+
 export function getMaxAttackPower(
-  attackPowers: number[][], // Provide in the order of "str", "dex", "int", "fai", "arc"
-  ranges: number[][],
+  attackPowers: Map<DamageAttribute, number[]>,
+  ranges: Map<DamageAttribute, AttributeRange>,
   spendablePoints: number,
 ): MaxAttackPower {
-  const numArrays = attackPowers.length;
-  const minAttributes: DamageAttributeValues = {
-    str: ranges[0][0],
-    dex: ranges[1][0],
-    int: ranges[2][0],
-    fai: ranges[3][0],
-    arc: ranges[4][0],
-  };
+  const rangeArray = [...ranges.entries()];
+  const numArrays = rangeArray.length;
+
+  const minAttributes = rangeArray.reduce((acc, [attr, range]) => {
+    acc[attr] = range[0];
+    return acc;
+  }, {} as DamageAttributeValues);
 
   // Create a DP table to store max values and indices
   const dp: MaxAttackPower[][] = [];
@@ -30,8 +29,8 @@ export function getMaxAttackPower(
   }
   let absoluteMin = 0;
   for (let attrId = 1; attrId <= numArrays; attrId++) {
-    const attrName = damageAttributes[attrId - 1];
-    const [minIndex, maxIndex] = ranges[attrId - 1];
+    const [attrName, [minIndex, maxIndex]]: [DamageAttribute, [number, number]] =
+      rangeArray[attrId - 1];
     absoluteMin += minIndex;
     for (let pts = absoluteMin; pts <= spendablePoints; pts++) {
       const minPointsUsedBeforeThisAttribute = absoluteMin - minIndex;
@@ -44,7 +43,7 @@ export function getMaxAttackPower(
         const remainingPts = pts - attrPts;
         const lastDP = dp[attrId - 1][remainingPts]; // The current record for the remaining points
         const previousValue = lastDP.maxValue; // 5.12
-        const attackPowerForThisAttr = attackPowers[attrId - 1][attrPts];
+        const attackPowerForThisAttr = attackPowers.get(attrName)?.[attrPts] || 0;
         const currentValue = previousValue + attackPowerForThisAttr;
 
         if (currentValue > dp[attrId][pts].maxValue) {

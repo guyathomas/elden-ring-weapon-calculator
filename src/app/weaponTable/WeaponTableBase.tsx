@@ -24,7 +24,10 @@ import type {
 import type { SliceTooltip } from "@nivo/line";
 import type { DamageTypeToOptimizeFor } from "../OptimizedDamageTypePicker";
 import OptimizedDamageTypePicker from "../OptimizedDamageTypePicker";
-import { getIncrementalDamagePerAttribute } from "../../calculator/newCalculator";
+import {
+  getIncrementalDamagePerAttribute,
+  type IncrementalTotalAndSourceDamage,
+} from "../../calculator/newCalculator";
 import { type DamageAttribute, type DamageAttributeValues } from "../../calculator/attributes";
 
 const ResponsiveLine = React.lazy(() =>
@@ -158,26 +161,23 @@ const DataRow = memo(function DataRow({
 
   const markers = useMemo(
     () =>
-      chartType === "cumulative"
-        ? Object.entries(rowData.attributeMarkers || {}).map(([attribute, attributeValue]) => ({
-            label: attribute,
-            x: attributeValue,
-            y:
-              incrementalDamagePerAttribute.attackPower[attribute as DamageAttribute][
-                attributeValue - 1
-              ].total + incrementalDamagePerAttribute.base.total,
-          }))
-        : Object.entries(rowData.attributeMarkers || {}).map(([attribute, attributeValue]) => ({
-            label: attribute,
-            x: attributeValue,
-            y:
-              incrementalDamagePerAttribute.attackPower[attribute as DamageAttribute][
-                attributeValue
-              ].total -
-              incrementalDamagePerAttribute.attackPower[attribute as DamageAttribute][
-                attributeValue - 1
-              ].total,
-          })),
+      (
+        Object.entries(incrementalDamagePerAttribute.attackPower) as [
+          DamageAttribute,
+          IncrementalTotalAndSourceDamage[],
+        ][]
+      ).map(([attribute, damageArray]) => {
+        const attr = attribute as DamageAttribute;
+        const x = rowData.attributeMarkers?.[attr] || 0;
+        return damageArray.map((v, i, arr) => ({
+          label: attr,
+          x,
+          y:
+            chartType === "cumulative"
+              ? v.total + incrementalDamagePerAttribute.base.total
+              : v.total - (arr[i - 1]?.total || 0),
+        }));
+      }),
     [chartType, rowData.attributeMarkers, incrementalDamagePerAttribute],
   );
 
