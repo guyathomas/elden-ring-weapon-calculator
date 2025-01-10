@@ -154,7 +154,7 @@ export const useOptimalAttributes = ({
         (acc, attribute) =>
           acc.set(attribute, [
             Math.max(sa[`${attribute}.Min`], weapon.requirements[attribute] ?? 0),
-            sa[`${attribute}.Max`],
+            dmg.attackPower[attribute] ? sa[`${attribute}.Max`] : sa[`${attribute}.Min`],
           ]),
         new Map<DamageAttribute, AttributeRange>(),
       );
