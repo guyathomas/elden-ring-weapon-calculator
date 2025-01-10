@@ -31,6 +31,23 @@ const ResponsiveLine = React.lazy(() =>
   import("@nivo/line").then((module) => ({ default: module.ResponsiveLine })),
 );
 
+const LINE_COLOURS: Record<DamageAttribute, string> = {
+  // Strength: often depicted with a red or crimson theme
+  str: "#C74444",
+
+  // Dexterity: brownish-orange or a lightly earthy tone
+  dex: "#C79B4B",
+
+  // Intelligence: shades of blue
+  int: "#3776A3",
+
+  // Faith: a bright, golden tone
+  fai: "#F2DE8E",
+
+  // Arcane: a mysterious purple/pink
+  arc: "#9F5591",
+};
+
 interface Props<S> {
   rows: readonly WeaponTableRowGroup[];
   columns: readonly WeaponTableColumnGroupDef[];
@@ -276,6 +293,7 @@ const DataRow = memo(function DataRow({
             </Box>
             <ResponsiveLine
               data={lineData}
+              colors={({ id }) => LINE_COLOURS[id as DamageAttribute]}
               theme={{
                 text: {
                   fill: "#fff",
