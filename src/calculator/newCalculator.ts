@@ -68,12 +68,14 @@ export function createDamageScalingPerAttribute(
       ([untypedAttribute, attributeCorrect]) => {
         const attribute = untypedAttribute as DamageAttribute;
         for (let attrLvl = 0; attrLvl < ATTRIBUTE_SCALING_LENGTH; attrLvl++) {
+          const attributeScaling = scalingForUpgradeLevel[attribute] || 0;
           const finalScaling = calculateFinalScaling({
             attributeCorrect, // true or 0.18
-            attributeScaling: scalingForUpgradeLevel[attribute] || 0,
+            attributeScaling,
             baseAttributeScaling: weapon.attributeScaling[0][attribute] || 0,
             calcCorrectGraphValue: calcCorrectGraphForDamageType[attrLvl],
           });
+          if (!finalScaling) continue;
           if (!acc.attackPower[attribute]) acc.attackPower[attribute] = createDefaultScalingArray();
           acc.attackPower[attribute][attrLvl][attackPowerType] = baseDamage * (finalScaling || 0);
           if (weapon.sorceryTool || weapon.incantationTool) {
