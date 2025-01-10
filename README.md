@@ -37,13 +37,11 @@ Features
 - [ ] Add optimal class calculator
 - [ ] Add Armour Solving
 - [ ] Add modifiers ( Armour bonuses, buffs, etc... )
-- [ ] Add attribute scaling column to solver
 - [ ] Add ash of war scaling
 
 Improvements
 
 - [ ] Add DamageTypeToOptimizeFor into global state, so that it can be used in the cell renderers
-- [ ] Exclude the lines from the graph that don’t scale the damage.
 - [ ] ( Performance ) Only check the attributes that appear in the scaling factor objects.
 - [ ] Sticky Table Headers
 
