@@ -105,6 +105,8 @@ interface Props {
    */
   splitDamage: boolean;
 
+  showStatDmg: boolean;
+
   disableTwoHandingAttackPowerBonus: boolean;
   ineffectiveAttributePenalty: number;
   onCopyAttributes: (attributes: DamageAttributeValues) => void;
@@ -129,6 +131,7 @@ function OptimalAttributeTable({
   disableTwoHandingAttackPowerBonus,
   ineffectiveAttributePenalty,
   onCopyAttributes,
+  showStatDmg,
 }: Props) {
   const [sortBy, setSortBy] = useState<SortBy>("name");
   const [reverse, setReverse] = useState<boolean>(false);
@@ -166,8 +169,9 @@ function OptimalAttributeTable({
         spellScaling: hasSpellScaling,
         showEndurance: adjustEnduranceForWeapon,
         splitDamage,
+        showStatDmg,
       }),
-    [hasSpellScaling, adjustEnduranceForWeapon, splitDamage],
+    [hasSpellScaling, adjustEnduranceForWeapon, splitDamage, showStatDmg],
   );
 
   return (

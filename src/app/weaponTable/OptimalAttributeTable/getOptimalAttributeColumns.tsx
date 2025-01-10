@@ -155,11 +155,13 @@ interface WeaponTableColumnsOptions {
   spellScaling: boolean;
   showEndurance: boolean;
   splitDamage: boolean;
+  showStatDmg: boolean;
 }
 export function getOptimalAttributeColumns({
   spellScaling,
   showEndurance,
   splitDamage,
+  showStatDmg,
 }: WeaponTableColumnsOptions): OptimalAttributeTableColumnGroupDef[] {
   const optimizedSpellScalingColumns: OptimalAttributeTableColumnGroupDef[] = spellScaling
     ? [
@@ -203,6 +205,61 @@ export function getOptimalAttributeColumns({
               },
             },
           ],
+        },
+      ]
+    : [];
+
+  const statDmgColumns: OptimalAttributeTableColumnGroupDef[] = showStatDmg
+    ? [
+        {
+          key: "statDmg",
+          sx: {
+            width: 50 * (allDamageTypes.length + damageAttributes.length + 3),
+            flex: 2,
+          },
+          header: `Damage Per Stat`,
+          columns: damageAttributes
+            .map(
+              (attribute): OptimalAttributeTableColumnDef => ({
+                key: `${attribute}StatIncrementalAR`,
+                sortBy: `${attribute}StatIncrementalAR`,
+                header: (
+                  <Typography
+                    component="span"
+                    variant="subtitle2"
+                    title={`${getAttributeLabel(attribute)}`}
+                  >
+                    {getShortAttributeLabel(attribute)}
+                  </Typography>
+                ),
+                render({ optimalAttributes: { incrementalDamagePerAttribute, attackPower } }) {
+                  // TODO: DamageTypeToOptimizeFor instead of total
+                  const value =
+                    incrementalDamagePerAttribute?.attackPower[attribute]?.[
+                      attackPower?.optimalAttributes[attribute] || 0
+                    ].total ?? 0;
+                  if (!value) return blankIcon;
+                  return <OptimizedAttributeRenderer key={attribute} value={value} />;
+                },
+              }),
+            )
+            .concat([
+              {
+                key: `baseAR`,
+                sortBy: `baseAR`,
+                header: (
+                  <Typography component="span" variant="subtitle2" title={`Base`}>
+                    {`Base`}
+                  </Typography>
+                ),
+                render({ optimalAttributes: { incrementalDamagePerAttribute } }) {
+                  // TODO: DamageTypeToOptimizeFor instead of total
+                  const value = incrementalDamagePerAttribute?.base.total;
+                  if (!value) return blankIcon;
+                  return <OptimizedAttributeRenderer key={value} value={value} />;
+                },
+              },
+            ]),
         },
       ]
     : [];
@@ -287,6 +344,7 @@ export function getOptimalAttributeColumns({
         },
       ],
     },
+    ...statDmgColumns,
     ...optimizedSpellScalingColumns,
     ...(showEndurance
       ? [

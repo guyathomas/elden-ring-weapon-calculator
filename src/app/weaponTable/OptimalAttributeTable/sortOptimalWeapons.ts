@@ -7,6 +7,8 @@ export type SortBy =
   | `${DamageAttribute}Requirement`
   | `${DamageAttribute}OptimizedAP`
   | `${DamageAttribute}OptimizedSP`
+  | `baseAR`
+  | `${DamageAttribute}StatIncrementalAR`
   | `${AttackPowerType}OptimizedAttackByDamageType`
   | `totalOptimizedAP`
   | `attackPowerEfficiency`
@@ -60,6 +62,11 @@ export function sortSolverWeapons(
       return ({ optimalAttributes }) => -(optimalAttributes?.endurance?.total ?? 0);
     }
 
+    if (sortBy === "baseAR") {
+      return ({ optimalAttributes }) =>
+        -(optimalAttributes.incrementalDamagePerAttribute?.base.total ?? 0);
+    }
+
     if (sortBy.endsWith("OptimizedAP")) {
       const attributeType = sortBy.slice(0, -1 * "OptimizedAP".length) as DamageAttribute;
       return ({ optimalAttributes }) =>
@@ -70,6 +77,18 @@ export function sortSolverWeapons(
       const attributeType = sortBy.slice(0, -1 * "OptimizedSP".length) as DamageAttribute;
       return ({ optimalAttributes }) =>
         -(optimalAttributes?.spellPower?.optimalAttributes[attributeType] ?? 0);
+    }
+
+    if (sortBy.endsWith("StatIncrementalAR")) {
+      const attributeType = sortBy.slice(0, -1 * "StatIncrementalAR".length) as DamageAttribute;
+      return ({ optimalAttributes: { incrementalDamagePerAttribute, attackPower } }) => {
+        return -(
+          incrementalDamagePerAttribute?.attackPower[attributeType]?.[
+            attackPower?.optimalAttributes[attributeType] || 0
+            // TODO: DamageTypeToOptimizeFor instead of total
+          ].total ?? 0
+        );
+      };
     }
 
     if (sortBy.endsWith("Requirement")) {

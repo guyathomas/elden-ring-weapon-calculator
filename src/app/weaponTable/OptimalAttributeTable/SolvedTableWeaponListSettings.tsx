@@ -67,6 +67,8 @@ interface Props {
   adjustEnduranceForWeapon: SolvedAttributeState["adjustEnduranceForWeapon"];
   splitDamage: boolean;
   onSplitDamageChanged(splitDamage: boolean): void;
+  showStatDmg: boolean;
+  onShowStatDmgChanged(showStatDmg: boolean): void;
 }
 
 /**
@@ -90,6 +92,8 @@ function WeaponListSettings({
   onAttributeSolverChanged,
   splitDamage,
   onSplitDamageChanged,
+  showStatDmg,
+  onShowStatDmgChanged,
 }: Props) {
   const debouncedOnAttributeSolverChanged = debounce(onAttributeSolverChanged, 300);
 
@@ -148,6 +152,11 @@ function WeaponListSettings({
     (adjustEnduranceForWeapon: boolean) =>
       onWeaponAdjustedEnduranceChanged(adjustEnduranceForWeapon),
     [onWeaponAdjustedEnduranceChanged],
+  );
+
+  const handleChangeShowStatDmg = useCallback(
+    (adjustEnduranceForWeapon: boolean) => onShowStatDmgChanged(adjustEnduranceForWeapon),
+    [onShowStatDmgChanged],
   );
 
   const initialValues = INITIAL_CLASS_VALUES[startingClass].total;
@@ -223,6 +232,11 @@ function WeaponListSettings({
         label="Adjust Endurance"
         checked={adjustEnduranceForWeapon}
         onChange={handleChangeWeaponAdjustedEndurance}
+      />
+      <BooleanInput
+        label="Show Stat Dmg"
+        checked={showStatDmg}
+        onChange={handleChangeShowStatDmg}
       />
       <NumberTextField
         label={getAttributeLabel("end")}

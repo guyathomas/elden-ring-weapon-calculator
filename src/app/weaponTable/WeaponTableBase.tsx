@@ -24,10 +24,7 @@ import type {
 import type { SliceTooltip } from "@nivo/line";
 import type { DamageTypeToOptimizeFor } from "../OptimizedDamageTypePicker";
 import OptimizedDamageTypePicker from "../OptimizedDamageTypePicker";
-import {
-  getIncrementalDamagePerAttribute,
-  type IncrementalTotalAndSourceDamage,
-} from "../../calculator/newCalculator";
+import { getIncrementalDamagePerAttribute } from "../../calculator/newCalculator";
 import { type DamageAttribute, type DamageAttributeValues } from "../../calculator/attributes";
 
 const ResponsiveLine = React.lazy(() =>
@@ -161,55 +158,44 @@ const DataRow = memo(function DataRow({
 
   const markers = useMemo(
     () =>
-      (
-        Object.entries(incrementalDamagePerAttribute.attackPower) as [
-          DamageAttribute,
-          IncrementalTotalAndSourceDamage[],
-        ][]
-      ).map(([attribute, damageArray]) => {
-        const attr = attribute as DamageAttribute;
-        const x = rowData.attributeMarkers?.[attr] || 0;
-        return damageArray.map((v, i, arr) => ({
-          label: attr,
-          x,
-          y:
-            chartType === "cumulative"
-              ? v.total + incrementalDamagePerAttribute.base.total
-              : v.total - (arr[i - 1]?.total || 0),
-        }));
-      }),
+      Object.entries(incrementalDamagePerAttribute?.attackPower || {}).map(
+        ([attr, totalDamageArray]) => {
+          const attribute = attr as DamageAttribute;
+          const attrValue = rowData.attributeMarkers?.[attribute] || 0;
+          const thisDamage = totalDamageArray[attrValue]?.[damageTypeToOptimizeFor] || 0;
+          const incrementalValue =
+            thisDamage - (totalDamageArray[attrValue - 1]?.[damageTypeToOptimizeFor] || 0);
+
+          return {
+            label: attribute,
+            x: attrValue,
+            y: chartType === "incremental" ? incrementalValue : thisDamage,
+          };
+        },
+      ),
     [chartType, rowData.attributeMarkers, incrementalDamagePerAttribute],
   );
 
   const lineData = useMemo(() => {
     if (!isExpanded) return [];
 
-    if (chartType === "cumulative") {
-      return Object.entries(incrementalDamagePerAttribute?.attackPower || {}).map(
-        ([attr, values]) => ({
-          id: attr,
-          data: values.map((v, i) => ({
-            x: i + 1,
-            y: (baseDamage + (v?.[damageTypeToOptimizeFor] || 0)).toFixed(2),
-          })),
-        }),
-      );
-    } else {
-      return Object.entries(incrementalDamagePerAttribute?.attackPower || {}).map(
-        ([attr, values]) => ({
-          id: attr,
-          data: values.map((v, i, arr) => ({
-            x: i,
-            y: (
-              Math.max(
-                0,
-                (v?.[damageTypeToOptimizeFor] || 0) - (arr[i - 1]?.[damageTypeToOptimizeFor] || 0),
-              ) || 0
-            ).toFixed(2),
-          })),
-        }),
-      );
-    }
+    return Object.entries(incrementalDamagePerAttribute?.attackPower || {}).map(
+      ([attr, values]) => ({
+        id: attr,
+        data: values
+          .map((v, i, arr) => {
+            const thisDamage = v?.[damageTypeToOptimizeFor] || 0;
+            const previousDamage = arr[i - 1]?.[damageTypeToOptimizeFor] || 0;
+            const y =
+              chartType === "incremental" ? Math.max(0, thisDamage - previousDamage) : thisDamage;
+            return {
+              x: i,
+              y: y.toFixed(2),
+            };
+          })
+          .slice(1, 100),
+      }),
+    );
   }, [isExpanded, incrementalDamagePerAttribute, chartType, damageTypeToOptimizeFor, baseDamage]);
 
   const yGrids = useMemo(() => {
@@ -218,7 +204,8 @@ const DataRow = memo(function DataRow({
       (acc, { data }) => Math.max(acc, ...data.map(({ y }) => parseFloat(y))),
       0,
     );
-    const intervalSize = chartType === "cumulative" ? 100 : 2;
+    const intervalSize =
+      chartType === "cumulative" ? Math.floor(incrementalDamagePerAttribute.base.total / 4) : 2;
     const numberOfLines = Math.ceil(maxValue / intervalSize);
     for (let i = 0; i < numberOfLines; i++) {
       gridNumbers.push(i * intervalSize);
@@ -305,7 +292,7 @@ const DataRow = memo(function DataRow({
                 },
               }}
               yScale={{
-                min: chartType === "cumulative" ? baseDamage : 0,
+                min: 0,
                 max: "auto",
                 type: "linear",
               }}

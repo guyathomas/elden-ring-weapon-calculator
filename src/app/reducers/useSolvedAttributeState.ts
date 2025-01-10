@@ -33,6 +33,7 @@ export interface SolvedAttributeState {
   readonly damageTypeToOptimizeFor: DamageTypeToOptimizeFor;
   readonly optimalAttributes: Partial<Record<Weapon["name"], OptimalAttribute>>;
   readonly splitDamage: boolean;
+  readonly showStatDmg: boolean;
 }
 
 export function solvedAttributeStateReducer(
@@ -55,6 +56,8 @@ export function solvedAttributeStateReducer(
       return { ...state, optimalAttributes: { ...state.optimalAttributes, ...action.payload } };
     case "setSplitDamage":
       return { ...state, splitDamage: action.payload };
+    case "setShowStatDmg":
+      return { ...state, showStatDmg: action.payload };
     default:
       return state;
   }
@@ -83,6 +86,7 @@ const initialState: SolvedAttributeState = {
   damageTypeToOptimizeFor: "total",
   optimalAttributes: {},
   splitDamage: false,
+  showStatDmg: false,
 };
 
 export function useSolvedAttributeState() {

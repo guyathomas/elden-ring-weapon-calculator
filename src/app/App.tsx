@@ -38,7 +38,7 @@ import useFilteredWeapons from "./weaponTable/useFilteredWeapons";
 import { INITIAL_CLASS_VALUES, type StartingClass } from "./ClassPicker";
 import type { Weapon } from "../calculator/weapon";
 import SolvedTableWeaponListSettings from "./weaponTable/OptimalAttributeTable/SolvedTableWeaponListSettings";
-import SolverWeaponTable from "./weaponTable/OptimalAttributeTable/OptimalAttributeTable";
+import OptimalAttributeTable from "./weaponTable/OptimalAttributeTable/OptimalAttributeTable";
 import type { WeaponType } from "../calculator/weaponTypes";
 import type { AllAttributeAndLevel, DamageAttributeValues } from "../calculator/attributes";
 import type { RollType } from "./RollTypePicker";
@@ -149,6 +149,7 @@ export default function App() {
       damageTypeToOptimizeFor,
       optimalAttributes,
       splitDamage: solverSplitDamage,
+      showStatDmg,
     },
     dispatch: dispatchSolvedAttributeState,
   } = useSolvedAttributeState();
@@ -430,6 +431,16 @@ export default function App() {
     [dispatchSolvedAttributeState],
   );
 
+  const handleChangedOnShowStatDmgChanged = useCallback(
+    (showStatDmg: boolean) => {
+      dispatchSolvedAttributeState({
+        type: "setShowStatDmg",
+        payload: showStatDmg,
+      });
+    },
+    [dispatchSolvedAttributeState],
+  );
+
   const handleOnCopyAttributes = useCallback(
     (attributes: DamageAttributeValues) => {
       dispatchFixedAttributeState({
@@ -568,8 +579,10 @@ export default function App() {
                 onWeaponAdjustedEnduranceChanged={handleChangeWeaponAdjustedEndurance}
                 splitDamage={solverSplitDamage}
                 onSplitDamageChanged={handleChangedSolverSplitDamageChanged}
+                showStatDmg={showStatDmg}
+                onShowStatDmgChanged={handleChangedOnShowStatDmgChanged}
               />
-              <SolverWeaponTable
+              <OptimalAttributeTable
                 weapons={filteredWeapons}
                 weaponsError={error}
                 isWeaponsLoading={loading}
@@ -590,6 +603,7 @@ export default function App() {
                 }
                 ineffectiveAttributePenalty={regulationVersion.ineffectiveAttributePenalty}
                 onCopyAttributes={handleOnCopyAttributes}
+                showStatDmg={showStatDmg}
               />
             </>
           )}
