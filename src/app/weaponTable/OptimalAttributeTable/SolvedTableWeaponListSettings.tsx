@@ -97,16 +97,6 @@ function WeaponListSettings({
 }: Props) {
   const debouncedOnAttributeSolverChanged = debounce(onAttributeSolverChanged, 300);
 
-  const handleChangeStartingClass = useCallback(
-    (startingClass: StartingClass) => onStartingClassChanged(startingClass),
-    [onStartingClassChanged],
-  );
-
-  const handleChangeUpgradeLevel = useCallback(
-    (upgradeLevel: number) => onUpgradeLevelChanged(upgradeLevel),
-    [onUpgradeLevelChanged],
-  );
-
   const handleChangeLevel = useCallback(
     (newValue: number) => debouncedOnAttributeSolverChanged("lvl", newValue),
     [debouncedOnAttributeSolverChanged],
@@ -133,32 +123,6 @@ function WeaponListSettings({
     [debouncedOnAttributeSolverChanged, rollType, onArmorWeightChanged],
   );
 
-  const handleChangeRollType = useCallback(
-    (rollType: SolvedAttributeState["rollType"]) => onRollTypeChanged(rollType),
-    [onRollTypeChanged],
-  );
-
-  const handleChangeArmorWeight = useCallback(
-    (newValue: number) => onArmorWeightChanged(newValue),
-    [onArmorWeightChanged],
-  );
-
-  const handleChangeTwoHanding = useCallback(
-    (twoHanding: boolean) => onTwoHandingChanged(twoHanding),
-    [onTwoHandingChanged],
-  );
-
-  const handleChangeWeaponAdjustedEndurance = useCallback(
-    (adjustEnduranceForWeapon: boolean) =>
-      onWeaponAdjustedEnduranceChanged(adjustEnduranceForWeapon),
-    [onWeaponAdjustedEnduranceChanged],
-  );
-
-  const handleChangeShowStatDmg = useCallback(
-    (adjustEnduranceForWeapon: boolean) => onShowStatDmgChanged(adjustEnduranceForWeapon),
-    [onShowStatDmgChanged],
-  );
-
   const initialValues = INITIAL_CLASS_VALUES[startingClass].total;
   const minValues =
     solverAttributes["arc.Min"] +
@@ -180,14 +144,11 @@ function WeaponListSettings({
         gridAutoRows: "auto",
       })}
     >
-      <ClassPicker
-        onStartingClassChanged={handleChangeStartingClass}
-        startingClass={startingClass}
-      />
+      <ClassPicker onStartingClassChanged={onStartingClassChanged} startingClass={startingClass} />
       <WeaponLevelInput
         upgradeLevel={upgradeLevel}
         maxUpgradeLevel={maxUpgradeLevel}
-        onUpgradeLevelChanged={handleChangeUpgradeLevel}
+        onUpgradeLevelChanged={onUpgradeLevelChanged}
       />
       <NumberTextField
         label={"Level"}
@@ -227,17 +188,13 @@ function WeaponListSettings({
           );
         }),
       )}
-      <BooleanInput label="Two handing" checked={twoHanding} onChange={handleChangeTwoHanding} />
+      <BooleanInput label="Two handing" checked={twoHanding} onChange={onTwoHandingChanged} />
       <BooleanInput
         label="Adjust Endurance"
         checked={adjustEnduranceForWeapon}
-        onChange={handleChangeWeaponAdjustedEndurance}
+        onChange={onWeaponAdjustedEnduranceChanged}
       />
-      <BooleanInput
-        label="Show Stat Dmg"
-        checked={showStatDmg}
-        onChange={handleChangeShowStatDmg}
-      />
+      <BooleanInput label="Show Stat Dmg" checked={showStatDmg} onChange={onShowStatDmgChanged} />
       <NumberTextField
         label={getAttributeLabel("end")}
         size="small"
@@ -249,7 +206,7 @@ function WeaponListSettings({
       />
       {adjustEnduranceForWeapon && (
         <>
-          <RollTypePicker onRollTypeChanged={handleChangeRollType} rollType={rollType} />
+          <RollTypePicker onRollTypeChanged={onRollTypeChanged} rollType={rollType} />
           <NumberTextField
             label={"Max Armor Weight"}
             size="small"
@@ -257,7 +214,7 @@ function WeaponListSettings({
             value={armorWeight}
             min={0}
             max={200}
-            onChange={handleChangeArmorWeight}
+            onChange={onArmorWeightChanged}
           />
         </>
       )}
