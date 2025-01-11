@@ -148,7 +148,6 @@ const DataRow = memo(function DataRow({
     rowData.twoHanding,
   );
 
-  const hasSpellScaling = Object.keys(incrementalDamagePerAttribute.spellPower).length > 0;
   return (
     <>
       <WeaponTableDataRow role="row">
@@ -204,7 +203,7 @@ const DataRow = memo(function DataRow({
                 attributeValues={rowData.attributeMarkers || {}}
               />
             </Box>
-            {hasSpellScaling && (
+            {incrementalDamagePerAttribute.spellPower && (
               <Box height={300}>
                 <Typography mt={5} ml={2}>
                   Spell Rating

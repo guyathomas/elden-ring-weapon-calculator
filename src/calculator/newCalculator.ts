@@ -9,7 +9,6 @@ const ATTRIBUTE_SCALING_LENGTH = 150;
 const createReturnValue = ({ base }: { base: DamageTypeScaling }): DamageScalingReturnValue => ({
   base,
   attackPower: {},
-  spellScaling: {},
 });
 const createDefaultScalingArray = () =>
   Array.from({ length: ATTRIBUTE_SCALING_LENGTH }, () => ({}) as DamageTypeScaling);
@@ -18,7 +17,7 @@ type DamageScalingPerAttribute = Record<DamageAttribute, DamageTypeScaling[]>;
 type DamageScalingReturnValue = {
   base: DamageTypeScaling;
   attackPower: Partial<DamageScalingPerAttribute>;
-  spellScaling: Partial<DamageScalingPerAttribute>;
+  spellScaling?: Partial<DamageScalingPerAttribute>;
 };
 
 export function calculateFinalScaling({
@@ -79,6 +78,7 @@ export function createDamageScalingPerAttribute(
           if (!acc.attackPower[attribute]) acc.attackPower[attribute] = createDefaultScalingArray();
           acc.attackPower[attribute][attrLvl][attackPowerType] = baseDamage * (finalScaling || 0);
           if (weapon.sorceryTool || weapon.incantationTool) {
+            if (!acc.spellScaling) acc.spellScaling = {};
             if (!acc.spellScaling[attribute]) {
               acc.spellScaling[attribute] = createDefaultScalingArray();
             }
@@ -96,7 +96,7 @@ export type IncrementalTotalAndSourceDamage = { total: number } & Partial<Damage
 export type IncrementalDamagePerAttribute = {
   base: IncrementalTotalAndSourceDamage;
   attackPower: Partial<Record<DamageAttribute, IncrementalTotalAndSourceDamage[]>>;
-  spellPower: Partial<Record<DamageAttribute, IncrementalTotalAndSourceDamage[]>>;
+  spellPower?: Partial<Record<DamageAttribute, IncrementalTotalAndSourceDamage[]>>;
 };
 
 /*
@@ -136,17 +136,19 @@ export function getIncrementalDamagePerAttribute(
       });
       return acc;
     },
-    {} as IncrementalDamagePerAttribute["attackPower"],
+    {} as Partial<Record<DamageAttribute, IncrementalTotalAndSourceDamage[]>>,
   );
-  const spellPower = Object.entries(damageScalingPerAttribute.spellScaling).reduce(
-    (acc, [attribute, damageScaling]) => {
-      acc[attribute as DamageAttribute] = damageScaling.map((v) => ({
-        total: v["0"] || 0,
-      }));
-      return acc;
-    },
-    {} as IncrementalDamagePerAttribute["spellPower"],
-  );
+  const spellPower = damageScalingPerAttribute.spellScaling
+    ? Object.entries(damageScalingPerAttribute.spellScaling).reduce(
+        (acc, [attribute, damageScaling]) => {
+          acc[attribute as DamageAttribute] = damageScaling.map((v) => ({
+            total: v["0"] || 0,
+          }));
+          return acc;
+        },
+        {} as Partial<Record<DamageAttribute, IncrementalTotalAndSourceDamage[]>>,
+      )
+    : undefined;
   const base = Object.entries(damageScalingPerAttribute.base).reduce(
     (acc, [damageType, damage]) => {
       const attackPowerType = parseInt(damageType) as AttackPowerType;
