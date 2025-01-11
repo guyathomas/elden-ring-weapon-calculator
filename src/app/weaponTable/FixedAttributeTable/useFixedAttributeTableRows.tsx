@@ -14,6 +14,7 @@ import {
 import { type SortBy, sortWeapons } from "./sortFixedWeapons";
 import { type RegulationVersion } from "../../regulationVersions";
 import { allWeaponTypes, weaponTypeLabels } from "../../uiUtils";
+import type { DamageTypeToOptimizeFor } from "../../OptimizedDamageTypePicker";
 
 interface WeaponTableRowsOptions {
   weapons: readonly Weapon[];
@@ -27,6 +28,7 @@ interface WeaponTableRowsOptions {
   upgradeLevel: number;
   groupWeaponTypes: boolean;
   maxUpgradeLevel: number;
+  damageTypeToOptimizeFor: DamageTypeToOptimizeFor;
 }
 
 interface WeaponTableRowsResult {
@@ -60,6 +62,7 @@ const useFixedAttributeTableRows = ({
   // busy rendering
   const attributes = useDeferredValue(options.attributes);
   const twoHanding = useDeferredValue(options.twoHanding);
+  const damageTypeToOptimizeFor = useDeferredValue(options.damageTypeToOptimizeFor);
 
   const hasSpellScaling = weapons.some((weapon) => weapon.sorceryTool || weapon.incantationTool);
   const { disableTwoHandingAttackPowerBonus, ineffectiveAttributePenalty } = regulationVersion;
@@ -106,6 +109,7 @@ const useFixedAttributeTableRows = ({
           upgradeLevel: normalizedUpgradeLevel,
           twoHanding,
           attributeMarkers: attributes,
+          damageTypeToOptimizeFor,
         };
       }),
     [

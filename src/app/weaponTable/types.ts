@@ -3,12 +3,14 @@ import type { SystemStyleObject } from "@mui/system";
 import type { Theme } from "@mui/material";
 import type { Weapon } from "../../calculator/weapon";
 import type { DamageAttributeValues } from "../../calculator/attributes";
+import type { DamageTypeToOptimizeFor } from "../OptimizedDamageTypePicker";
 
 export interface DefaultWeaponTableRowData {
   weapon: Weapon;
   upgradeLevel: number;
   twoHanding: boolean;
   attributeMarkers?: DamageAttributeValues;
+  damageTypeToOptimizeFor: DamageTypeToOptimizeFor;
 }
 
 export type RowActions = {

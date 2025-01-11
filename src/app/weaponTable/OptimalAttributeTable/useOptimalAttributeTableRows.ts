@@ -6,6 +6,7 @@ import { sortSolverWeapons, type SortBy } from "./sortOptimalWeapons";
 import type { OptimalAttributeTableRowGroup } from "./OptimalAttributeTable";
 import { INITIAL_CLASS_VALUES, type StartingClass } from "../../ClassPicker";
 import type { OptimalAttributeTableRowData } from "./OptimalAttributeTable";
+import type { DamageTypeToOptimizeFor } from "../../OptimizedDamageTypePicker";
 
 interface WeaponTableRowsOptions {
   weapons: readonly Weapon[];
@@ -18,6 +19,7 @@ interface WeaponTableRowsOptions {
   optimalAttributes: OptimalAttributesMap;
   startingClass: StartingClass;
   twoHanding: boolean;
+  damageTypeToOptimizeFor: DamageTypeToOptimizeFor;
 }
 
 interface WeaponTableRowsResult {
@@ -43,6 +45,7 @@ const useWeaponSolverRows = ({
   const twoHanding = useDeferredValue(options.twoHanding);
   const optimalAttributes = useDeferredValue(options.optimalAttributes);
   const upgradeLevel = useDeferredValue(options.upgradeLevel);
+  const damageTypeToOptimizeFor = useDeferredValue(options.damageTypeToOptimizeFor);
 
   const hasSpellScaling = weapons.some((weapon) => weapon.sorceryTool || weapon.incantationTool);
   const rows = useMemo<OptimalAttributeTableRowData[]>(
@@ -55,6 +58,7 @@ const useWeaponSolverRows = ({
           optimalAttributes: optimalAttributes[weapon.name] ?? {},
           startingClassAttributes: INITIAL_CLASS_VALUES[startingClass],
           twoHanding,
+          damageTypeToOptimizeFor,
         }),
       ),
     [weapons, optimalAttributes, upgradeLevel, startingClass, twoHanding],

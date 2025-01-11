@@ -14,6 +14,7 @@ import {
   type WeaponTableColumnGroupDef,
   type WeaponTableRowGroup,
 } from "../types";
+import type { DamageTypeToOptimizeFor } from "../../OptimizedDamageTypePicker";
 
 const OFFSET = 0;
 const LIMIT = 200;
@@ -79,6 +80,8 @@ interface Props {
    * The attributes of the character.
    */
   attributes: FixedAttributeState["attributes"];
+
+  damageTypeToOptimizeFor: DamageTypeToOptimizeFor;
 }
 
 function FixedAttributeTable({
@@ -92,6 +95,7 @@ function FixedAttributeTable({
   upgradeLevel,
   groupWeaponTypes,
   attributes,
+  damageTypeToOptimizeFor,
 }: Props) {
   const [sortBy, setSortBy] = useState<SortBy>("name");
   const [reverse, setReverse] = useState<boolean>(false);
@@ -109,6 +113,7 @@ function FixedAttributeTable({
     twoHanding,
     upgradeLevel,
     groupWeaponTypes,
+    damageTypeToOptimizeFor,
   });
 
   const columns = useMemo(

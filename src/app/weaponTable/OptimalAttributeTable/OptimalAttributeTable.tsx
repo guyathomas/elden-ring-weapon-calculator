@@ -162,6 +162,7 @@ function OptimalAttributeTable({
     optimalAttributes,
     startingClass,
     twoHanding,
+    damageTypeToOptimizeFor,
   });
   const columns = useMemo(
     () =>

@@ -21,6 +21,9 @@ import {
   WeaponLevelInput,
   type AttributeInputRangeProps,
 } from "../FixedAttributeTable/FixedTableWeaponListSetting";
+import OptimizedDamageTypePicker, {
+  type DamageTypeToOptimizeFor,
+} from "../../OptimizedDamageTypePicker";
 
 /**
  * Form control for picking the value of a single attribute (str/dex/int/fai/arc)
@@ -69,7 +72,14 @@ interface Props {
   onSplitDamageChanged(splitDamage: boolean): void;
   showStatDmg: boolean;
   onShowStatDmgChanged(showStatDmg: boolean): void;
+  damageTypeToOptimizeFor: DamageTypeToOptimizeFor;
+  onDamageTypeToOptimizeForChanged(damageType: DamageTypeToOptimizeFor): void;
 }
+
+// TODO: Decide whether this provides value. It currently performs two actions - should it do both, 1 of them or neither
+// 1. Forces the solver to solve for a damage type first in the solver
+// 2. Only show attributes that scale for that damage type in the fixed view
+const ENABLE_ATTRIBUTE_TO_SOLVE_FOR = false;
 
 /**
  * Form controls for entering player attributes, basic filters, and display options
@@ -94,6 +104,8 @@ function WeaponListSettings({
   onSplitDamageChanged,
   showStatDmg,
   onShowStatDmgChanged,
+  damageTypeToOptimizeFor,
+  onDamageTypeToOptimizeForChanged,
 }: Props) {
   const debouncedOnAttributeSolverChanged = debounce(onAttributeSolverChanged, 300);
 
@@ -204,6 +216,12 @@ function WeaponListSettings({
         max={99}
         onChange={handleChangeEndurance}
       />
+      {ENABLE_ATTRIBUTE_TO_SOLVE_FOR && (
+        <OptimizedDamageTypePicker
+          optimizedDamageType={damageTypeToOptimizeFor}
+          onOptimizedDamageTypeChanged={onDamageTypeToOptimizeForChanged}
+        />
+      )}
       {adjustEnduranceForWeapon && (
         <>
           <RollTypePicker onRollTypeChanged={onRollTypeChanged} rollType={rollType} />

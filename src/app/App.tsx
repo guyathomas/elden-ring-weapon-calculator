@@ -42,6 +42,7 @@ import OptimalAttributeTable from "./weaponTable/OptimalAttributeTable/OptimalAt
 import type { WeaponType } from "../calculator/weaponTypes";
 import type { AllAttributeAndLevel, DamageAttributeValues } from "../calculator/attributes";
 import type { RollType } from "./RollTypePicker";
+import type { DamageTypeToOptimizeFor } from "./OptimizedDamageTypePicker";
 
 const useMenuState = () => {
   const theme = useTheme();
@@ -452,6 +453,16 @@ export default function App() {
     [dispatchFixedAttributeState],
   );
 
+  const handleChangedDamageTypeToOptimizeFor = useCallback(
+    (damageType: DamageTypeToOptimizeFor) => {
+      dispatchSolvedAttributeState({
+        type: "setDamageTypeToOptimizeFor",
+        payload: damageType,
+      });
+    },
+    [dispatchFixedAttributeState],
+  );
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -557,6 +568,7 @@ export default function App() {
                 upgradeLevel={upgradeLevel}
                 groupWeaponTypes={groupWeaponTypes}
                 attributes={attributes}
+                damageTypeToOptimizeFor={damageTypeToOptimizeFor}
               />
             </>
           ) : (
@@ -581,6 +593,8 @@ export default function App() {
                 onSplitDamageChanged={handleChangedSolverSplitDamageChanged}
                 showStatDmg={showStatDmg}
                 onShowStatDmgChanged={handleChangedOnShowStatDmgChanged}
+                damageTypeToOptimizeFor={damageTypeToOptimizeFor}
+                onDamageTypeToOptimizeForChanged={handleChangedDamageTypeToOptimizeFor}
               />
               <OptimalAttributeTable
                 weapons={filteredWeapons}
