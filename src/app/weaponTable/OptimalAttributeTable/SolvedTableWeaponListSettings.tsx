@@ -81,6 +81,13 @@ interface Props {
 // 2. Only show attributes that scale for that damage type in the fixed view
 const ENABLE_ATTRIBUTE_TO_SOLVE_FOR = false;
 
+const spanNColumnsOnMobile = (n: number) => ({
+  gridColumn: {
+    xs: `span ${n}`,
+    sm: "auto",
+  },
+});
+
 /**
  * Form controls for entering player attributes, basic filters, and display options
  */
@@ -200,13 +207,17 @@ function WeaponListSettings({
           );
         }),
       )}
-      <BooleanInput label="Two handing" checked={twoHanding} onChange={onTwoHandingChanged} />
-      <BooleanInput
-        label="Adjust Endurance"
-        checked={adjustEnduranceForWeapon}
-        onChange={onWeaponAdjustedEnduranceChanged}
-      />
-      <BooleanInput label="Show Stat Dmg" checked={showStatDmg} onChange={onShowStatDmgChanged} />
+      <Box sx={spanNColumnsOnMobile(2)}>
+        <BooleanInput label="Two handing" checked={twoHanding} onChange={onTwoHandingChanged} />
+      </Box>
+      <Box sx={spanNColumnsOnMobile(3)}>
+        <BooleanInput
+          label="Subtract Weapon Weight"
+          checked={adjustEnduranceForWeapon}
+          onChange={onWeaponAdjustedEnduranceChanged}
+        />
+      </Box>
+
       <NumberTextField
         label={getAttributeLabel("end")}
         size="small"
@@ -236,11 +247,12 @@ function WeaponListSettings({
           />
         </>
       )}
-      <BooleanInput
-        label="Show damage split"
-        checked={splitDamage}
-        onChange={onSplitDamageChanged}
-      />
+      <Box sx={spanNColumnsOnMobile(2)}>
+        <BooleanInput label="Damage split" checked={splitDamage} onChange={onSplitDamageChanged} />
+      </Box>
+      <Box sx={spanNColumnsOnMobile(2)}>
+        <BooleanInput label="Stat Damage" checked={showStatDmg} onChange={onShowStatDmgChanged} />
+      </Box>
     </Box>
   );
 }
