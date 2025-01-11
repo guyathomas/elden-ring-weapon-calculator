@@ -16,6 +16,7 @@
     "@nivo/core": "^0.88.0",
     "@nivo/line": "^0.88.0",
     "@radix-ui/react-scroll-area": "^1.2.2",
+    "@types/bun": "^1.1.16",
     "react": "19.0.0",
     "react-dom": "19.0.0"
   },
@@ -35,8 +36,6 @@
     "eslint-plugin-react-hooks": "^5.1.0",
     "fast-xml-parser": "^4.5.1",
     "prettier": "3.4.2",
-    "ts-node": "10.9.2",
-    "typescript": "5.7.2",
     "vite": "^6.0.7",
     "vite-plugin-eslint": "^1.8.1",
     "vitest": "^2.1.8"
@@ -47,11 +46,11 @@
     "lint": "eslint --ext .ts,.tsx src --fix",
     "test": "vitest",
     "preview": "vite preview",
-    "buildData": "ts-node-esm src/buildData.ts",
-    "buildData:latest": "ts-node-esm src/buildData.ts vanilla public/regulation-vanilla-v1.14.js",
-    "buildData:reforged": "ts-node-esm src/buildData.ts reforged public/regulation-reforged-v1.2.4.js",
-    "buildData:convergence": "ts-node-esm src/buildData.ts convergence public/regulation-convergence-v2.1.2.js",
-    "rebuildWeaponData": "yarn buildData:latest && yarn buildData:reforged && yarn buildData:convergence"
+    "buildData": "bun src/buildData.ts",
+    "buildData:latest": "bun src/buildData.ts vanilla public/regulation-vanilla-v1.14.js",
+    "buildData:reforged": "bun src/buildData.ts reforged public/regulation-reforged-v1.2.4.js",
+    "buildData:convergence": "bun src/buildData.ts convergence public/regulation-convergence-v2.1.2.js",
+    "rebuildWeaponData": "bun buildData:latest && bun buildData:reforged && bun buildData:convergence"
   },
   "prettier": {
     "printWidth": 100,
