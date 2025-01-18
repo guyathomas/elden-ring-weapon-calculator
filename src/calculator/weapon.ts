@@ -1,6 +1,7 @@
 import type { DamageAttribute } from "./attributes";
 import type { AttackPowerType } from "./attackPowerTypes";
 import type { WeaponType } from "./weaponTypes";
+import type { AshOfWarData } from "../buildData/parsers";
 
 export type AttackCorrect = number | true;
 
@@ -9,6 +10,7 @@ export type AttackElementCorrect = Partial<
 >;
 
 export interface Weapon {
+  id: number;
   /**
    * The full unique name of the weapon, e.g. "Heavy Nightrider Glaive"
    */
@@ -27,7 +29,7 @@ export interface Weapon {
   /**
    * A wiki link for the weapon
    */
-  url: string | null;
+  url?: string;
 
   /**
    * The affinity of the weapon for filtering, see uiUtils.tsx for a full list of vanilla affinities
@@ -94,4 +96,9 @@ export interface Weapon {
    * The weight of the weapon
    */
   weight?: number;
+
+  /**
+   * The ash of wars for the weapon
+   */
+  ashOfWars: AshOfWarData[];
 }

@@ -46,10 +46,10 @@
     "lint": "eslint --ext .ts,.tsx src --fix",
     "test": "vitest",
     "preview": "vite preview",
-    "buildData": "bun src/buildData.ts",
-    "buildData:latest": "bun src/buildData.ts vanilla public/regulation-vanilla-v1.14.js",
-    "buildData:reforged": "bun src/buildData.ts reforged public/regulation-reforged-v1.2.4.js",
-    "buildData:convergence": "bun src/buildData.ts convergence public/regulation-convergence-v2.1.2.js",
+    "buildData": "bun src/buildData/index.ts",
+    "buildData:latest": "bun src/buildData/index.ts vanilla public/regulation-vanilla-v1.14.js",
+    "buildData:reforged": "bun src/buildData/index.ts reforged public/regulation-reforged-v1.2.4.js",
+    "buildData:convergence": "bun src/buildData/index.ts convergence public/regulation-convergence-v2.1.2.js",
     "rebuildWeaponData": "bun buildData:latest && bun buildData:reforged && bun buildData:convergence"
   },
   "prettier": {
