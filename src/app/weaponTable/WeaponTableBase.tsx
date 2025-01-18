@@ -170,6 +170,39 @@ const DataRow = memo(function DataRow({
           </WeaponTableColumnGroup>
         ))}
       </WeaponTableDataRow>
+      {rowDetailType === "aow" && (
+        <Box
+          sx={{
+            padding: 3,
+            display: "flex",
+            flexDirection: "column",
+            width: "100%",
+          }}
+        >
+          <table style={{ borderCollapse: "collapse", width: "100%" }}>
+            <thead>
+              <tr>
+                <th style={{ border: "1px solid #ffffff3b", padding: "8px" }}>Ash of War</th>
+                <th style={{ border: "1px solid #ffffff3b", padding: "8px" }}>Attacks</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rowData.weapon.ashOfWars.map((ashOfWar) => (
+                <tr key={ashOfWar.name}>
+                  <td style={{ border: "1px solid #ffffff3b", padding: "8px" }}>
+                    <Typography>{ashOfWar.name}</Typography>
+                  </td>
+                  <td style={{ border: "1px solid #ffffff3b", padding: "8px" }}>
+                    {ashOfWar.attacks?.map((attack) => (
+                      <Typography key={attack.name}>{attack.name}</Typography>
+                    ))}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Box>
+      )}
       {rowDetailType === "damage" && (
         <Suspense
           fallback={
