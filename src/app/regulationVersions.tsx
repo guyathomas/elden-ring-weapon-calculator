@@ -41,7 +41,7 @@ export interface RegulationVersion {
 
 const regulationVersions: Record<RegulationVersionName, RegulationVersion> = {
   latest: {
-    name: "Patch 1.16 (latest)",
+    name: "Patch 1.14",
     info: (
       <>
         <AlertTitle>
