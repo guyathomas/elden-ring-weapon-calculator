@@ -320,7 +320,7 @@ export function getFixedWeaponTableColumns({
   return [
     {
       key: "actions",
-      sx: { flex: 1, maxWidth: 70 },
+      sx: { flex: 1, maxWidth: 100 },
       columns: [actionColumn],
     },
     {

@@ -129,6 +129,7 @@ const ColumnHeaderRow = memo(function ColumnHeaderRow<S>({
 /**
  * A row in the weapon table containing a single weapon
  */
+export type RowDetailType = "damage" | "aow";
 const DataRow = memo(function DataRow({
   columns,
   rowData,
@@ -138,9 +139,13 @@ const DataRow = memo(function DataRow({
   rowData: DefaultWeaponTableRowData;
   onCopyAttributes?: (attributes: DamageAttributeValues) => void;
 }) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [rowDetailType, setRowDetailType] = useState<RowDetailType | null>(null);
   const [chartType, setChartType] = useState<"incremental" | "cumulative">("incremental");
-  const toggleIsExpanded = React.useCallback(() => setIsExpanded((prev) => !prev), []);
+  const toggleRowDetailType = React.useCallback(
+    (newValue: RowDetailType) =>
+      setRowDetailType((currentValue) => (newValue === currentValue ? null : newValue)),
+    [],
+  );
 
   const incrementalDamagePerAttribute = getIncrementalDamagePerAttribute(
     rowData.weapon,
@@ -155,13 +160,13 @@ const DataRow = memo(function DataRow({
           <WeaponTableColumnGroup key={key} sx={sx}>
             {columns.map((column) => (
               <WeaponTableColumn key={column.key} role="cell" sx={column.sx}>
-                {column.render(rowData, { isExpanded, toggleIsExpanded, onCopyAttributes })}
+                {column.render(rowData, { rowDetailType, toggleRowDetailType, onCopyAttributes })}
               </WeaponTableColumn>
             ))}
           </WeaponTableColumnGroup>
         ))}
       </WeaponTableDataRow>
-      {isExpanded && (
+      {rowDetailType === "damage" && (
         <Suspense
           fallback={
             <Box

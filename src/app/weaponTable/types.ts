@@ -4,6 +4,7 @@ import type { Theme } from "@mui/material";
 import type { Weapon } from "../../calculator/weapon";
 import type { DamageAttributeValues } from "../../calculator/attributes";
 import type { DamageTypeToOptimizeFor } from "../OptimizedDamageTypePicker";
+import type { RowDetailType } from "./WeaponTableBase";
 
 export interface DefaultWeaponTableRowData {
   weapon: Weapon;
@@ -14,8 +15,8 @@ export interface DefaultWeaponTableRowData {
 }
 
 export type RowActions = {
-  isExpanded: boolean;
-  toggleIsExpanded: () => void;
+  rowDetailType: RowDetailType | null;
+  toggleRowDetailType: (rowDetailType: RowDetailType) => void;
   onCopyAttributes?: (attributes: DamageAttributeValues) => void;
 };
 

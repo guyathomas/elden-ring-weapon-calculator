@@ -267,7 +267,7 @@ export function getOptimalAttributeColumns({
   return [
     {
       key: "actions",
-      sx: { flex: 1, maxWidth: 100 },
+      sx: { flex: 1, maxWidth: 140 },
       columns: [actionColumn],
     },
     {

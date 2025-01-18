@@ -121,7 +121,7 @@ type TableView = "fixed" | "solver";
 
 export default function App() {
   const { isMobile, menuOpen, menuOpenMobile, onMenuOpenChanged } = useMenuState();
-  const [tableView, setTableView] = useState<TableView>("solver");
+  const [tableView, setTableView] = useState<TableView>("fixed");
   const {
     state: {
       regulationVersionName,

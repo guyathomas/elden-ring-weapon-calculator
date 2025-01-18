@@ -7,12 +7,12 @@
  */
 import { memo } from "react";
 import { Box, IconButton, Link, Tooltip, Typography } from "@mui/material";
-import RemoveIcon from "@mui/icons-material/Remove";
 import { type Weapon, type DamageAttribute } from "../../calculator/calculator";
 import { getAttributeLabel } from "../uiUtils";
-import { ImportExport, SsidChart } from "@mui/icons-material";
+import { ImportExport, SsidChart, Bolt, Remove } from "@mui/icons-material";
+import type { RowDetailType } from "./WeaponTableBase";
 
-export const blankIcon = <RemoveIcon color="disabled" fontSize="small" />;
+export const blankIcon = <Remove color="disabled" fontSize="small" />;
 
 /**
  * @returns the given value truncated to an integer
@@ -178,19 +178,32 @@ export const AttackPowerRenderer = memo(function AttackPowerRenderer({
  * Component that displays one damage type / status effect / spell scaling of a weapon.
  */
 export const ActionRenderer = memo(function ActionRenderer({
-  isExpanded,
-  toggleIsExpanded,
+  rowDetailType,
+  toggleRowDetailType,
   onCopyAttributes,
 }: {
-  toggleIsExpanded: () => void;
   onCopyAttributes?: () => void;
-  isExpanded: boolean;
+  rowDetailType: RowDetailType;
+  toggleRowDetailType: (rowDetailType: RowDetailType) => void;
 }) {
   return (
     <Box display="flex">
       <Tooltip title="Expand scaling details">
-        <IconButton onClick={toggleIsExpanded}>
-          <SsidChart style={isExpanded ? { fill: "#ffb452" } : {}} />
+        <IconButton
+          onClick={() => {
+            toggleRowDetailType("damage");
+          }}
+        >
+          <SsidChart style={rowDetailType === "damage" ? { fill: "#ffb452" } : {}} />
+        </IconButton>
+      </Tooltip>
+      <Tooltip title="Show AoW details">
+        <IconButton
+          onClick={() => {
+            toggleRowDetailType("aow");
+          }}
+        >
+          <Bolt style={rowDetailType === "aow" ? { fill: "#ffb452" } : {}} />
         </IconButton>
       </Tooltip>
       {onCopyAttributes && (
