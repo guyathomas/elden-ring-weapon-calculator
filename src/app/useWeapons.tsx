@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Weapon } from "../calculator/weapon";
-import { decodeRegulationData } from "../regulationData";
+import { decodeRegulationData } from "../buildData/regulationData";
 import regulationVersions, { type RegulationVersionName } from "./regulationVersions";
-import { addWeightToWeapon } from "./weaponWeights";
 
 export default function useWeapons(regulationVersionName: RegulationVersionName) {
   const [loading, setLoading] = useState(true);
@@ -16,7 +15,7 @@ export default function useWeapons(regulationVersionName: RegulationVersionName)
       .fetch()
       .then((res) => res.json())
       .then((data) => {
-        setWeapons(decodeRegulationData(data).map(addWeightToWeapon));
+        setWeapons(decodeRegulationData(data));
         setLoading(false);
         setError(undefined);
       })
