@@ -52,7 +52,6 @@ export default function filterWeapons(
     effectiveWithAttributes,
     includeDLC,
     twoHanding,
-    uninfusableWeaponTypes,
     selectedWeapons,
   }: FilterWeaponsOptions,
 ): readonly Weapon[] {
@@ -82,15 +81,7 @@ export default function filterWeapons(
   // Filter based on any chosen affinities and weapon types
   function filterWeapon(weapon: Weapon): boolean {
     if (affinityIds.size > 0) {
-      if (
-        !affinityIds.has(weapon.affinityId) &&
-        // Treat uninfusable categories of armaments (torches etc.) as either standard or unique,
-        // since the distinction doesn't apply to these categories
-        !(
-          uninfusableWeaponTypes?.has(weapon.weaponType) &&
-          (affinityIds.has(0) || affinityIds.has(-1))
-        )
-      ) {
+      if (!affinityIds.has(weapon.affinityId)) {
         return false;
       }
     }

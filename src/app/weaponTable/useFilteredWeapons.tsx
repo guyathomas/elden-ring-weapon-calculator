@@ -27,16 +27,6 @@ const useFilteredWeapons = (
   const effectiveOnly = useDeferredValue(filterValues.effectiveOnly);
   const includeDLC = useDeferredValue(filterValues.includeDLC);
   const selectedWeapons = useDeferredValue(filterValues.selectedWeapons);
-  // Determine which weapon types can never be given an affinity. It's convenient for them to
-  // show up under both "Standard" and "Unique" filtering options
-  const uninfusableWeaponTypes: Set<WeaponType> = useMemo(
-    () =>
-      weapons.reduce((acc, weapon) => {
-        if (weapon.affinityId === 0 || weapon.affinityId === -1) acc.add(weapon.weaponType);
-        return acc;
-      }, new Set<WeaponType>()),
-    [weapons],
-  );
 
   return useMemo(
     () =>
@@ -50,7 +40,6 @@ const useFilteredWeapons = (
         effectiveWithAttributes: effectiveOnly ? attributes : undefined,
         includeDLC,
         twoHanding,
-        uninfusableWeaponTypes,
         selectedWeapons: new Set(selectedWeapons.map((weapon) => weapon.value)),
       }),
     [
@@ -61,7 +50,6 @@ const useFilteredWeapons = (
       effectiveOnly,
       includeDLC,
       twoHanding,
-      uninfusableWeaponTypes,
       regulationVersion.affinityOptions,
       selectedWeapons,
     ],
