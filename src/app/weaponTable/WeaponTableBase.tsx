@@ -155,7 +155,7 @@ const DataRow = memo(function DataRow({
 
   return (
     <>
-      <WeaponTableDataRow role="row">
+      <WeaponTableDataRow role="row" data-weapon-id={rowData.weapon.id}>
         {columns.map(({ key, sx, columns }) => (
           <WeaponTableColumnGroup key={key} sx={sx}>
             {columns.map((column) => (
