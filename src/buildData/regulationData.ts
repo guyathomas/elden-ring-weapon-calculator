@@ -79,7 +79,7 @@ export interface EncodedWeaponJson {
 /**
  * Precompute a CalcCorrectGraph into an array of scaling amounts at each stat level
  */
-function evaluateCalcCorrectGraph(calcCorrectGraph: CalcCorrectGraph) {
+export function evaluateCalcCorrectGraph(calcCorrectGraph: CalcCorrectGraph) {
   const arr: number[] = [];
 
   for (let i = 1; i < calcCorrectGraph.length; i++) {

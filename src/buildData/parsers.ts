@@ -8,12 +8,15 @@ import {
   allDamageTypes,
   type AttackElementCorrect as ParsedAttackElementCorrect,
   type DamageAttribute,
+  type DamageAttributeValues,
 } from "../calculator/calculator";
 import {
   type ParsedReinforceParamWeapon,
   type CalcCorrectGraph as ParsedCalcCorrectGraph,
   defaultStatusCalcCorrectGraphId,
   defaultDamageCalcCorrectGraphId,
+  type CalcCorrectGraph,
+  evaluateCalcCorrectGraph,
 } from "./regulationData";
 import {
   type AttackElementCorrectParam,
@@ -29,6 +32,11 @@ import {
   type ReinforceParamWeaponMap,
   type SwordArtsParamMap,
   type EquipParamGemMap,
+  type ParamDamageType,
+  type AtkParamPcMap,
+  type AtkParamAttributeShorthand,
+  type AttackElementCorrectParamAttribute,
+  type EquipParamWeaponAttribute,
 } from "./buildTypes";
 import { weaponTypeLabels } from "../app/uiUtils";
 import {
@@ -43,6 +51,8 @@ import {
   affinityMap,
   swordArtParamIdToAttack,
   weaponTypeMap,
+  paramDamageTypes,
+  ignoreBaseAtkRateSet,
 } from "./constants";
 import { ifNotDefault, type FmgFile } from "./helpers";
 
@@ -180,114 +190,151 @@ export function getAshOfWarList({
   return [...result, ...otherAshes];
 }
 
-// function getAshOfWarDamage(
-//   attackElementCorrectId: number,
-//   weaponId: number,
-//   weaponLevel: number,
-//   twoHanding: false,
-//   attackId: number,
-//   attackName: string,
-// ) {
-//   const damageAttributes = ["Strength", "Agility", "Magic", "Faith", "Luck"];
+export function getAshOfWarDamage({
+  attackElementCorrectId,
+  weaponId,
+  weaponLevel,
+  twoHanding,
+  attackId,
+  attackName,
+  equipParamWeapons,
+  reinforceParamWeapons,
+  atkParamPc,
+  attackElementCorrectParam,
+  calcCorrectGraphsJson,
+}: {
+  attackElementCorrectId: number;
+  weaponId: number;
+  weaponLevel: number;
+  twoHanding: false;
+  attackId: number;
+  attackName: string;
+  equipParamWeapons: EquipParamWeaponMap;
+  reinforceParamWeapons: ReinforceParamWeaponMap;
+  atkParamPc: AtkParamPcMap;
+  attackElementCorrectParam: AttackElementCorrectParamMap;
+  calcCorrectGraphsJson: {
+    [k: string]: CalcCorrectGraph;
+  };
+}) {
+  const calcCorrectGraphsById = new Map(
+    Object.entries(calcCorrectGraphsJson).map(([calcCorrectGraphId, calcCorrectGraph]) => [
+      +calcCorrectGraphId,
+      evaluateCalcCorrectGraph(calcCorrectGraph!),
+    ]),
+  );
+  const damageAttributes: AttackElementCorrectParamAttribute[] = [
+    "Strength",
+    "Dexterity",
+    "Magic",
+    "Faith",
+    "Luck",
+  ];
+  function getEquipParamWeaponAttribute(
+    attribute: AttackElementCorrectParamAttribute,
+  ): EquipParamWeaponAttribute {
+    return attribute === "Dexterity" ? "Agility" : attribute;
+  }
 
-//   const attributeValues: Record<(typeof damageAttributes)[number], number> = {
-//     Strength: 0,
-//     Agility: 0,
-//     Magic: 0,
-//     Faith: 0,
-//     Luck: 0,
-//   };
+  // TODO: DamageAttributeValues will be a better type
+  const attributeValues: Record<AttackElementCorrectParamAttribute, number> = {
+    Strength: 20,
+    Dexterity: 20,
+    Magic: 20,
+    Faith: 20,
+    Luck: 20,
+  };
 
-//   const damageShorthand: Record<ParamDamageType, string> = {
-//     Physics: "Phys",
-//     Magic: "Magic",
-//     Fire: "Fire",
-//     Thunder: "Thunder",
-//     Dark: "Dark",
-//   };
+  const atkParamDamageTypeShorthand: Record<ParamDamageType, AtkParamAttributeShorthand> = {
+    Physics: "Phys",
+    Magic: "Mag",
+    Fire: "Fire",
+    Thunder: "Thun",
+    Dark: "Dark",
+  };
+  // Constants that actually have evaluation formulas, but having fixed here for simplicity
+  const ignoreScale = false;
+  const isPhysAtkPenalty = false;
+  const physAtkPenalty = -0.4;
+  const isNegPhysScale = false;
+  const negPhysScale = 0;
+  const equipParamWeaponValue = equipParamWeapons.get(weaponId);
+  const atkParamPcValue = atkParamPc.get(attackId);
+  const attackElementCorrectValue = attackElementCorrectParam.get(attackElementCorrectId);
+  const isBullet = attackName.includes("Bullet");
+  const ignoreBaseAtkRate = ignoreBaseAtkRateSet.has(attackId);
 
-//   return paramDamageTypes.reduce((acc, damageType) => {
-//     // Constants that actually have evaluation formulas, but having fixed here for simplicity
-//     const ignoreScale = false;
-//     const isPhysAtkPenalty = false;
-//     const physAtkPenalty = -0.4;
-//     const isNegPhysScale = false;
-//     const negPhysScale = 0;
-//     const equipParamWeapon = equipParamWeapons.get(weaponId);
+  if (!equipParamWeaponValue) throw new Error("Unable to find equipParamWeapon");
+  if (!atkParamPcValue) throw new Error("Unable to find atkParamPc");
+  if (!attackElementCorrectValue) throw new Error("Unable to find attackElementCorrect");
+  const idWithAffinity = equipParamWeaponValue.reinforceTypeId + weaponLevel;
+  const reinforceParamWeapon = reinforceParamWeapons.get(idWithAffinity);
+  if (!reinforceParamWeapon) throw new Error("Unable to find reinforceParamWeapon");
 
-//     if (!equipParamWeapon) throw new Error('Unable to find weapon');
+  const isAddBaseAtk = atkParamPcValue.isAddBaseAtk;
+  const baseAtkRate = reinforceParamWeapon.baseAtkRate; // 1 + (3 / MaxWeaponLevel) * WeaponLevel;
+  const throwFlag = atkParamPcValue.throwFlag;
+  const throwAtkRate = equipParamWeaponValue.throwAtkRate;
 
-//     const attackBase = equipParamWeapon?.[`attackBase${damageType}`];
-//     const idWithAffinity = equipParamWeapon.reinforceTypeId + weaponLevel;
-//     const reinforceParamWeapon = reinforceParamWeapons.get(
-//       idWithAffinity,
-//     );
-//     if (!reinforceParamWeapon) throw new Error('Unable to find reinforceParamWeapon')
-//     const atkRate = reinforceParamWeapon.[`${damageType.toLocaleLowerCase()}AtkRate`];
-//     const atkCorrection = atkParamPc.get(attackId)[`atk${damageShorthand[damageType]}Correction`];
-//     const isBullet = attackName.includes("bullet");
-//     const isAddBaseAtk = atkParamPc.get(attackId).isAddBaseAtk;
-//     const atk = atkParamPc.get(attackId)[`Atk${damageShorthand[damageType]}`];
-//     const ignoreBaseAtkRate = ignoreBaseAtkRateSet.has(attackId);
-//     const baseAtkRate = reinforceParamWeapon.baseAtkRate; // 1 + (3 / MaxWeaponLevel) * WeaponLevel;
-//     const throwFlag = atkParamPc.get(attackId).throwFlag;
-//     const throwAtkRate = equipParamWeapon.throwAtkRate;
+  return paramDamageTypes.reduce((acc, damageType) => {
+    const attackBase = equipParamWeaponValue[`attackBase${damageType}`];
+    const atkRate =
+      reinforceParamWeapon[
+        `${damageType.toLocaleLowerCase() as Lowercase<ParamDamageType>}AtkRate`
+      ];
+    const atkCorrection =
+      atkParamPcValue[`atk${atkParamDamageTypeShorthand[damageType]}Correction`];
+    const atk = atkParamPcValue[`atk${atkParamDamageTypeShorthand[damageType]}`];
 
-//     const baseAtk =
-//       attackBase * atkRate * atkCorrection * 0.01 +
-//       (isBullet + isAddBaseAtk >= 1 ? atk : 0) *
-//         (ignoreBaseAtkRate === false ? baseAtkRate : 1) *
-//         (throwFlag === 2 ? 1 + throwAtkRate * 0.01 : 1);
+    const baseAtk =
+      attackBase * atkRate * atkCorrection * 0.01 +
+      (isBullet && isAddBaseAtk ? atk : 0) *
+        (ignoreBaseAtkRate === false ? baseAtkRate : 1) *
+        (throwFlag === 2 ? 1 + throwAtkRate * 0.01 : 1);
 
-//     const _baseAtkScaling = damageAttributes.reduce((acc, attr) => {
-//       const isCorrect_by =
-//         attackElementCorrectParam.get(attackElementCorrectId)[`is${attr}Correct_by${damageType}`];
-//       const _correctRate =
-//         attackElementCorrectParam.get(attackElementCorrectId)[
-//           `influence${attr}CorrectRate_by${damageType}`
-//         ] * 0.01;
-//       const overwriteCorrectRate_by =
-//         attackElementCorrectParam.get(attackElementCorrectId)[
-//           `overwrite${attr}CorrectRate_by${damageType}`
-//         ];
+    const _baseAtkScaling = damageAttributes.reduce((acc, attr) => {
+      const isCorrect_by = attackElementCorrectValue[`is${attr}Correct_by${damageType}`];
+      const _correctRate =
+        attackElementCorrectValue[`Influence${attr}CorrectRate_by${damageType}`] * 0.01;
+      const overwriteCorrectRate_by =
+        attackElementCorrectValue[`overwrite${attr}CorrectRate_by${damageType}`];
+      const equipParamWeaponAttribute = getEquipParamWeaponAttribute(attr);
+      const correct = equipParamWeaponValue[`correct${equipParamWeaponAttribute}`];
 
-//       const correct = equipParamWeapon[`correct${attr}`];
-//       const correctRate = reinforceParamWeapons.get(
-//         idWithAffinity,
-//       );
+      // TODO: Update maps to reference the Gem ID instead of name. Hardcode for now. Only affects a few AoW's
+      // const changePoint = attributePointMap.get(attack.name).change[attr]Point || 0
+      const changePoint = 0;
 
-//       // TODO: Update maps to reference the Gem ID instead of name. Hardcode for now. Only affects a few AoW's
-//       // const changePoint = attributePointMap.get(attack.name).change[attr]Point || 0
-//       const changePoint = 0;
+      const _adjustedAttr =
+        attr === "Strength" && twoHanding
+          ? Math.floor(attributeValues[attr] * 1.5)
+          : attributeValues[attr];
+      const correctType = equipParamWeaponValue[`correctType_${damageType}`];
+      const correct_by = calcCorrectGraphsById.get(correctType)?.[_adjustedAttr] || 0;
 
-//       const _adjustedAttr =
-//         attr === "Strength" && twoHanding
-//           ? Math.floor(attributeValues[attr] * 1.5)
-//           : attributeValues[attr];
-//       const correctType = equipParamWeapon[`correctType_${damageType}`];
-//       const correct_by = calCorrectGraphs[correctType][_adjustedAttr];
+      const damageForAttribute = isCorrect_by
+        ? _correctRate -
+          1 +
+          ((overwriteCorrectRate_by >= 0 ? overwriteCorrectRate_by : correct) *
+            0.01 *
+            reinforceParamWeapon[`correct${getEquipParamWeaponAttribute(attr)}Rate`] +
+            changePoint * 0.01) *
+            (correct_by * 0.01) *
+            _correctRate
+        : 0;
 
-//       const damageForAttribute = isCorrect_by
-//         ? _correctRate -
-//           1 +
-//           ((overwriteCorrectRate_by >= 0 ? overwriteCorrectRate_by : correct) * 0.01 * correctRate +
-//             changePoint * 0.01) *
-//             (correct_by * 0.01) *
-//             _correctRate
-//         : 0;
-
-//       return acc.set(attr, damageForAttribute);
-//     }, new Map());
-//     const effectiveScaling = ignoreScale
-//       ? 0
-//       : isPhysAtkPenalty
-//         ? physAtkPenalty
-//         : isNegPhysScale
-//           ? negPhysScale
-//           : [..._baseAtkScaling.values()].reduce((acc, v) => acc + v, 0);
-//     return acc.set(damageType, baseAtk + baseAtk * effectiveScaling);
-//   }, new Map());
-// }
+      return acc.set(attr, damageForAttribute);
+    }, new Map());
+    const effectiveScaling = ignoreScale
+      ? 0
+      : isPhysAtkPenalty
+        ? physAtkPenalty
+        : isNegPhysScale
+          ? negPhysScale
+          : [..._baseAtkScaling.values()].reduce((acc, v) => acc + v, 0);
+    return acc.set(damageType, baseAtk + baseAtk * effectiveScaling);
+  }, new Map());
+}
 
 interface ParseWeaponResult {
   id: number;

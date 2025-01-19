@@ -13,15 +13,20 @@ export interface MenuValueTableParam {
   compareType: number;
 }
 
-type CorrectParamAttribute = "Strength" | "Dexterity" | "Magic" | "Faith" | "Luck";
+export type AttackElementCorrectParamAttribute =
+  | "Strength"
+  | "Dexterity"
+  | "Magic"
+  | "Faith"
+  | "Luck";
 type CorrectParamKey = {
-  [key in `is${CorrectParamAttribute}Correct_by${ParamDamageType}`]: number;
+  [key in `is${AttackElementCorrectParamAttribute}Correct_by${ParamDamageType}`]: number;
 };
 type OverriteCorrectParamKey = {
-  [key in `overwrite${CorrectParamAttribute}CorrectRate_by${ParamDamageType}`]: number;
+  [key in `overwrite${AttackElementCorrectParamAttribute}CorrectRate_by${ParamDamageType}`]: number;
 };
 type InfluenceCorrectParamKey = {
-  [key in `Influence${CorrectParamAttribute}CorrectRate_by${ParamDamageType}`]: number;
+  [key in `Influence${AttackElementCorrectParamAttribute}CorrectRate_by${ParamDamageType}`]: number;
 };
 
 // AttackElementCorrectParam.param
@@ -471,16 +476,23 @@ export interface SpEffectParam {
   spiritDeathSpEffectId: number;
 }
 
+// EquipParamWeapon.param
 type AttackBaseMap = {
   [key in `attackBase${ParamDamageType}`]: number;
 };
 type CorrectTypeMap = {
   [key in `correctType_${ParamDamageType}`]: number;
 };
-
-// EquipParamWeapon.param
+export type EquipParamWeaponAttribute = "Strength" | "Agility" | "Magic" | "Faith" | "Luck";
+type EquipParamCorrectAttributeMap = {
+  [key in `correct${ParamDamageType}`]: number;
+};
 export type EquipParamWeaponMap = Map<number, EquipParamWeapon>;
-export interface EquipParamWeapon extends AttackBaseMap, CorrectTypeMap {
+
+export interface EquipParamWeapon
+  extends AttackBaseMap,
+    CorrectTypeMap,
+    EquipParamCorrectAttributeMap {
   id: number;
   disableParam_NT: number;
   disableParamReserve1: number;
@@ -497,6 +509,7 @@ export interface EquipParamWeapon extends AttackBaseMap, CorrectTypeMap {
   correctAgility: number;
   correctMagic: number;
   correctFaith: number;
+  correctLuck: number;
   physGuardCutRate: number;
   magGuardCutRate: number;
   fireGuardCutRate: number;
@@ -664,7 +677,7 @@ export interface EquipParamWeapon extends AttackBaseMap, CorrectTypeMap {
   freezeGuardResist: number;
   autoReplenishType: number;
   swordArtsParamId: number;
-  correctLuck: number;
+
   arrowBoltEquipId: number;
   DerivationLevelType: number;
   enchantSfxSize: number;
@@ -849,7 +862,10 @@ export interface EquipParamGem extends CanMountWeaponTypes {
 
 // AtkParam_Pc.param
 export type AtkParamPcMap = Map<number, AtkParamPc>;
-export interface AtkParamPc {
+export type AtkParamAttributeShorthand = "Phys" | "Mag" | "Fire" | "Thun" | "Dark";
+type AtkParamAtk = { [key in `atk${AtkParamAttributeShorthand}`]: number };
+type AtkParamAtkCorrection = { [key in `atk${AtkParamAttributeShorthand}Correction`]: number };
+export interface AtkParamPc extends AtkParamAtk, AtkParamAtkCorrection {
   hit0_Radius: number;
   hit1_Radius: number;
   hit2_Radius: number;
@@ -870,20 +886,12 @@ export interface AtkParamPc {
   hit2_DmyPoly2: number;
   hit3_DmyPoly2: number;
   blowingCorrection: number;
-  atkPhysCorrection: number;
-  atkMagCorrection: number;
-  atkFireCorrection: number;
-  atkThunCorrection: number;
   atkStamCorrection: number;
   guardAtkRateCorrection: number;
   guardBreakCorrection: number;
   atkThrowEscapeCorrection: number;
   subCategory1: number;
   subCategory2: number;
-  atkPhys: number;
-  atkMag: number;
-  atkFire: number;
-  atkThun: number;
   atkStam: number;
   guardAtkRate: number;
   guardBreakRate: number;
@@ -1029,8 +1037,6 @@ export interface AtkParamPc {
   defSfxMaterial1: number;
   defSeMaterial2: number;
   defSfxMaterial2: number;
-  atkDarkCorrection: number;
-  atkDark: number;
   pad5: number;
   isDisableParry: number;
   isDisableBothHandsAtkBonus: number;

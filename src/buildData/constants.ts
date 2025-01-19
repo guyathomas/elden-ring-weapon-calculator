@@ -1,5 +1,5 @@
 import { WeaponType } from "../calculator/weaponTypes";
-import type { EquipParamGem, SwordArtMeta } from "./buildTypes";
+import type { EquipParamGem, ParamAttribute, ParamDamageType, SwordArtMeta } from "./buildTypes";
 
 const [_binary, _currentFile, gameVersion, outputFile] = process.argv;
 
@@ -286,8 +286,14 @@ export const dlcWeaponNameFmgFile = "WeaponName_dlc01.fmg";
 export const menuTextFmgFile = "GR_MenuText.fmg";
 export const artsNameFile = "ArtsName.fmg";
 
-export const paramDamageTypes = ["Physics", "Magic", "Fire", "Thunder", "Dark"];
-export const paramDamageAttributes = ["Strength", "Agility", "Magic", "Faith", "Luck"];
+export const paramDamageTypes: ParamDamageType[] = ["Physics", "Magic", "Fire", "Thunder", "Dark"];
+export const paramDamageAttributes: ParamAttribute[] = [
+  "Strength",
+  "Agility",
+  "Magic",
+  "Faith",
+  "Luck",
+];
 
 export const ignoreBaseAtkRateSet = new Set([300000682, 300000683, 300200826]);
 
