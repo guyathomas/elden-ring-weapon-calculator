@@ -1,4 +1,4 @@
-import React, { memo, Suspense, useState } from "react";
+import React, { memo, Profiler, Suspense, useState } from "react";
 import * as ScrollArea from "@radix-ui/react-scroll-area";
 import { Alert, Box, CircularProgress, FormControlLabel, Switch, Typography } from "@mui/material";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
@@ -21,7 +21,10 @@ import type {
   WeaponTableColumnDef,
   WeaponTableColumnGroupDef,
 } from "./types";
-import { getIncrementalDamagePerAttribute } from "../../calculator/newCalculator";
+import {
+  getIncrementalDamagePerAttribute,
+  type IncrementalDamagePerAttribute,
+} from "../../calculator/newCalculator";
 import { type DamageAttributeValues } from "../../calculator/attributes";
 import WeaponDamageChart from "./WeaponDamageChart";
 
@@ -146,11 +149,12 @@ const DataRow = memo(function DataRow({
       setRowDetailType((currentValue) => (newValue === currentValue ? null : newValue)),
     [],
   );
-
-  const incrementalDamagePerAttribute = getIncrementalDamagePerAttribute(
-    rowData.weapon,
-    rowData.upgradeLevel,
-    rowData.twoHanding,
+  const incrementalDamagePerAttribute = React.useMemo(
+    () =>
+      rowDetailType === "damage"
+        ? getIncrementalDamagePerAttribute(rowData.weapon, rowData.upgradeLevel, rowData.twoHanding)
+        : ({} as IncrementalDamagePerAttribute),
+    [rowDetailType],
   );
 
   return (
