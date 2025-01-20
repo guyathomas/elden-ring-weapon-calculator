@@ -39,11 +39,11 @@ import {
   weaponNameFmgFile,
   dlcWeaponNameFmgFile,
   menuTextFmgFile,
-  artsNameFile,
   isConvergence,
 } from "./constants";
 import { getDir, readFmgXml, readParam, unpackFiles } from "./helpers";
 import {
+  getAshOfWarDamage,
   getAshOfWarList,
   parseAttackElementCorrect,
   parseCalcCorrectGraph,
@@ -89,14 +89,11 @@ const menuValueTableParams = readParam<MenuValueTableParam>(
 );
 const swordArtsParams = readParam<SwordArtsParam>(join(fileDirectory, swordArtsFile));
 const equipGemParams = readParam<EquipParamGem>(join(fileDirectory, equipGemFile));
-const attackPcParams = readParam<AtkParamPc>(join(fileDirectory, atkPcFile));
+const atkParamPcParams = readParam<AtkParamPc>(join(fileDirectory, atkPcFile));
 
 const menuText = readFmgXml(join(fileDirectory, menuTextFmgFile));
 const weaponNames = readFmgXml(join(fileDirectory, weaponNameFmgFile));
 const dlcWeaponNames = readFmgXml(join(fileDirectory, dlcWeaponNameFmgFile));
-const artsName = readFmgXml(join(fileDirectory, artsNameFile));
-
-const reverseArtsNameMap = new Map([...artsName.entries()].map(([id, name]) => [name, id]));
 
 const additionalWeaponsJson: EncodedWeaponJson[] = [];
 
@@ -132,7 +129,6 @@ if (isConvergence) {
     const ashOfWars = getAshOfWarList({
       equipParamWeapon: { ...row, ...overrides },
       equipGemParams,
-      reverseArtsNameMap,
       swordArtsParams,
     });
     const encodedWeapon = {
@@ -160,7 +156,6 @@ const weaponsJson = [...equipParamWeapons.values()]
     const ashOfWars = getAshOfWarList({
       equipParamWeapon,
       equipGemParams,
-      reverseArtsNameMap,
       swordArtsParams,
     });
     return {

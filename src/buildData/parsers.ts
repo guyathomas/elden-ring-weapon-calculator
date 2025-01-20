@@ -8,7 +8,6 @@ import {
   allDamageTypes,
   type AttackElementCorrect as ParsedAttackElementCorrect,
   type DamageAttribute,
-  type DamageAttributeValues,
 } from "../calculator/calculator";
 import {
   type ParsedReinforceParamWeapon,
@@ -73,20 +72,18 @@ function isNotExcludedGem(gem: EquipParamGem) {
 }
 
 function isValidAshOfWarId(gem: EquipParamGem) {
-  return gem.id > 10000;
+  return gem.id >= 10000;
 }
 
-function getSwordArtNameAndId(
-  ashName: string,
-  reverseArtsNameMap: Map<string | null, number>,
+function getSwordArtAttacks(
+  swordArtId: number,
   equipParamWeapon: EquipParamWeapon,
-): AshOfWarData {
-  const swordArtId = reverseArtsNameMap.get(ashName);
+): SwordArtMeta[] {
   const weaponTypeString = weaponTypeLabels.get(equipParamWeapon.wepType);
   const isForWeapon = (attack: SwordArtMeta) => attack.name.startsWith(`[${weaponTypeString}]`);
   const isNotWeaponSpecific = (attack: SwordArtMeta) => !attack.name.match(weaponLabelsRegex);
-  const isCategorySwordArt = categorySwordArt.has(ashName);
-  const isCategorySwordArtAddBase = categorySwordArtAddBase.has(ashName);
+  const isCategorySwordArt = categorySwordArt.has(swordArtId);
+  const isCategorySwordArtAddBase = categorySwordArtAddBase.has(swordArtId);
   const weaponLabelsRegex = new RegExp(`^\\[(?:${[...weaponTypeLabels.values()].join("|")})\\]`);
   let attacks: SwordArtMeta[];
 
@@ -106,11 +103,7 @@ function getSwordArtNameAndId(
   } else {
     attacks = swordArtId ? swordArtParamIdToAttack.get(swordArtId) || [] : [];
   }
-  return {
-    swordArtId,
-    name: ashName,
-    attacks,
-  };
+  return attacks;
 }
 
 function cleanGemName(gemName: string) {
@@ -120,18 +113,16 @@ function cleanGemName(gemName: string) {
 export interface AshOfWarData {
   name: string;
   swordArtId?: number;
-  attacks?: SwordArtMeta[];
+  attacks: SwordArtMeta[];
 }
 export function getAshOfWarList({
   equipParamWeapon,
   swordArtsParams,
   equipGemParams,
-  reverseArtsNameMap,
 }: {
   equipParamWeapon: EquipParamWeapon;
   swordArtsParams: SwordArtsParamMap;
   equipGemParams: EquipParamGemMap;
-  reverseArtsNameMap: Map<string | null, number>;
 }): AshOfWarData[] {
   const result: AshOfWarData[] = [];
   const affinityId = (equipParamWeapon.id % 10000) / 100;
@@ -147,7 +138,11 @@ export function getAshOfWarList({
     }
     const defaultName = cleanGemName(defaultSwordArt.paramdexName);
     aowNames.add(defaultName);
-    result.push(getSwordArtNameAndId(defaultName, reverseArtsNameMap, equipParamWeapon));
+    result.push({
+      name: defaultName,
+      swordArtId: equipParamWeapon.swordArtsParamId,
+      attacks: getSwordArtAttacks(equipParamWeapon.swordArtsParamId, equipParamWeapon),
+    });
   }
 
   function isSpecialAllowed(equipParamGem: EquipParamGem) {
@@ -185,8 +180,11 @@ export function getAshOfWarList({
   )
     .filter(isUniqueByName)
     .sort((a, b) => a.sortId - b.sortId)
-    .map((gem) => getSwordArtNameAndId(gem.name, reverseArtsNameMap, equipParamWeapon))
-    .filter((ash) => ash.attacks?.length);
+    .map((gem) => ({
+      name: gem.name,
+      swordArtId: gem.swordArtsParamId,
+      attacks: getSwordArtAttacks(gem.swordArtsParamId, equipParamWeapon),
+    }));
   return [...result, ...otherAshes];
 }
 
@@ -259,7 +257,9 @@ export function getAshOfWarDamage({
   const equipParamWeaponValue = equipParamWeapons.get(weaponId);
   const atkParamPcValue = atkParamPc.get(attackId);
 
+  // TODO: Can I derive this another way?
   const isBullet = attackName.includes("Bullet");
+  // TODO: Can I derive this another way?
   const ignoreBaseAtkRate = ignoreBaseAtkRateSet.has(attackId);
 
   if (!equipParamWeaponValue) throw new Error("Unable to find equipParamWeapon");
@@ -307,14 +307,12 @@ export function getAshOfWarDamage({
       // TODO: Update maps to reference the Gem ID instead of name. Hardcode for now. Only affects a few AoW's
       // const changePoint = attributePointMap.get(attack.name).change[attr]Point || 0
       const changePoint = 0;
-
       const _adjustedAttr =
         attr === "Strength" && twoHanding
           ? Math.floor(attributeValues[attr] * 1.5)
           : attributeValues[attr];
       const correctType = equipParamWeaponValue[`correctType_${damageType}`];
       const correct_by = calcCorrectGraphsById.get(correctType)?.[_adjustedAttr] || 0;
-
       const damageForAttribute = isCorrect_by
         ? _correctRate * 0.01 -
           1 +

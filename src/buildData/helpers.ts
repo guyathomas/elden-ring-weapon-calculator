@@ -23,7 +23,6 @@ import {
   weaponNameFmgFile,
   dlcWeaponNameFmgFile,
   menuTextFmgFile,
-  artsNameFile,
 } from "./constants";
 import { spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
@@ -105,7 +104,6 @@ export function unpackFiles() {
     swordArtsFile,
     equipGemFile,
     atkPcFile,
-    artsNameFile,
   ];
 
   const bndPaths = [

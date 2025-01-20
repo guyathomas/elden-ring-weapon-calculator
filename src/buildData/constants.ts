@@ -284,7 +284,6 @@ export const menuValueTableFile = "MenuValueTableParam.param";
 export const weaponNameFmgFile = "WeaponName.fmg";
 export const dlcWeaponNameFmgFile = "WeaponName_dlc01.fmg";
 export const menuTextFmgFile = "GR_MenuText.fmg";
-export const artsNameFile = "ArtsName.fmg";
 
 export const paramDamageTypes: ParamDamageType[] = ["Physics", "Magic", "Fire", "Thunder", "Dark"];
 export const paramDamageAttributes: ParamAttribute[] = [
@@ -295,24 +294,31 @@ export const paramDamageAttributes: ParamAttribute[] = [
   "Luck",
 ];
 
+// TODO: Derive these instead of hard coding
 export const ignoreBaseAtkRateSet = new Set([300000682, 300000683, 300200826]);
 
+// TODO: Derive these instead of hard coding
 export const categorySwordArt = new Set([
-  `Wild Strikes`,
-  `Spinning Slash`,
-  `Repeating Thrust`,
-  `Sword Dance`,
-  `Spinning Weapon`,
-  `Loretta's Slash`,
-  `Flame Skewer`,
-  `Aspects of the Crucible: Wings`,
-  `Bloody Slash`,
-  `Blood Tax`,
-  `Shield Bash`,
-  `Shield Strike`,
+  110, // Wild Strikes
+  1166, // Spinning Slash
+  109, // Repeating Thrust
+  124, // Sword Dance
+  120, // Spinning Weapon
+  118, // Loretta's Slash
+  4140, // Flame Skewer
+  2001, // Aspects of the Crucible: Wings
+  204, // Bloody Slash
+  108, // Blood Tax
+  300, // Shield Bash
+  8000, // Shield Strike
 ]);
 
-export const categorySwordArtAddBase = new Set(["War Cry", "Barbaric Roar", "Braggart's Roar"]);
+// TODO: Derive these instead of hard coding
+export const categorySwordArtAddBase = new Set([
+  651, // "War Cry",
+  650, // "Barbaric Roar",
+  654, // "Braggart's Roar"
+]);
 
 export type EquipParamWeaponType =
   | "Dagger"
