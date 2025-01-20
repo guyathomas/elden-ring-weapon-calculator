@@ -191,7 +191,6 @@ export function getAshOfWarList({
 }
 
 export function getAshOfWarDamage({
-  attackElementCorrectId,
   weaponId,
   weaponLevel,
   twoHanding,
@@ -203,7 +202,6 @@ export function getAshOfWarDamage({
   attackElementCorrectParam,
   calcCorrectGraphsJson,
 }: {
-  attackElementCorrectId: number;
   weaponId: number;
   weaponLevel: number;
   twoHanding: false;
@@ -260,16 +258,22 @@ export function getAshOfWarDamage({
   const negPhysScale = 0;
   const equipParamWeaponValue = equipParamWeapons.get(weaponId);
   const atkParamPcValue = atkParamPc.get(attackId);
-  const attackElementCorrectValue = attackElementCorrectParam.get(attackElementCorrectId);
+
   const isBullet = attackName.includes("Bullet");
   const ignoreBaseAtkRate = ignoreBaseAtkRateSet.has(attackId);
 
   if (!equipParamWeaponValue) throw new Error("Unable to find equipParamWeapon");
   if (!atkParamPcValue) throw new Error("Unable to find atkParamPc");
-  if (!attackElementCorrectValue) throw new Error("Unable to find attackElementCorrect");
-  const idWithAffinity = equipParamWeaponValue.reinforceTypeId + weaponLevel;
-  const reinforceParamWeapon = reinforceParamWeapons.get(idWithAffinity);
+  const leveledReinforcementId = equipParamWeaponValue.reinforceTypeId + weaponLevel;
+  const reinforceParamWeapon = reinforceParamWeapons.get(leveledReinforcementId);
   if (!reinforceParamWeapon) throw new Error("Unable to find reinforceParamWeapon");
+  const attackElementCorrectId =
+    atkParamPcValue.overwriteAttackElementCorrectId === -1
+      ? equipParamWeaponValue.attackElementCorrectId
+      : atkParamPcValue.overwriteAttackElementCorrectId;
+  const attackElementCorrectValue = attackElementCorrectParam.get(attackElementCorrectId);
+
+  if (!attackElementCorrectValue) throw new Error("Unable to find attackElementCorrect");
 
   const isAddBaseAtk = atkParamPcValue.isAddBaseAtk;
   const baseAtkRate = reinforceParamWeapon.baseAtkRate; // 1 + (3 / MaxWeaponLevel) * WeaponLevel;
@@ -288,14 +292,13 @@ export function getAshOfWarDamage({
 
     const baseAtk =
       attackBase * atkRate * atkCorrection * 0.01 +
-      (isBullet && isAddBaseAtk ? atk : 0) *
+      (isBullet || isAddBaseAtk ? atk : 0) *
         (ignoreBaseAtkRate === false ? baseAtkRate : 1) *
         (throwFlag === 2 ? 1 + throwAtkRate * 0.01 : 1);
 
     const _baseAtkScaling = damageAttributes.reduce((acc, attr) => {
       const isCorrect_by = attackElementCorrectValue[`is${attr}Correct_by${damageType}`];
-      const _correctRate =
-        attackElementCorrectValue[`Influence${attr}CorrectRate_by${damageType}`] * 0.01;
+      const _correctRate = attackElementCorrectValue[`Influence${attr}CorrectRate_by${damageType}`];
       const overwriteCorrectRate_by =
         attackElementCorrectValue[`overwrite${attr}CorrectRate_by${damageType}`];
       const equipParamWeaponAttribute = getEquipParamWeaponAttribute(attr);
@@ -313,7 +316,7 @@ export function getAshOfWarDamage({
       const correct_by = calcCorrectGraphsById.get(correctType)?.[_adjustedAttr] || 0;
 
       const damageForAttribute = isCorrect_by
-        ? _correctRate -
+        ? _correctRate * 0.01 -
           1 +
           ((overwriteCorrectRate_by >= 0 ? overwriteCorrectRate_by : correct) *
             0.01 *
