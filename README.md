@@ -29,3 +29,35 @@ Regulation data was extracted from the game using [WitchyBND](https://github.com
 Elden Ring Reforged support uses data from the [Elden Ring Reforged](https://www.nexusmods.com/eldenring/mods/541) mod provided by [ivi](https://github.com/ividyon) from the ERR team.
 
 The Convergence Mod support uses data extracted from [The Convergence Mod](https://www.nexusmods.com/eldenring/mods/3419) public alpha on Nexus Mods.
+
+## TODO
+
+Features
+
+- [ ] Add optimal class calculator
+- [ ] Add Armour Solving
+- [ ] Add modifiers ( Armour bonuses, buffs, etc... )
+- [ ] Add ash of war scaling
+
+Improvements
+
+- [ ] Add DamageTypeToOptimizeFor into global state, so that it can be used in the cell renderers
+- [ ] ( Performance ) Only check the attributes that appear in the scaling factor objects.
+- [ ] Sticky Table Headers
+
+Bugs
+
+- [ ] Markers not showing
+- [ ] Verify the damage and tables with a 3rd party calculator
+- [ ] Solver doesn't work properly when APPLY_SCALING_PENALTY is true. Test with black knife below 18 fai threshold.
+- [ ] Fix the rendering of the damage type to optimize for dropdown
+- [ ] All status effects are showing in the status column, even when only some have values
+- [ ] Accomodate the 2h override setting for the mods in newCalculator
+- [ ] "Optimal SP Attributes" is getting calculated for Weapons
+- [ ] Incant scaling does not include base scaling factor of 100 correctly. Need "base" to be a component of the melee or spell aspects respectively.
+- [ ] Effective only toggle is showing and hiding rows in the solver row. It should not hide any unless the minimum attributes can not be met
+
+Cleanup
+
+- [ ] Consolidate calculators & test calculators. Deprecate the old calculator.
+- [ ] Remove global state in favour of prop drilling again

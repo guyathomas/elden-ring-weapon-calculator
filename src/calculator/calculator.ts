@@ -1,43 +1,39 @@
-import { allAttributes, type Attribute, type Attributes } from "./attributes.ts";
-import { AttackPowerType, allDamageTypes, allStatusTypes } from "./attackPowerTypes.ts";
-import type { Weapon } from "./weapon.ts";
-import { WeaponType } from "./weaponTypes.ts";
+import { damageAttributes, type DamageAttribute, type DamageAttributeValues } from "./attributes";
+import { AttackPowerType, allAttackPowerTypes, allDamageTypes } from "./attackPowerTypes";
+import type { Weapon } from "./weapon";
+import { WeaponType } from "./weaponTypes";
+import { calculateFinalScaling } from "./newCalculator";
 
 interface WeaponAttackOptions {
   weapon: Weapon;
-  attributes: Attributes;
+  attributes: DamageAttributeValues;
   twoHanding?: boolean;
   upgradeLevel: number;
-  disableTwoHandingAttackPowerBonus?: boolean;
-  ineffectiveAttributePenalty?: number;
+  disableTwoHandingAttackPowerBonus: boolean;
+  ineffectiveAttributePenalty: number;
 }
 
 export interface WeaponAttackResult {
-  upgradeLevel: number;
   attackPower: Partial<Record<AttackPowerType, number>>;
   spellScaling: Partial<Record<AttackPowerType, number>>;
-  ineffectiveAttributes: Attribute[];
+  ineffectiveAttributes: DamageAttribute[];
   ineffectiveAttackPowerTypes: AttackPowerType[];
 }
 
-/**
- * Adjust a set of character attributes to take into account the 50% Strength bonus when two
- * handing a weapon
- */
-export function adjustAttributesForTwoHanding({
+export function adjustStrengthForTwoHanding({
   twoHanding = false,
   weapon,
-  attributes,
+  str,
 }: {
   twoHanding?: boolean;
   weapon: Weapon;
-  attributes: Attributes;
-}): Attributes {
-  let twoHandingBonus = twoHanding;
+  str: number;
+}): number {
+  let applyTwoHandingBonus = twoHanding;
 
   // Paired weapons do not get the two handing bonus
   if (weapon.paired) {
-    twoHandingBonus = false;
+    applyTwoHandingBonus = false;
   }
 
   // Bows and ballistae can only be two handed
@@ -47,17 +43,10 @@ export function adjustAttributesForTwoHanding({
     weapon.weaponType === WeaponType.GREATBOW ||
     weapon.weaponType === WeaponType.BALLISTA
   ) {
-    twoHandingBonus = true;
+    applyTwoHandingBonus = true;
   }
-
-  if (twoHandingBonus) {
-    return {
-      ...attributes,
-      str: Math.floor(attributes.str * 1.5),
-    };
-  }
-
-  return attributes;
+  // 148 is the max allowed attribute value
+  return applyTwoHandingBonus ? Math.min(Math.floor(str * 1.5), 148) : str;
 }
 
 /**
@@ -69,11 +58,14 @@ export default function getWeaponAttack({
   twoHanding,
   upgradeLevel,
   disableTwoHandingAttackPowerBonus,
-  ineffectiveAttributePenalty = 0.4,
+  ineffectiveAttributePenalty,
 }: WeaponAttackOptions): WeaponAttackResult {
-  const adjustedAttributes = adjustAttributesForTwoHanding({ twoHanding, weapon, attributes });
+  const adjustedAttributes: DamageAttributeValues = {
+    ...attributes,
+    str: adjustStrengthForTwoHanding({ twoHanding, weapon, str: attributes.str }),
+  };
 
-  const ineffectiveAttributes = (Object.entries(weapon.requirements) as [Attribute, number][])
+  const ineffectiveAttributes = (Object.entries(weapon.requirements) as [DamageAttribute, number][])
     .filter(([attribute, requirement]) => adjustedAttributes[attribute] < requirement)
     .map(([attribute]) => attribute);
 
@@ -82,7 +74,7 @@ export default function getWeaponAttack({
   const attackPower: Partial<Record<AttackPowerType, number>> = {};
   const spellScaling: Partial<Record<AttackPowerType, number>> = {};
 
-  for (const attackPowerType of [...allDamageTypes, ...allStatusTypes]) {
+  for (const attackPowerType of allAttackPowerTypes) {
     const isDamageType = allDamageTypes.includes(attackPowerType);
 
     const baseAttackPower = weapon.attack[upgradeLevel][attackPowerType] ?? 0;
@@ -103,22 +95,21 @@ export default function getWeaponAttack({
         // multiplied by the scaling for that attribute
         const effectiveAttributes =
           !disableTwoHandingAttackPowerBonus && isDamageType ? adjustedAttributes : attributes;
-        for (const attribute of allAttributes) {
+        for (const attribute of damageAttributes) {
           const attributeCorrect = scalingAttributes[attribute];
           if (attributeCorrect) {
-            let scaling: number;
+            const attributeScaling = weapon.attributeScaling[upgradeLevel][attribute] || 0;
+            const baseAttributeScaling = weapon.attributeScaling[0][attribute] || 0;
+            const calcCorrectGraphValue =
+              weapon.calcCorrectGraphs[attackPowerType][effectiveAttributes[attribute]];
+            let scaling;
             if (attributeCorrect === true) {
-              scaling = weapon.attributeScaling[upgradeLevel][attribute] ?? 0;
+              scaling = attributeScaling ?? 0;
             } else {
-              scaling =
-                (attributeCorrect * (weapon.attributeScaling[upgradeLevel][attribute] ?? 0)) /
-                (weapon.attributeScaling[0][attribute] ?? 0);
+              scaling = (attributeCorrect * (attributeScaling ?? 0)) / (baseAttributeScaling ?? 0);
             }
-
-            if (scaling) {
-              totalScaling +=
-                weapon.calcCorrectGraphs[attackPowerType][effectiveAttributes[attribute]] * scaling;
-            }
+            const v = scaling * calcCorrectGraphValue;
+            totalScaling += v;
           }
         }
       }
@@ -136,7 +127,6 @@ export default function getWeaponAttack({
   }
 
   return {
-    upgradeLevel,
     attackPower,
     spellScaling,
     ineffectiveAttributes,

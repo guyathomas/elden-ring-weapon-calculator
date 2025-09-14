@@ -1,5 +1,10 @@
-import { allDamageTypes, AttackPowerType, WeaponType } from "../calculator/calculator.ts";
-import type { Attribute } from "../calculator/calculator.ts";
+import {
+  allDamageTypes,
+  AttackPowerType,
+  WeaponType,
+  type AllAttribute,
+  type Weapon,
+} from "../calculator/calculator";
 import specialWeaponIcon from "./img/specialWeapon.webp";
 import standardAffinityIcon from "./img/standardAffinity.webp";
 import heavyAffinityIcon from "./img/heavyAffinity.webp";
@@ -285,7 +290,7 @@ export const damageTypeIcons = new Map([
   [AttackPowerType.DEATH_BLIGHT, deathBlightStatusIcon],
 ]);
 
-export function getAttributeLabel(attribute: Attribute) {
+export function getAttributeLabel(attribute: AllAttribute) {
   switch (attribute) {
     case "str":
       return "Strength";
@@ -297,10 +302,16 @@ export function getAttributeLabel(attribute: Attribute) {
       return "Faith";
     case "arc":
       return "Arcane";
+    case "vig":
+      return "Vigor";
+    case "min":
+      return "Mind";
+    case "end":
+      return "Endurance";
   }
 }
 
-export function getShortAttributeLabel(attribute: Attribute) {
+export function getShortAttributeLabel(attribute: AllAttribute) {
   switch (attribute) {
     case "str":
       return "Str";
@@ -312,6 +323,12 @@ export function getShortAttributeLabel(attribute: Attribute) {
       return "Fai";
     case "arc":
       return "Arc";
+    case "vig":
+      return "Vig";
+    case "min":
+      return "Min";
+    case "end":
+      return "End";
   }
 }
 
@@ -327,7 +344,7 @@ export const maxSpecialUpgradeLevel = 10;
 
 /**
  * @param regularUpgradeLevel the upgrade level of a regular weapon
- * @returns the corresponding upgrade level for a somber weapon
+ * @returns the corresponding upgrade level for a somber weapon. i.e. 25 > 10, 13 > 5
  */
 export function toSpecialUpgradeLevel(regularUpgradeLevel: number) {
   // For in between levels with no exact equivalent, round down. I think this is what you would
@@ -339,10 +356,33 @@ export function toSpecialUpgradeLevel(regularUpgradeLevel: number) {
   );
 }
 
+export function getNormalizedUpgradeLevel(weapon: Weapon, upgradeLevel: number) {
+  const isSpecialWeapon = weapon.attack.length - 1 === maxSpecialUpgradeLevel;
+  return isSpecialWeapon
+    ? toSpecialUpgradeLevel(upgradeLevel)
+    : Math.min(upgradeLevel, weapon.attack.length - 1);
+}
+
 /**
  * @param regularUpgradeLevel the upgrade level of a somber weapon
  * @returns the corresponding upgrade level for a regular weapon
  */
 export function toRegularUpgradeLevel(specialUpgradeLevel: number) {
   return Math.floor(specialUpgradeLevel * 2.5);
+}
+
+/*
+  Get unique values out of an array of objects based on a key
+*/
+export function getUniqueValues<T = Record<string, any>>(array: T[], key: string): T[] {
+  const seenValues = new Set();
+  return array.filter((item) => {
+    const value = (item as any)[key];
+    if (seenValues.has(value)) {
+      return false;
+    } else {
+      seenValues.add(value);
+      return true;
+    }
+  });
 }

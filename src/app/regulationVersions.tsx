@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Link } from "@mui/material";
+import { Link, AlertTitle } from "@mui/material";
 import {
   affinityOptions,
   reforgedAffinityOptions,
@@ -19,7 +19,7 @@ export interface RegulationVersion {
   /**
    * Hack: in Elden Ring Reforged there is no attack power bonus for two handing
    */
-  disableTwoHandingAttackPowerBonus?: boolean;
+  disableTwoHandingAttackPowerBonus: boolean;
 
   /**
    * The Convergence mod makes all weapons only go up to +10
@@ -34,7 +34,7 @@ export interface RegulationVersion {
   /**
    * Elden Ring Reforged changes the penalty for not having the required attributes for a weapon
    */
-  ineffectiveAttributePenalty?: number;
+  ineffectiveAttributePenalty: number;
 
   /**
    * Don't filter based on weapon type. Used for mods with a small number of weapons and 0 weapons
@@ -48,6 +48,31 @@ export interface RegulationVersion {
 const regulationVersions: Record<RegulationVersionName, RegulationVersion> = {
   latest: {
     name: "Patch 1.16 (latest)",
+    info: (
+      <>
+        <AlertTitle>
+          <Link
+            href="https://en.bandainamcoent.eu/elden-ring/elden-ring/shadow-of-the-erdtree"
+            target="_blank"
+            rel="noopener noreferer"
+          >
+            ELDEN RING Shadow of the Erdtree
+          </Link>{" "}
+          has been released!
+        </AlertTitle>
+        Please report any bugs or missing data{" "}
+        <Link
+          href="https://github.com/ThomasJClark/elden-ring-weapon-calculator/issues/new"
+          target="_blank"
+        >
+          here
+        </Link>
+        . Uncheck the &ldquo;Include DLC weapons&rdquo; checkbox if you wish to avoid seeing items
+        from the new expansion.
+      </>
+    ),
+    disableTwoHandingAttackPowerBonus: false,
+    ineffectiveAttributePenalty: 0.4,
     affinityOptions,
     fetch: () => fetch(`/regulation-vanilla-v1.14.js?${import.meta.env.VITE_DATA_FORMAT}`),
   },
@@ -89,6 +114,8 @@ const regulationVersions: Record<RegulationVersionName, RegulationVersion> = {
     affinityOptions: convergenceAffinityOptions,
     maxUpgradeLevel: 15,
     splitSpellScaling: true,
+    disableTwoHandingAttackPowerBonus: false,
+    ineffectiveAttributePenalty: 0.4,
     fetch: () => fetch(`/regulation-convergence-v2.2.3.js?${import.meta.env.VITE_DATA_FORMAT}`),
   },
   clevers: {
@@ -108,6 +135,8 @@ const regulationVersions: Record<RegulationVersionName, RegulationVersion> = {
     ),
     affinityOptions,
     disableWeaponTypeFilter: true,
+    disableTwoHandingAttackPowerBonus: false,
+    ineffectiveAttributePenalty: 0.4,
     fetch: () => fetch(`/regulation-clevers-v25.0.js?${import.meta.env.VITE_DATA_FORMAT}`),
   },
 };

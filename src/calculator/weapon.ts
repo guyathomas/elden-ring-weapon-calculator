@@ -1,12 +1,16 @@
-import type { Attribute } from "./attributes.ts";
-import type { AttackPowerType } from "./attackPowerTypes.ts";
-import type { WeaponType } from "./weaponTypes.ts";
+import type { DamageAttribute } from "./attributes";
+import type { AttackPowerType } from "./attackPowerTypes";
+import type { WeaponType } from "./weaponTypes";
+import type { AshOfWarData } from "../buildData/parsers";
+
+export type AttackCorrect = number | true;
 
 export type AttackElementCorrect = Partial<
-  Record<AttackPowerType, Partial<Record<Attribute, number | true>>>
+  Record<AttackPowerType, Partial<Record<DamageAttribute, AttackCorrect>>>
 >;
 
 export interface Weapon {
+  id: number;
   /**
    * The full unique name of the weapon, e.g. "Heavy Nightrider Glaive"
    */
@@ -25,7 +29,7 @@ export interface Weapon {
   /**
    * A wiki link for the weapon
    */
-  url: string | null;
+  url?: string;
 
   /**
    * The affinity of the weapon for filtering, see uiUtils.tsx for a full list of vanilla affinities
@@ -40,17 +44,22 @@ export interface Weapon {
   /**
    * Player attribute requirements to use the weapon effectively (without an attack rating penalty)
    */
-  requirements: Partial<Record<Attribute, number>>;
+  requirements: Partial<Record<DamageAttribute, number>>;
 
   /**
    * Scaling amount for each player attribute at each upgrade level
    */
-  attributeScaling: Partial<Record<Attribute, number>>[];
+  attributeScaling: Partial<Record<DamageAttribute, number>>[];
 
   /**
    * Base attack power for each damage type, status effect, and spell scaling at each upgrade level
    */
   attack: Partial<Record<AttackPowerType, number>>[];
+
+  /**
+   * Base attack power for each damage type, status effect, and spell scaling at upgrade level 0
+   */
+  baseAttack: (readonly [AttackPowerType, number])[];
 
   /**
    * Map indicating which damage types scale with which player attributes
@@ -87,4 +96,14 @@ export interface Weapon {
    * If true, this weapon is from the Shadow of the Erdtree expansion
    */
   dlc: boolean;
+
+  /**
+   * The weight of the weapon
+   */
+  weight?: number;
+
+  /**
+   * The ash of wars for the weapon
+   */
+  ashOfWars: AshOfWarData[];
 }

@@ -1,8 +1,8 @@
 import {
-  adjustAttributesForTwoHanding,
+  adjustStrengthForTwoHanding,
   WeaponType,
-  type Attribute,
-  type Attributes,
+  type DamageAttribute,
+  type DamageAttributeValues,
   type Weapon,
 } from "../calculator/calculator.ts";
 
@@ -20,7 +20,7 @@ export interface FilterWeaponsOptions {
   /**
    * Only include weapons that are effective with the given player attribute values
    */
-  effectiveWithAttributes?: Attributes;
+  effectiveWithAttributes?: DamageAttributeValues;
 
   /**
    * Include weapons from the Shadow of the Erdtree expansion if true
@@ -52,7 +52,6 @@ export default function filterWeapons(
     effectiveWithAttributes,
     includeDLC,
     twoHanding,
-    uninfusableWeaponTypes,
     selectedWeapons,
   }: FilterWeaponsOptions,
 ): readonly Weapon[] {
@@ -82,15 +81,7 @@ export default function filterWeapons(
   // Filter based on any chosen affinities and weapon types
   function filterWeapon(weapon: Weapon): boolean {
     if (affinityIds.size > 0) {
-      if (
-        !affinityIds.has(weapon.affinityId) &&
-        // Treat uninfusable categories of armaments (torches etc.) as either standard or unique,
-        // since the distinction doesn't apply to these categories
-        !(
-          uninfusableWeaponTypes?.has(weapon.weaponType) &&
-          (affinityIds.has(0) || affinityIds.has(-1))
-        )
-      ) {
+      if (!affinityIds.has(weapon.affinityId)) {
         return false;
       }
     }
@@ -113,14 +104,13 @@ export default function filterWeapons(
     }
 
     if (effectiveWithAttributes != null) {
-      const attributes = adjustAttributesForTwoHanding({
-        twoHanding,
-        weapon,
-        attributes: effectiveWithAttributes,
-      });
+      const attributes = {
+        ...effectiveWithAttributes,
+        str: adjustStrengthForTwoHanding({ twoHanding, weapon, str: effectiveWithAttributes.str }),
+      };
 
       if (
-        (Object.entries(weapon.requirements) as [Attribute, number][]).some(
+        (Object.entries(weapon.requirements) as [DamageAttribute, number][]).some(
           ([attribute, requirement]) => attributes[attribute] < requirement,
         )
       ) {

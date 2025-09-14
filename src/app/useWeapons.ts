@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import type { Weapon } from "../calculator/weapon.ts";
-import { decodeRegulationData } from "../regulationData.ts";
-import regulationVersions, { type RegulationVersionName } from "./regulationVersions.tsx";
+import type { Weapon } from "../calculator/weapon";
+import { decodeRegulationData } from "../buildData/regulationData";
+import regulationVersions, { type RegulationVersionName } from "./regulationVersions";
 
 export default function useWeapons(regulationVersionName: RegulationVersionName) {
   const [loading, setLoading] = useState(true);
