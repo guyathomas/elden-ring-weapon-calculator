@@ -6,14 +6,14 @@ import { join } from "node:path";
 import { env } from "node:process";
 import makeDebug from "debug";
 import dotenv from "dotenv";
-import { AttackPowerType } from "../calculator/calculator";
+import { AttackPowerType } from "../calculator/calculator.ts";
 import {
   type EncodedWeaponJson,
   type EncodedRegulationDataJson,
   type ParsedReinforceParamWeapon,
   defaultStatusCalcCorrectGraphId,
   defaultDamageCalcCorrectGraphId,
-} from "./regulationData";
+} from "./regulationData.ts";
 import {
   type AttackElementCorrectParam,
   type CalcCorrectGraphParam,
@@ -24,7 +24,7 @@ import {
   type AtkParamPc,
   type ReinforceParamWeapon,
   type EquipParamWeapon,
-} from "./buildTypes";
+} from "./buildTypes.ts";
 import {
   defaultEnvFileContents,
   attackElementCorrectFile,
@@ -40,17 +40,17 @@ import {
   dlcWeaponNameFmgFile,
   menuTextFmgFile,
   isConvergence,
-} from "./constants";
-import { getDir, unpackFiles } from "./extract-game-files";
-import { readFmgXml, readParam } from "./readers";
+} from "./constants.ts";
+import { getDir, unpackFiles } from "./extract-game-files.ts";
+import { readFmgXml, readParam } from "./readers.ts";
 import {
   getAshOfWarList,
   parseAttackElementCorrect,
   parseCalcCorrectGraph,
   parseStatusSpEffectParams,
   parseWeapon,
-} from "./parsers";
-import { commandArguments } from "./command-arguments";
+} from "./parsers.ts";
+import { commandArguments } from "./command-arguments.ts";
 
 const debug = makeDebug("buildData");
 

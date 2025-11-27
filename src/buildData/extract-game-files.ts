@@ -24,10 +24,10 @@ import {
   weaponNameFmgFile,
   dlcWeaponNameFmgFile,
   menuTextFmgFile,
-} from "./constants";
+} from "./constants.ts";
 import { spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
-import { commandArguments } from "./command-arguments";
+import { commandArguments } from "./command-arguments.ts";
 
 const { gameVersion, outputFile } = commandArguments();
 

@@ -1,8 +1,8 @@
-import { damageAttributes, type DamageAttribute, type DamageAttributeValues } from "./attributes";
-import { AttackPowerType, allAttackPowerTypes, allDamageTypes } from "./attackPowerTypes";
-import type { Weapon } from "./weapon";
-import { WeaponType } from "./weaponTypes";
-import { calculateFinalScaling } from "./newCalculator";
+import { damageAttributes, type DamageAttribute, type DamageAttributeValues } from "./attributes.ts";
+import { AttackPowerType, allAttackPowerTypes, allDamageTypes } from "./attackPowerTypes.ts";
+import type { Weapon } from "./weapon.ts";
+import { WeaponType } from "./weaponTypes.ts";
+import { calculateFinalScaling } from "./newCalculator.ts";
 
 interface WeaponAttackOptions {
   weapon: Weapon;

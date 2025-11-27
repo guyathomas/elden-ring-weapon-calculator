@@ -1,7 +1,7 @@
-import { allDamageTypes, AttackPowerType } from "./attackPowerTypes";
-import type { DamageAttribute } from "./attributes";
-import { adjustStrengthForTwoHanding } from "./calculator";
-import type { AttackCorrect, Weapon } from "./weapon";
+import { allDamageTypes, AttackPowerType } from "./attackPowerTypes.ts";
+import type { DamageAttribute } from "./attributes.ts";
+import { adjustStrengthForTwoHanding } from "./calculator.ts";
+import type { AttackCorrect, Weapon } from "./weapon.ts";
 
 type DamageTypeScaling = Partial<Record<AttackPowerType, number>>;
 

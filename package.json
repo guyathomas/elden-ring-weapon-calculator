@@ -35,6 +35,7 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "fast-xml-parser": "^4.2.7",
     "prettier": "2.7.1",
+    "ts-node": "^10.9.2",
     "typescript": "5.0.4",
     "vite": "^4.2.0",
     "vite-plugin-eslint": "^1.8.1"
@@ -43,10 +44,10 @@
     "start": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "buildData": "node src/buildData.ts",
-    "buildData:latest": "node src/buildData.ts vanilla public/regulation-vanilla-v1.14.js",
-    "buildData:reforged": "node src/buildData.ts reforged public/regulation-reforged-v2.0.1.0.js",
-    "buildData:convergence": "node src/buildData.ts convergence public/regulation-convergence-v2.2.3.js",
+    "buildData": "node src/buildData/index.ts",
+    "buildData:latest": "node src/buildData/index.ts vanilla public/regulation-vanilla-v1.14.js",
+    "buildData:reforged": "node src/buildData/index.ts reforged public/regulation-reforged-v2.0.1.0.js",
+    "buildData:convergence": "node src/buildData/index.ts convergence public/regulation-convergence-v2.2.3.js",
     "rebuildWeaponData": "yarn buildData:latest && yarn buildData:reforged && yarn buildData:convergence"
   },
   "eslintConfig": {

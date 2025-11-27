@@ -22,7 +22,7 @@
     "transpileOnly": true,
     "files": true,
     "compilerOptions": {
-      "module": "commonjs"
+      "module": "es2022"
     }
   },
   "references": [{ "path": "./tsconfig.node.json" }]

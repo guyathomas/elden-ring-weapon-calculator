@@ -1,4 +1,4 @@
-import type { EquipParamWeaponType } from "./constants";
+import type { EquipParamWeaponType } from "./constants.ts";
 
 export type ParamDamageType = "Physics" | "Magic" | "Fire" | "Thunder" | "Dark";
 export type ParamAttribute = "Strength" | "Agility" | "Magic" | "Faith" | "Luck";

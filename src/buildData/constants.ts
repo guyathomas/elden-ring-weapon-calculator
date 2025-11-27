@@ -1,6 +1,6 @@
-import { WeaponType } from "../calculator/weaponTypes";
-import type { EquipParamGem, ParamAttribute, ParamDamageType, SwordArtMeta } from "./buildTypes";
-import { commandArguments } from "./command-arguments";
+import { WeaponType } from "../calculator/weaponTypes.ts";
+import type { EquipParamGem, ParamAttribute, ParamDamageType, SwordArtMeta } from "./buildTypes.ts";
+import { commandArguments } from "./command-arguments.ts";
 
 const { outputFile } = commandArguments();
 

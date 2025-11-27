@@ -4,7 +4,16 @@ import {
   WeaponType,
   type AllAttribute,
   type Weapon,
-} from "../calculator/calculator";
+} from "../calculator/calculator.ts";
+export {
+  weaponTypeLabels,
+  getNormalizedUpgradeLevel,
+  toSpecialUpgradeLevel,
+  toRegularUpgradeLevel,
+  maxRegularUpgradeLevel,
+  maxSpecialUpgradeLevel,
+  getUniqueValues,
+} from "../calculator/weaponUtils.ts";
 import specialWeaponIcon from "./img/specialWeapon.webp";
 import standardAffinityIcon from "./img/standardAffinity.webp";
 import heavyAffinityIcon from "./img/heavyAffinity.webp";
@@ -214,51 +223,7 @@ export const allWeaponTypes = [
   ...hiddenWeaponTypes,
 ];
 
-export const weaponTypeLabels = new Map<WeaponType, string>([
-  [WeaponType.DAGGER, "Dagger"],
-  [WeaponType.STRAIGHT_SWORD, "Straight Sword"],
-  [WeaponType.GREATSWORD, "Greatsword"],
-  [WeaponType.COLOSSAL_SWORD, "Colossal Sword"],
-  [WeaponType.CURVED_SWORD, "Curved Sword"],
-  [WeaponType.CURVED_GREATSWORD, "Curved Greatsword"],
-  [WeaponType.KATANA, "Katana"],
-  [WeaponType.TWINBLADE, "Twinblade"],
-  [WeaponType.THRUSTING_SWORD, "Thrusting Sword"],
-  [WeaponType.HEAVY_THRUSTING_SWORD, "Heavy Thrusting Sword"],
-  [WeaponType.AXE, "Axe"],
-  [WeaponType.GREATAXE, "Greataxe"],
-  [WeaponType.HAMMER, "Hammer"],
-  [WeaponType.GREAT_HAMMER, "Great Hammer"],
-  [WeaponType.FLAIL, "Flail"],
-  [WeaponType.SPEAR, "Spear"],
-  [WeaponType.GREAT_SPEAR, "Great Spear"],
-  [WeaponType.HALBERD, "Halberd"],
-  [WeaponType.REAPER, "Reaper"],
-  [WeaponType.FIST, "Fist"],
-  [WeaponType.CLAW, "Claw"],
-  [WeaponType.WHIP, "Whip"],
-  [WeaponType.COLOSSAL_WEAPON, "Colossal Weapon"],
-  [WeaponType.LIGHT_BOW, "Light Bow"],
-  [WeaponType.BOW, "Bow"],
-  [WeaponType.GREATBOW, "Greatbow"],
-  [WeaponType.CROSSBOW, "Crossbow"],
-  [WeaponType.BALLISTA, "Ballista"],
-  [WeaponType.GLINTSTONE_STAFF, "Glintstone Staff"],
-  [WeaponType.DUAL_CATALYST, "Dual Catalyst"],
-  [WeaponType.SACRED_SEAL, "Sacred Seal"],
-  [WeaponType.SMALL_SHIELD, "Small Shield"],
-  [WeaponType.MEDIUM_SHIELD, "Medium Shield"],
-  [WeaponType.GREATSHIELD, "Greatshield"],
-  [WeaponType.TORCH, "Torch"],
-  [WeaponType.HAND_TO_HAND, "Hand-to-Hand"],
-  [WeaponType.PERFUME_BOTTLE, "Perfume Bottle"],
-  [WeaponType.THRUSTING_SHIELD, "Thrusting Shield"],
-  [WeaponType.THROWING_BLADE, "Throwing Blade"],
-  [WeaponType.BACKHAND_BLADE, "Backhand Blade"],
-  [WeaponType.LIGHT_GREATSWORD, "Light Greatsword"],
-  [WeaponType.GREAT_KATANA, "Great Katana"],
-  [WeaponType.BEAST_CLAW, "Beast Claw"],
-]);
+
 
 export const damageTypeLabels = new Map([
   [AttackPowerType.PHYSICAL, "Physical Attack"],
@@ -339,50 +304,4 @@ export function getTotalDamageAttackPower(attackPower: Partial<Record<AttackPowe
   );
 }
 
-export const maxRegularUpgradeLevel = 25;
-export const maxSpecialUpgradeLevel = 10;
 
-/**
- * @param regularUpgradeLevel the upgrade level of a regular weapon
- * @returns the corresponding upgrade level for a somber weapon. i.e. 25 > 10, 13 > 5
- */
-export function toSpecialUpgradeLevel(regularUpgradeLevel: number) {
-  // For in between levels with no exact equivalent, round down. I think this is what you would
-  // look for in practice, e.g. if you pick +24 you probably want +9 sombers because you're not
-  // spending an Ancient Dragon (Somber) Smithing Stone, although it's not necessarily the same
-  // matchmaking range.
-  return Math.floor(
-    (regularUpgradeLevel + 0.5) * (maxSpecialUpgradeLevel / maxRegularUpgradeLevel),
-  );
-}
-
-export function getNormalizedUpgradeLevel(weapon: Weapon, upgradeLevel: number) {
-  const isSpecialWeapon = weapon.attack.length - 1 === maxSpecialUpgradeLevel;
-  return isSpecialWeapon
-    ? toSpecialUpgradeLevel(upgradeLevel)
-    : Math.min(upgradeLevel, weapon.attack.length - 1);
-}
-
-/**
- * @param regularUpgradeLevel the upgrade level of a somber weapon
- * @returns the corresponding upgrade level for a regular weapon
- */
-export function toRegularUpgradeLevel(specialUpgradeLevel: number) {
-  return Math.floor(specialUpgradeLevel * 2.5);
-}
-
-/*
-  Get unique values out of an array of objects based on a key
-*/
-export function getUniqueValues<T = Record<string, any>>(array: T[], key: string): T[] {
-  const seenValues = new Set();
-  return array.filter((item) => {
-    const value = (item as any)[key];
-    if (seenValues.has(value)) {
-      return false;
-    } else {
-      seenValues.add(value);
-      return true;
-    }
-  });
-}

@@ -3,9 +3,9 @@ import {
   allStatusTypes,
   AttackPowerType,
   WeaponType,
-} from "../calculator/calculator";
-import type { AttackElementCorrect, DamageAttribute, Weapon } from "../calculator/calculator";
-import type { AshOfWarData } from "./parsers";
+} from "../calculator/calculator.ts";
+import type { AttackElementCorrect, DamageAttribute, Weapon } from "../calculator/calculator.ts";
+import type { AshOfWarData } from "./parsers.ts";
 
 export const defaultDamageCalcCorrectGraphId = 0;
 export const defaultStatusCalcCorrectGraphId = 6;

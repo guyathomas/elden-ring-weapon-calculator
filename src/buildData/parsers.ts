@@ -8,10 +8,10 @@ import {
   allDamageTypes,
   type AttackElementCorrect as ParsedAttackElementCorrect,
   type DamageAttribute,
-  Weapon,
-  DamageAttributeValues,
+  type Weapon,
+  type DamageAttributeValues,
   adjustStrengthForTwoHanding,
-} from "../calculator/calculator";
+} from "../calculator/calculator.ts";
 import {
   type ParsedReinforceParamWeapon,
   type CalcCorrectGraph as ParsedCalcCorrectGraph,
@@ -19,7 +19,7 @@ import {
   defaultDamageCalcCorrectGraphId,
   type CalcCorrectGraph,
   evaluateCalcCorrectGraph,
-} from "./regulationData";
+} from "./regulationData.ts";
 import {
   type AttackElementCorrectParam,
   type CalcCorrectGraphParam,
@@ -39,8 +39,8 @@ import {
   type AtkParamAttributeShorthand,
   type AttackElementCorrectParamAttribute,
   type EquipParamWeaponAttribute,
-} from "./buildTypes";
-import { getNormalizedUpgradeLevel, weaponTypeLabels } from "../app/uiUtils";
+} from "./buildTypes.ts";
+import { getNormalizedUpgradeLevel, weaponTypeLabels } from "../calculator/weaponUtils.ts";
 import {
   urlOverrides,
   supportedWeaponTypes,
@@ -55,8 +55,8 @@ import {
   weaponTypeMap,
   paramDamageTypes,
   ignoreBaseAtkRateSet,
-} from "./constants";
-import { FmgFile } from "./readers";
+} from "./constants.ts";
+import { type FmgFile } from "./readers.ts";
 
 const debug = makeDebug("buildData");
 

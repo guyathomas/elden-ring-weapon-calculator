@@ -1,7 +1,7 @@
-import type { DamageAttribute } from "./attributes";
-import type { AttackPowerType } from "./attackPowerTypes";
-import type { WeaponType } from "./weaponTypes";
-import type { AshOfWarData } from "../buildData/parsers";
+import type { DamageAttribute } from "./attributes.ts";
+import type { AttackPowerType } from "./attackPowerTypes.ts";
+import type { WeaponType } from "./weaponTypes.ts";
+import type { AshOfWarData } from "../buildData/parsers.ts";
 
 export type AttackCorrect = number | true;
 
