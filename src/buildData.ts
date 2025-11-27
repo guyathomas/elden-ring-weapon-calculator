@@ -19,7 +19,7 @@ import makeDebug from "debug";
 import dotenv from "dotenv";
 import { XMLParser } from "fast-xml-parser";
 import {
-  type Attribute,
+  type DamageAttribute,
   WeaponType,
   AttackPowerType,
   allDamageTypes,
@@ -28,11 +28,19 @@ import {
 import {
   type EncodedWeaponJson,
   type EncodedRegulationDataJson,
-  type ReinforceParamWeapon,
   type CalcCorrectGraph,
+  type ParsedReinforceParamWeapon,
   defaultStatusCalcCorrectGraphId,
   defaultDamageCalcCorrectGraphId,
 } from "./regulationData.ts";
+import {
+  type MenuValueTableParam,
+  type AttackElementCorrectParam,
+  type CalcCorrectGraphParam,
+  type ReinforceParamWeapon,
+  type SpEffectParam,
+  type EquipParamWeapon,
+} from "./buildDataTypes.ts";
 import vanillaWeaponIds from "./vanillaWeaponIds.ts";
 
 const debug = makeDebug("buildData");
@@ -188,12 +196,12 @@ function unpackFiles() {
   rmSync(join(tmpDir, "msg"), { recursive: true });
 }
 
-type ParamRow = Record<string, number>;
+
 
 /**
  * Parse an XML param file extracted by unpackFiles()
  */
-function readParam(filename: string): Map<number, ParamRow> {
+function readParam<T = any>(filename: string): Map<number, T> {
   const data = xmlParser.parse(readFileSync(`${filename}.xml`, "utf-8"));
 
   const defaultValues = Object.fromEntries(
@@ -202,7 +210,7 @@ function readParam(filename: string): Map<number, ParamRow> {
       .map(({ name, defaultValue }) => [name, defaultValue]),
   );
 
-  return new Map<number, ParamRow>(
+  return new Map<number, T>(
     data.param.rows.row.map(({ name, ...data }: any) => [data.id, { ...defaultValues, ...data }]),
   );
 }
@@ -467,12 +475,14 @@ if (env.SKIP_UNPACK && env.SKIP_UNPACK !== "0") {
 } else {
   unpackFiles();
 }
-const attackElementCorrectParams = readParam(join(tmpDir, attackElementCorrectFile));
-const calcCorrectGraphs = readParam(join(tmpDir, calcCorrectGraphFile));
-const equipParamWeapons = readParam(join(tmpDir, equipParamWeaponFile));
-const reinforceParamWeapons = readParam(join(tmpDir, reinforceParamWeaponFile));
-const spEffectParams = readParam(join(tmpDir, spEffectFile));
-const menuValueTableParams = readParam(join(tmpDir, menuValueTableFile));
+const attackElementCorrectParams = readParam<AttackElementCorrectParam>(
+  join(tmpDir, attackElementCorrectFile),
+);
+const calcCorrectGraphs = readParam<CalcCorrectGraphParam>(join(tmpDir, calcCorrectGraphFile));
+const equipParamWeapons = readParam<EquipParamWeapon>(join(tmpDir, equipParamWeaponFile));
+const reinforceParamWeapons = readParam<ReinforceParamWeapon>(join(tmpDir, reinforceParamWeaponFile));
+const spEffectParams = readParam<SpEffectParam>(join(tmpDir, spEffectFile));
+const menuValueTableParams = readParam<MenuValueTableParam>(join(tmpDir, menuValueTableFile));
 const menuText = readFmgXml(join(tmpDir, menuTextFmgFile));
 const weaponNames = readFmgXml(join(tmpDir, weaponNameFmgFile));
 const dlcWeaponNames = readFmgXml(join(tmpDir, dlcWeaponNameFmgFile));
@@ -486,7 +496,7 @@ function ifNotDefault<T>(value: T, defaultValue: T): T | undefined {
  * filter out invalid EquipParamWeapons like Fire Treespear, and is used as a special fake affinity
  * for filtering purposes.
  */
-function isUniqueWeapon(row: ParamRow) {
+function isUniqueWeapon(row: EquipParamWeapon) {
   // Consider a weapon unique if it can't have Ashes of War (e.g. torches, moonveil) or can't have
   // affinities selected when applying Ashes of War (e.g. bows)
   return row.gemMountType === 0 || row.disableGemAttr === 1;
@@ -576,7 +586,7 @@ function isSupportedWeaponType(wepType: number): wepType is WeaponType {
   return supportedWeaponTypes.has(wepType);
 }
 
-function parseWeapon(row: ParamRow): EncodedWeaponJson | null {
+function parseWeapon(row: EquipParamWeapon): EncodedWeaponJson | null {
   let name: string;
   let dlc = false;
 
@@ -737,10 +747,11 @@ function parseWeapon(row: ParamRow): EncodedWeaponJson | null {
   const weaponName = (weaponNames.get(uninfusedWeaponId) ?? dlcWeaponNames.get(uninfusedWeaponId))!;
 
   return {
+    id: row.id,
     name,
     weaponName,
     url: urlOverrides.has(uninfusedWeaponId)
-      ? urlOverrides.get(uninfusedWeaponId)
+      ? (urlOverrides.get(uninfusedWeaponId) as string)
       : isConvergence
       ? getConvergenceWeaponUrl(weaponType, weaponName)
       : undefined,
@@ -774,7 +785,7 @@ function parseWeapon(row: ParamRow): EncodedWeaponJson | null {
   };
 }
 
-function parseCalcCorrectGraph(row: ParamRow): CalcCorrectGraph {
+function parseCalcCorrectGraph(row: CalcCorrectGraphParam): CalcCorrectGraph {
   return [
     {
       maxVal: row.stageMaxVal0,
@@ -804,11 +815,11 @@ function parseCalcCorrectGraph(row: ParamRow): CalcCorrectGraph {
   ];
 }
 
-function parseAttackElementCorrect(row: ParamRow): AttackElementCorrect {
-  function buildAttackElementCorrect(...args: [Attribute, boolean, number][]) {
+function parseAttackElementCorrect(row: AttackElementCorrectParam): AttackElementCorrect {
+  function buildAttackElementCorrect(...args: [DamageAttribute, boolean, number][]) {
     const entries = args
       .filter(([, isCorrect]) => isCorrect)
-      .map(([attribute, , overwriteCorrect]): [Attribute, number | true] => [
+      .map(([attribute, , overwriteCorrect]): [DamageAttribute, number | true] => [
         attribute,
         overwriteCorrect === -1 ? true : overwriteCorrect / 100,
       ]);
@@ -850,13 +861,12 @@ function parseAttackElementCorrect(row: ParamRow): AttackElementCorrect {
       ["str", !!row.isStrengthCorrect_byDark, row.overwriteStrengthCorrectRate_byDark],
       ["dex", !!row.isDexterityCorrect_byDark, row.overwriteDexterityCorrectRate_byDark],
       ["fai", !!row.isFaithCorrect_byDark, row.overwriteFaithCorrectRate_byDark],
-      ["int", !!row.isMagicCorrect_byDark, row.overwriteMagicCorrectRate_byDark],
       ["arc", !!row.isLuckCorrect_byDark, row.overwriteLuckCorrectRate_byDark],
     ),
   };
 }
 
-function parseReinforceParamWeapon(row: ParamRow): ReinforceParamWeapon {
+function parseReinforceParamWeapon(row: ReinforceParamWeapon): ParsedReinforceParamWeapon {
   return {
     attack: {
       [AttackPowerType.PHYSICAL]: row.physicsAtkRate,
@@ -959,14 +969,14 @@ const attackElementCorrectsJson = Object.fromEntries(
 );
 
 // Accumulate every ReinforceParamWeapon entry used by at least one weapon
-const reinforceTypesJson: { [reinforceTypeId in number]?: ReinforceParamWeapon[] } = {};
+const reinforceTypesJson: { [reinforceTypeId in number]?: ParsedReinforceParamWeapon[] } = {};
 
 for (const { reinforceTypeId } of weaponsJson) {
   if (reinforceTypesJson[reinforceTypeId] != null) {
     continue;
   }
 
-  const reinforceType: ReinforceParamWeapon[] = (reinforceTypesJson[reinforceTypeId] = []);
+  const reinforceType: ParsedReinforceParamWeapon[] = (reinforceTypesJson[reinforceTypeId] = []);
 
   let nextReinforceParamId = reinforceTypeId;
   for (const [reinforceParamId, reinforceParamWeapon] of reinforceParamWeapons) {

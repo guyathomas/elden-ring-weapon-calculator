@@ -3,8 +3,10 @@ import {
   allStatusTypes,
   AttackPowerType,
   WeaponType,
+  type AttackElementCorrect,
+  type DamageAttribute,
+  type Weapon,
 } from "./calculator/calculator.ts";
-import type { AttackElementCorrect, Attribute, Weapon } from "./calculator/calculator.ts";
 
 export const defaultDamageCalcCorrectGraphId = 0;
 export const defaultStatusCalcCorrectGraphId = 6;
@@ -18,12 +20,38 @@ export type CalcCorrectGraph = {
   adjPt: number;
 }[];
 
-export interface ReinforceParamWeapon {
+export interface ParsedReinforceParamWeapon {
   attack: Partial<Record<AttackPowerType, number>>;
-  attributeScaling: Record<Attribute, number>;
+  attributeScaling: Record<DamageAttribute, number>;
   statusSpEffectId1?: number;
   statusSpEffectId2?: number;
   statusSpEffectId3?: number;
+}
+
+/**
+ * Compact JSON representation of a weapon with things like AttackElementCorrect represented by
+ * IDs. For convenience, this is converted to a denormalized Weapon object on the client side.
+ */
+export interface EncodedWeaponJson {
+  id: number;
+  name: string;
+  weaponName: string;
+  variant?: string;
+  url?: string;
+  affinityId: number;
+  weaponType: WeaponType;
+  requirements: Partial<Record<DamageAttribute, number>>;
+  attributeScaling: (readonly [DamageAttribute, number])[];
+  attack: (readonly [AttackPowerType, number])[];
+  statusSpEffectParamIds?: number[];
+  reinforceTypeId: number;
+  attackElementCorrectId: number;
+  calcCorrectGraphIds?: Partial<Record<AttackPowerType, number>>;
+  paired?: boolean;
+  sorceryTool?: boolean;
+  incantationTool?: boolean;
+  dlc?: boolean;
+  weight?: number;
 }
 
 /**
@@ -35,11 +63,11 @@ export interface EncodedRegulationDataJson {
   };
   readonly attackElementCorrects: {
     readonly [attackElementCorrectId in number]?: Partial<
-      Record<AttackPowerType, Partial<Record<Attribute, number | true>>>
+      Record<AttackPowerType, Partial<Record<DamageAttribute, number | true>>>
     >;
   };
   readonly reinforceTypes: {
-    readonly [reinforceId in number]?: ReinforceParamWeapon[];
+    readonly [reinforceId in number]?: ParsedReinforceParamWeapon[];
   };
   readonly statusSpEffectParams: {
     readonly [spEffectParamId in number]?: Partial<Record<AttackPowerType, number>>;
@@ -49,33 +77,9 @@ export interface EncodedRegulationDataJson {
 }
 
 /**
- * Compact JSON representation of a weapon with things like AttackElementCorrect represented by
- * IDs. For convenience, this is converted to a denormalized Weapon object on the client side.
- */
-export interface EncodedWeaponJson {
-  name: string;
-  weaponName: string;
-  variant?: string;
-  url?: string | null;
-  affinityId: number;
-  weaponType: WeaponType;
-  requirements: Partial<Record<Attribute, number>>;
-  attributeScaling: (readonly [Attribute, number])[];
-  attack: (readonly [AttackPowerType, number])[];
-  statusSpEffectParamIds?: number[];
-  reinforceTypeId: number;
-  attackElementCorrectId: number;
-  calcCorrectGraphIds?: Partial<Record<AttackPowerType, number>>;
-  paired?: boolean;
-  sorceryTool?: boolean;
-  incantationTool?: boolean;
-  dlc?: boolean;
-}
-
-/**
  * Precompute a CalcCorrectGraph into an array of scaling amounts at each stat level
  */
-function evaluateCalcCorrectGraph(calcCorrectGraph: CalcCorrectGraph) {
+export function evaluateCalcCorrectGraph(calcCorrectGraph: CalcCorrectGraph) {
   const arr: number[] = [];
 
   for (let i = 1; i < calcCorrectGraph.length; i++) {
@@ -233,10 +237,11 @@ export function decodeRegulationData({
       return {
         ...weapon,
         url:
-          weapon.url === undefined
+          (weapon as any).url === undefined
             ? `https://eldenring.wiki.gg/wiki/${weapon.weaponName.replaceAll(" ", "_")}`
-            : weapon.url,
+            : (weapon as any).url,
         attack,
+        baseAttack: unupgradedAttack,
         attributeScaling,
         attackElementCorrect,
         calcCorrectGraphs: weaponCalcCorrectGraphs,
