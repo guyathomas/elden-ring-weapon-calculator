@@ -1,52 +1,58 @@
-import { getTotalDamageAttackPower } from "../app/uiUtils.ts";
-import { type WeaponTableRowData } from "../app/weaponTable/WeaponTable.tsx";
-import { type Attribute, AttackPowerType } from "../calculator/calculator.ts";
+import { getTotalDamageAttackPower } from "../app/uiUtils";
+import { type FixedAttributeTableRowData } from "../app/weaponTable/FixedAttributeTable/FixedAttributeTable";
+import { type DamageAttribute, AttackPowerType } from "../calculator/calculator";
 
 export type SortBy =
   | "name"
   | "totalAttack"
   | `${AttackPowerType}Attack`
   | "sortBy"
+  | "attackPowerEfficiency"
   | `${AttackPowerType}SpellScaling`
-  | `${Attribute}Scaling`
-  | `${Attribute}Requirement`;
+  | `${DamageAttribute}Scaling`
+  | `${DamageAttribute}Requirement`;
 
 /**
  * Sort and paginate a filtered list of weapons for display in the weapon table
  */
 export function sortWeapons(
-  rows: readonly WeaponTableRowData[],
+  rows: readonly FixedAttributeTableRowData[],
   sortBy: SortBy,
   reverse: boolean,
-): WeaponTableRowData[] {
-  const getSortValue = ((): ((row: WeaponTableRowData) => number | string) => {
+): FixedAttributeTableRowData[] {
+  const getSortValue = ((): ((row: FixedAttributeTableRowData) => number | string) => {
     if (sortBy === "name") {
-      return ([weapon]) => `${weapon.weaponName},${weapon.affinityId.toString().padStart(4, "0")}`;
+      return ({ weapon }) =>
+        `${weapon.weaponName},${weapon.affinityId.toString().padStart(4, "0")}`;
     }
 
     if (sortBy === "totalAttack") {
-      return ([, { attackPower }]) => -getTotalDamageAttackPower(attackPower);
+      return ({ weaponAttackData: { attackPower } }) => -getTotalDamageAttackPower(attackPower);
+    }
+
+    if (sortBy === "attackPowerEfficiency") {
+      return ({ weaponAttackData: { efficiencyScore } }) => -(efficiencyScore ?? 0);
     }
 
     if (sortBy.endsWith("Attack")) {
       const attackPowerType = +sortBy.slice(0, -1 * "Attack".length) as AttackPowerType;
-      return ([, { attackPower }]) => -(attackPower[attackPowerType] ?? 0);
+      return ({ weaponAttackData: { attackPower } }) => -(attackPower[attackPowerType] ?? 0);
     }
 
     if (sortBy.endsWith("SpellScaling")) {
       const attackPowerType = +sortBy.slice(0, -1 * "SpellScaling".length) as AttackPowerType;
-      return ([, { spellScaling }]) => -(spellScaling[attackPowerType] ?? 0);
+      return ({ weaponAttackData: { spellScaling } }) => -(spellScaling[attackPowerType] ?? 0);
     }
 
     if (sortBy.endsWith("Scaling")) {
-      const attribute = sortBy.slice(0, -1 * "Scaling".length) as Attribute;
-      return ([weapon, { upgradeLevel }]) =>
+      const attribute = sortBy.slice(0, -1 * "Scaling".length) as DamageAttribute;
+      return ({ weapon, upgradeLevel }) =>
         -(weapon.attributeScaling[upgradeLevel][attribute] ?? 0);
     }
 
     if (sortBy.endsWith("Requirement")) {
-      const attribute = sortBy.slice(0, -1 * "Requirement".length) as Attribute;
-      return ([weapon]) => -(weapon.requirements[attribute] ?? 0);
+      const attribute = sortBy.slice(0, -1 * "Requirement".length) as DamageAttribute;
+      return ({ weapon }) => -(weapon.requirements[attribute] ?? 0);
     }
 
     return () => "";

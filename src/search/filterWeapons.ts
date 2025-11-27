@@ -1,8 +1,8 @@
 import {
-  adjustAttributesForTwoHanding,
+  adjustStrengthForTwoHanding,
   WeaponType,
-  type Attribute,
-  type Attributes,
+  type DamageAttribute,
+  type DamageAttributeValues,
   type Weapon,
 } from "../calculator/calculator.ts";
 
@@ -20,7 +20,7 @@ export interface FilterWeaponsOptions {
   /**
    * Only include weapons that are effective with the given player attribute values
    */
-  effectiveWithAttributes?: Attributes;
+  effectiveWithAttributes?: DamageAttributeValues;
 
   /**
    * Include weapons from the Shadow of the Erdtree expansion if true
@@ -113,14 +113,13 @@ export default function filterWeapons(
     }
 
     if (effectiveWithAttributes != null) {
-      const attributes = adjustAttributesForTwoHanding({
-        twoHanding,
-        weapon,
-        attributes: effectiveWithAttributes,
-      });
+      const attributes = {
+        ...effectiveWithAttributes,
+        str: adjustStrengthForTwoHanding({ twoHanding, weapon, str: effectiveWithAttributes.str }),
+      };
 
       if (
-        (Object.entries(weapon.requirements) as [Attribute, number][]).some(
+        (Object.entries(weapon.requirements) as [DamageAttribute, number][]).some(
           ([attribute, requirement]) => attributes[attribute] < requirement,
         )
       ) {
