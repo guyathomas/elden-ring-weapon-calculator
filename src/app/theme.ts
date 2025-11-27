@@ -97,5 +97,16 @@ export default createTheme({
         },
       },
     },
+    MuiTab: {
+      styleOverrides: {
+        root: {
+          color: "#fff",
+          border: "1px solid #ffffff3b",
+          "&.Mui-selected": {
+            color: "#ffb452",
+          },
+        },
+      },
+    },
   },
 });
