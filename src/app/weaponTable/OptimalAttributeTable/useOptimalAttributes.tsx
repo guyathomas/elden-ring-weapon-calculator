@@ -13,7 +13,7 @@ import { type RollType, rollTypeToMultiplier } from "../../RollTypePicker";
 import {
   getIncrementalDamagePerAttribute,
   type IncrementalDamagePerAttribute,
-} from "../../../calculator/newCalculator";
+} from "../../../calculator/calculator";
 import { getNormalizedUpgradeLevel } from "../../uiUtils";
 import { getMaxAttackPower, type AttributeRange } from "../getMaxAttackPower";
 import type { DamageTypeToOptimizeFor } from "../../OptimizedDamageTypePicker";
@@ -209,7 +209,7 @@ export const useOptimalAttributes = ({
             (acc, attribute) =>
               acc.set(
                 attribute,
-                dmg.spellPower[attribute]?.map((d) => d[damageTypeToOptimizeFor] || 0) ||
+                dmg.spellPower?.[attribute]?.map((d) => d[damageTypeToOptimizeFor] || 0) ||
                   DEFAULT_DAMAGE_ARRAY,
               ),
             new Map<DamageAttribute, number[]>(),

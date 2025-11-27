@@ -13,7 +13,7 @@ export {
   maxRegularUpgradeLevel,
   maxSpecialUpgradeLevel,
   getUniqueValues,
-} from "../calculator/weaponUtils.ts";
+} from "../calculator/calculator.ts";
 import specialWeaponIcon from "./img/specialWeapon.webp";
 import standardAffinityIcon from "./img/standardAffinity.webp";
 import heavyAffinityIcon from "./img/heavyAffinity.webp";

@@ -24,7 +24,7 @@ import type {
 import {
   getIncrementalDamagePerAttribute,
   type IncrementalDamagePerAttribute,
-} from "../../calculator/newCalculator";
+} from "../../calculator/calculator";
 import { type DamageAttributeValues } from "../../calculator/attributes";
 import WeaponDamageChart from "./WeaponDamageChart";
 

@@ -40,7 +40,7 @@ import {
   type AttackElementCorrectParamAttribute,
   type EquipParamWeaponAttribute,
 } from "./buildTypes.ts";
-import { getNormalizedUpgradeLevel, weaponTypeLabels } from "../calculator/weaponUtils.ts";
+import { getNormalizedUpgradeLevel, weaponTypeLabels } from "../calculator/calculator.ts";
 import {
   urlOverrides,
   supportedWeaponTypes,
@@ -67,7 +67,7 @@ function isUniqueWeapon(row: EquipParamWeapon) {
 }
 
 function isSupportedWeaponType(wepType: number): wepType is WeaponType {
-  return supportedWeaponTypes.has(wepType);
+  return supportedWeaponTypes.has(wepType as WeaponType);
 }
 
 function isNotExcludedGem(gem: EquipParamGem) {
@@ -82,7 +82,7 @@ function getSwordArtAttacks(
   swordArtId: number,
   equipParamWeapon: EquipParamWeapon,
 ): SwordArtMeta[] {
-  const weaponTypeString = weaponTypeLabels.get(equipParamWeapon.wepType);
+  const weaponTypeString = weaponTypeLabels.get(equipParamWeapon.wepType as WeaponType);
   const isForWeapon = (attack: SwordArtMeta) => attack.name.startsWith(`[${weaponTypeString}]`);
   const isNotWeaponSpecific = (attack: SwordArtMeta) => !attack.name.match(weaponLabelsRegex);
   const isCategorySwordArt = categorySwordArt.has(swordArtId);
@@ -153,7 +153,7 @@ export function getAshOfWarList({
   }
 
   function isMountable(equipParamGem: EquipParamGem) {
-    const canMountKey = weaponTypeMap.get(equipParamWeapon.wepType);
+    const canMountKey = weaponTypeMap.get(equipParamWeapon.wepType as WeaponType);
     const canMountValue = canMountKey ? equipParamGem[canMountKey] : "0";
     return !!(typeof canMountValue === "string" ? parseInt(canMountValue) : canMountValue);
   }
@@ -380,7 +380,7 @@ export function getAshOfWarDamage({
       atkParamPcValue[`atk${atkParamDamageTypeShorthand[damageType]}Correction`];
     const atk = atkParamPcValue[`atk${atkParamDamageTypeShorthand[damageType]}`];
     const baseAtk =
-      (weapon.attack[weaponLevel][paramDamageTypeToDamageNumber[damageType]] || 0) *
+      (weapon.attack[weaponLevel][paramDamageTypeToDamageNumber[damageType] as AttackPowerType] || 0) *
         atkCorrection *
         0.01 +
       (isBullet || isAddBaseAtk ? atk : 0) *
@@ -402,7 +402,7 @@ export function getAshOfWarDamage({
       const changePoint = 0;
 
       const correct_by =
-        weapon.calcCorrectGraphs[paramDamageTypeToDamageNumber[damageType]]?.[
+        weapon.calcCorrectGraphs[paramDamageTypeToDamageNumber[damageType] as AttackPowerType]?.[
           adjustedAttributes[attr]
         ] || 0;
       // const scaling = weapon.attributeScaling[weaponLevel][attributeToShorthand[attr]] || 0;
